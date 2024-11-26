@@ -1,0 +1,4 @@
+impactframes/dolphin_llama3_omost:latest
+abedalswaity7/flux-prompt:latest
+chanwit/flux-7b:latest
+llava-llama3:latest
