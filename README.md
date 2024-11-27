@@ -8,9 +8,10 @@ This are little nodes that are helping to make big workflows a bit smaller.
 
 This are nodes i made for my daily work with ComfyUi to make my life a bit easier. Maybe they can help you too.
 
+![nodes1](https://github.com/user-attachments/assets/171c0446-b30f-4d16-bc92-35333ea3f308)
 
 
-- ###### SD(XL) Starter : Is loading checkpoint (with CLIP and VAE) and create an empty latend (you can choose resolutions or set your own)
+- SD(XL) Starter : Is loading checkpoint (with CLIP and VAE) and create an empty latend (you can choose resolutions or set your own)
 
 - FLUX Starter : Is loading Unet (Diffusion Model), 2 Clips and create an empty latend (you can choose resolutions  or set your own)
 
@@ -20,7 +21,7 @@ This are nodes i made for my daily work with ComfyUi to make my life a bit easie
 
 - Ollama Helper: Is loading your Ollama models from a .txt file and pass it and a system prompt to Ollama nodes. 
 
-![nodes1](https://github.com/user-attachments/assets/5e8ae977-7f72-4246-b033-5eaf92467f49)
+
 
 
 Install:
