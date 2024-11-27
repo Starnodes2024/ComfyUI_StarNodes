@@ -33,6 +33,7 @@ class FluxStartSettings:
         
         return {
             "required": {
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "Your positive prompt..."}),
                 "UNET": (["Default"] + available_unets, {"default": "flux1-dev.safetensors"}),
                 "CLIP_1": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "ViT-L-14-BEST-smooth-GmP-ft.safetensors"}),
@@ -49,18 +50,22 @@ class FluxStartSettings:
         "CLIP",      # CLIP Model
         "LATENT",    # Latent Image
         "INT",       # Width
-        "INT"        # Height
+        "INT",       # Height
+        "CONDITIONING"  # Added conditioning output
     )
+    
     RETURN_NAMES = (
         "UNET", 
         "CLIP", 
         "LATENT",
         "WIDTH",
-        "HEIGHT"
+        "HEIGHT",
+        "CONDITIONING"  # Added conditioning output name
     )
     
     FUNCTION = "process_settings"
     CATEGORY = "StarNodes"
+    DESCRIPTION = "Flux Start Settings with text conditioning"
 
     @staticmethod
     def read_ratios():
@@ -84,6 +89,7 @@ class FluxStartSettings:
 
     def process_settings(
         self, 
+        text,
         UNET, 
         CLIP_1, 
         CLIP_2, 
@@ -108,16 +114,39 @@ class FluxStartSettings:
             unet_path = folder_paths.get_full_path_or_raise("diffusion_models", UNET)
             unet = comfy.sd.load_diffusion_model(unet_path, model_options=model_options)
         
-        # CLIP Loading
+        # CLIP Loading and Conditioning
+        conditioning = None
         clip = None
         if CLIP_1 != "Default" and CLIP_2 != "Default":
             clip_path1 = folder_paths.get_full_path_or_raise("text_encoders", CLIP_1)
             clip_path2 = folder_paths.get_full_path_or_raise("text_encoders", CLIP_2)
+            
+            # Ensure we're using the Flux-specific CLIP type
             clip_type = comfy.sd.CLIPType.FLUX
-            clip = comfy.sd.load_clip(ckpt_paths=[clip_path1, clip_path2], 
-                                      embedding_directory=folder_paths.get_folder_paths("embeddings"), 
-                                      clip_type=clip_type)
-        
+            
+            # Load both CLIP models
+            clip = comfy.sd.load_clip(
+                ckpt_paths=[clip_path1, clip_path2], 
+                embedding_directory=folder_paths.get_folder_paths("embeddings"), 
+                clip_type=clip_type
+            )
+            
+            # Generate conditioning using both CLIPs
+            if clip is not None:
+                # Tokenize the text
+                tokens = clip.tokenize(text)
+                
+                # Encode tokens using both CLIPs
+                output = clip.encode_from_tokens(
+                    tokens, 
+                    return_pooled=True, 
+                    return_dict=True
+                )
+                
+                # Extract the conditioning
+                cond = output.pop("cond")
+                conditioning = [[cond, output]]
+
         # Latent Image Generation
         _, ratio_dict = self.read_ratios()
         
@@ -142,7 +171,8 @@ class FluxStartSettings:
             clip,           # CLIP model or None
             {"samples": latent},  # Latent image
             width,          # Width as an INT output
-            height          # Height as an INT output
+            height,         # Height as an INT output
+            conditioning    # Added conditioning output
         )
 
 # Mapping for ComfyUI to recognize the node

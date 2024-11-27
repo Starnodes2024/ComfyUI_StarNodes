@@ -2,7 +2,6 @@ import os
 import json
 import torch
 import folder_paths
-import nodes
 import comfy.sd
 
 class SDXLStartSettings:
@@ -16,10 +15,11 @@ class SDXLStartSettings:
         
         return {
             "required": {
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "Your positive prompt..."}),
                 "Checkpoint": (available_checkpoints, {"tooltip": "The checkpoint (model) to load"}),
                 "Latent_Ratio": (ratio_sizes, {"default": "1:1 [1024x1024 square]"}),
-                "Latent_Width": ("INT", {"default": 1024, "min": 16, "max": nodes.MAX_RESOLUTION, "step": 16}),
-                "Latent_Height": ("INT", {"default": 1024, "min": 16, "max": nodes.MAX_RESOLUTION, "step": 16}),
+                "Latent_Width": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
+                "Latent_Height": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
                 "Batch_Size": ("INT", {"default": 1, "min": 1, "max": 4096}),
             }
         }
@@ -30,7 +30,8 @@ class SDXLStartSettings:
         "VAE",       # VAE Model
         "LATENT",    # Latent Image
         "INT",       # Width
-        "INT"        # Height
+        "INT",       # Height
+        "CONDITIONING"  # Conditioning Output
     )
     
     RETURN_NAMES = (
@@ -39,7 +40,8 @@ class SDXLStartSettings:
         "vae",
         "latent",
         "width", 
-        "height"
+        "height",
+        "conditioning"  # Conditioning Name
     )
     
     FUNCTION = "process_settings"
@@ -68,6 +70,7 @@ class SDXLStartSettings:
     @classmethod
     def process_settings(
         cls, 
+        text,
         Checkpoint, 
         Latent_Ratio,
         Latent_Width,
@@ -87,6 +90,14 @@ class SDXLStartSettings:
         
         # Unpack the first 3 values
         model, clip, vae = checkpoint_data[:3]
+        
+        # Generate Conditioning
+        conditioning = None
+        if clip and text:
+            tokens = clip.tokenize(text)
+            output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+            cond = output.pop("cond")
+            conditioning = [[cond, output]]
         
         # Latent Image Generation
         _, ratio_dict = cls.read_ratios()
@@ -113,7 +124,8 @@ class SDXLStartSettings:
             vae,            # VAE model
             {"samples": latent},  # Latent image
             width,          # Width as an INT output
-            height          # Height as an INT output
+            height,         # Height as an INT output
+            conditioning    # Conditioning
         )
 
 # Mapping for ComfyUI to recognize the node
