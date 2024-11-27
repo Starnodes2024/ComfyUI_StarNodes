@@ -20,6 +20,7 @@ This are nodes i made for my daily work with ComfyUi to make my life a bit easie
 
 - Ollama Helper: Is loading your Ollama models from a .txt file and pass it and a system prompt to Ollama nodes. 
 
+![nodes1](https://github.com/user-attachments/assets/5e8ae977-7f72-4246-b033-5eaf92467f49)
 
 
 Install:
