@@ -1,6 +1,7 @@
 import os
 import json
 import torch
+import nodes
 import folder_paths
 import comfy.sd
 
@@ -15,6 +16,7 @@ class SD35StartSettings:
         available_models = ["Default"]
         available_unets = folder_paths.get_filename_list("unet")
         available_clips = folder_paths.get_filename_list("text_encoders")
+        available_vaes = folder_paths.get_filename_list("vae")
         
         try:
             for path in models_paths:
@@ -37,6 +39,7 @@ class SD35StartSettings:
                 "CLIP_1": (["Default"] + available_clips, {"default": "clip_l.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "clip_g.safetensors"}),
                 "CLIP_3": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
+                "VAE": (["Default"] + available_vaes, {"default": "Default"}),
                 "Weight_Dtype": (["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], {"default": "default"}),
                 "Latent_Ratio": (ratio_sizes, {"default": "1:1 [1024x1024 square]"}),
                 "Latent_Width": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
@@ -51,7 +54,8 @@ class SD35StartSettings:
         "LATENT",    # Latent Image
         "INT",       # Width
         "INT",       # Height
-        "CONDITIONING"  # Conditioning hinzugefügt
+        "CONDITIONING",  # Conditioning hinzugefügt
+        "VAE"       # Added VAE output
     )
     
     RETURN_NAMES = (
@@ -60,7 +64,8 @@ class SD35StartSettings:
         "LATENT",
         "WIDTH",
         "HEIGHT",
-        "CONDITIONING"  # Conditioning Name
+        "CONDITIONING",  
+        "VAE"
     )
     
     FUNCTION = "process_settings"
@@ -93,6 +98,7 @@ class SD35StartSettings:
         CLIP_1, 
         CLIP_2, 
         CLIP_3, 
+        VAE,
         Weight_Dtype, 
         Latent_Ratio,
         Latent_Width,
@@ -134,6 +140,13 @@ class SD35StartSettings:
                 output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning = [[cond, output]]
+                
+        # VAE Loading
+        vae = None
+        decoder_name = "Default"
+        if VAE != "Default":
+            decoder_name = VAE
+            vae = nodes.VAELoader().load_vae(decoder_name)[0]
 
         # Latentbild generieren
         _, ratio_dict = self.read_ratios()
@@ -151,7 +164,8 @@ class SD35StartSettings:
             {"samples": latent},
             width,
             height,
-            conditioning  # Conditioning hinzufügen
+            conditioning,  # Conditioning hinzufügen
+            vae            # Added VAE output
         )
 
 # Node-Mapping für ComfyUI

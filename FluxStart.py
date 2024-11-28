@@ -16,6 +16,7 @@ class FluxStartSettings:
         available_models = ["Default"]
         available_unets = folder_paths.get_filename_list("diffusion_models")
         available_clips = folder_paths.get_filename_list("text_encoders")
+        available_vaes = folder_paths.get_filename_list("vae")
         
         try:
             for path in models_paths:
@@ -37,6 +38,7 @@ class FluxStartSettings:
                 "UNET": (["Default"] + available_unets, {"default": "flux1-dev.safetensors"}),
                 "CLIP_1": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "ViT-L-14-BEST-smooth-GmP-ft.safetensors"}),
+                "VAE": (["Default"] + available_vaes, {"default": "Default"}),
                 "Weight_Dtype": (["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], {"default": "default"}),
                 "Latent_Ratio": (ratio_sizes, {"default": "1:1 [1024x1024 square]"}),
                 "Latent_Width": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 64}),
@@ -51,7 +53,8 @@ class FluxStartSettings:
         "LATENT",    # Latent Image
         "INT",       # Width
         "INT",       # Height
-        "CONDITIONING"  # Added conditioning output
+        "CONDITIONING",  # Added conditioning output
+        "VAE",       # Added VAE output
     )
     
     RETURN_NAMES = (
@@ -60,7 +63,8 @@ class FluxStartSettings:
         "LATENT",
         "WIDTH",
         "HEIGHT",
-        "CONDITIONING"  # Added conditioning output name
+        "CONDITIONING",  # Added conditioning output name
+        "VAE",
     )
     
     FUNCTION = "process_settings"
@@ -93,6 +97,7 @@ class FluxStartSettings:
         UNET, 
         CLIP_1, 
         CLIP_2, 
+        VAE,
         Weight_Dtype, 
         Latent_Ratio,
         Latent_Width,
@@ -147,6 +152,13 @@ class FluxStartSettings:
                 cond = output.pop("cond")
                 conditioning = [[cond, output]]
 
+        # VAE Loading
+        vae = None
+        decoder_name = "Default"
+        if VAE != "Default":
+            decoder_name = VAE
+            vae = nodes.VAELoader().load_vae(decoder_name)[0]
+
         # Latent Image Generation
         _, ratio_dict = self.read_ratios()
         
@@ -172,7 +184,8 @@ class FluxStartSettings:
             {"samples": latent},  # Latent image
             width,          # Width as an INT output
             height,         # Height as an INT output
-            conditioning    # Added conditioning output
+            conditioning,   # Added conditioning output
+            vae,            # Added VAE output
         )
 
 # Mapping for ComfyUI to recognize the node
