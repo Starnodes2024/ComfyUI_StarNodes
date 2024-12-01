@@ -23,6 +23,7 @@ This are nodes i made for my daily work with ComfyUi to make my life a bit easie
 - Star Model Latent Upscaler: Decode an input Latent and Vae to an Image, upscale with choosen model, resize to given size, decode output image back to laten with selected VAE.
 
 - Star Seven Wildcards: A prompt maker that use 7 inputs with wildcards to create prompts with different wildcards and multiple random inputs from one wildcard used. Also works without wildcards as text concatenate.
+  You will find many wildcards in the "wildcards" subfolder of the node. To use them just copy the whole folder to your main ComfyUI directory.
 
 - Input Image Chooser: A simple switch for big workflows to switch between 8 input images 
 
@@ -30,11 +31,11 @@ This are nodes i made for my daily work with ComfyUi to make my life a bit easie
 This helps when ollama models are not show up in the list.
 
 ## Install:
+Just search for Starnodes in ComfyUI Manager
 
+Manual install:
 1. Open CMD within your custom nodes folder
-
 2. Type: git clone https://github.com/Starnodes2024/ComfyUI_StarNodes
-
 3.  Restart ComfyUI
 
 You will find the Nodes under "Starnodes" or search for "star"  
