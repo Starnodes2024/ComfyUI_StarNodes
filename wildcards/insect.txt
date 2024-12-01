@@ -1,29 +1,69 @@
-Ant
-Bee
-Hornet
-Wasp
 Beetle
-Grasshopper
-Butterfly
-Fly
-Dragonfly
-Cicada
+Hornet
+Moth
 Spider
-Mosquito
-Bug
-Termite
+Butterfly
+Lacewing
+Wasp
+Ant
+Flies
+Grasshopper
+Stink Bug
+Dragonfly
+Cricket
+Caddis Fly
+Fly
+Earwig
+Gnat
 Flea
 Tick
-Cockroach
-Moth
-Cricket
-Crustacean
-Millipede
-Woodlouse
-Worm
-Bee Wolf
-Ladybug
-Earwig
+Mosquito
+Bee
+Mantis
 Praying Mantis
+Fire Ant
+Harvester Termite
+Locust
+Katydid
+Assassin Bug
+Honey Bee
+Woolly Bear Caterpillar
+Stinkfly
+Louse
+Pseudoscorpion
+Rat Flea
+Fruit Fly
 Water Strider
+Tarantula Hawk Wasp
+Cicada
+Gypsy Moth
+Butterworm
+Flycatcher
+Tiger Beetle
+Antlion
+Stink Bug
+Pit Stopfly
+Silk Moth
+Wolf Spider
+Mason Bee
+Cricket
+Furrowed Ant
 Cockroach
+Burying Beetles
+Parasitic Wasp
+Sphex
+Tachinid Fly
+Moth
+Hatchet Fungus Beetle
+Leafcutter Bee
+Diving Beetle
+Robber Fly
+Stiff-winged Beetle
+Blattodea
+Scorpionfly
+African Giant Swallowtail
+Caterpillar
+Bristle Fly
+Fruit Spider
+Velvet Ant
+Carrot Rust Fly
