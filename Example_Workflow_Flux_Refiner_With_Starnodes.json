@@ -309,29 +309,6 @@
       ]
     },
     {
-      "id": 49,
-      "type": "Note",
-      "pos": [
-        571.6559448242188,
-        -1221.9075927734375
-      ],
-      "size": [
-        359.1418151855469,
-        161.21673583984375
-      ],
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT REFINER",
-      "properties": {},
-      "widgets_values": [
-        "This is the second pass generation, you can use you prefired Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux."
-      ],
-      "color": "#af3535"
-    },
-    {
       "id": 32,
       "type": "Note",
       "pos": [
@@ -343,7 +320,7 @@
         95.99164581298828
       ],
       "flags": {},
-      "order": 1,
+      "order": 0,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -351,29 +328,6 @@
       "properties": {},
       "widgets_values": [
         "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard."
-      ],
-      "color": "#af3535"
-    },
-    {
-      "id": 48,
-      "type": "Note",
-      "pos": [
-        179.78028869628906,
-        -1219.9063720703125
-      ],
-      "size": [
-        360.0219421386719,
-        102.07351684570312
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT FLUX SAMPLER",
-      "properties": {},
-      "widgets_values": [
-        "This is the first pass generation, you can use you prefired Sampler to generate the Image.\nThis is an example for Flux"
       ],
       "color": "#af3535"
     },
@@ -389,7 +343,7 @@
         109.36874389648438
       ],
       "flags": {},
-      "order": 3,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -412,7 +366,7 @@
         261.19586181640625
       ],
       "flags": {},
-      "order": 4,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -570,7 +524,7 @@
         541.7451171875
       ],
       "flags": {},
-      "order": 5,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -610,7 +564,7 @@
         238.643798828125
       ],
       "flags": {},
-      "order": 6,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -633,7 +587,7 @@
         82
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -709,7 +663,7 @@
         58
       ],
       "flags": {},
-      "order": 8,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -831,6 +785,52 @@
         "Node name for S&R": "SamplerCustomAdvanced"
       },
       "widgets_values": []
+    },
+    {
+      "id": 49,
+      "type": "Note",
+      "pos": [
+        571.6559448242188,
+        -1221.9075927734375
+      ],
+      "size": [
+        359.1418151855469,
+        161.21673583984375
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT REFINER",
+      "properties": {},
+      "widgets_values": [
+        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux."
+      ],
+      "color": "#af3535"
+    },
+    {
+      "id": 48,
+      "type": "Note",
+      "pos": [
+        179.78028869628906,
+        -1219.9063720703125
+      ],
+      "size": [
+        360.0219421386719,
+        102.07351684570312
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT FLUX SAMPLER",
+      "properties": {},
+      "widgets_values": [
+        "This is the first pass generation, you can use you preferred Sampler to generate the Image.\nThis is an example for Flux"
+      ],
+      "color": "#af3535"
     }
   ],
   "links": [
@@ -1123,10 +1123,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5989500000000576,
+      "scale": 1.7088742511247625,
       "offset": [
-        1021.2925630803887,
-        1300.5492274746414
+        -168.68625141654942,
+        1272.8627845591716
       ]
     }
   },
