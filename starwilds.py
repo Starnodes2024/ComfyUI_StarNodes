@@ -7,7 +7,7 @@ class Starwildcards:
     
     RETURN_TYPES = ('STRING',)
     FUNCTION = 'process'
-    CATEGORY = 'Starnodes'
+    CATEGORY = 'StarNodes'
 
     @classmethod
     def INPUT_TYPES(s):
