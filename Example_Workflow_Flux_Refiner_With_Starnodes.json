@@ -1,6 +1,6 @@
 {
-  "last_node_id": 52,
-  "last_link_id": 86,
+  "last_node_id": 57,
+  "last_link_id": 115,
   "nodes": [
     {
       "id": 35,
@@ -14,7 +14,7 @@
         246
       ],
       "flags": {},
-      "order": 17,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -41,18 +41,18 @@
         46
       ],
       "flags": {},
-      "order": 15,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 68
+          "link": 110
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 57
+          "link": 103
         }
       ],
       "outputs": [
@@ -71,107 +71,6 @@
       "widgets_values": []
     },
     {
-      "id": 46,
-      "type": "SamplerCustomAdvanced",
-      "pos": [
-        592.4033813476562,
-        -825.9609985351562
-      ],
-      "size": [
-        308.9867248535156,
-        106
-      ],
-      "flags": {},
-      "order": 18,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "noise",
-          "type": "NOISE",
-          "link": 80
-        },
-        {
-          "name": "guider",
-          "type": "GUIDER",
-          "link": 81
-        },
-        {
-          "name": "sampler",
-          "type": "SAMPLER",
-          "link": 82
-        },
-        {
-          "name": "sigmas",
-          "type": "SIGMAS",
-          "link": 86
-        },
-        {
-          "name": "latent_image",
-          "type": "LATENT",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "output",
-          "type": "LATENT",
-          "links": [
-            85
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "denoised_output",
-          "type": "LATENT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "SamplerCustomAdvanced"
-      },
-      "widgets_values": []
-    },
-    {
-      "id": 50,
-      "type": "BasicScheduler",
-      "pos": [
-        593.5971069335938,
-        -965.7372436523438
-      ],
-      "size": [
-        315,
-        106
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 83
-        }
-      ],
-      "outputs": [
-        {
-          "name": "SIGMAS",
-          "type": "SIGMAS",
-          "links": [
-            86
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "BasicScheduler"
-      },
-      "widgets_values": [
-        "normal",
-        20,
-        0.15
-      ]
-    },
-    {
       "id": 33,
       "type": "SaveImage",
       "pos": [
@@ -183,7 +82,7 @@
         290.2170104980469
       ],
       "flags": {},
-      "order": 20,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -212,13 +111,13 @@
         50.83784484863281
       ],
       "flags": {},
-      "order": 19,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 85
+          "link": 115
         },
         {
           "name": "vae",
@@ -242,30 +141,371 @@
       "widgets_values": []
     },
     {
+      "id": 32,
+      "type": "Note",
+      "pos": [
+        -697.3704223632812,
+        -1231.8411865234375
+      ],
+      "size": [
+        384.4184875488281,
+        95.99164581298828
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT WILDCARDS",
+      "properties": {},
+      "widgets_values": [
+        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard."
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 22,
+      "type": "StarFiveWildcards",
+      "pos": [
+        -685.7020263671875,
+        -1030.6800537109375
+      ],
+      "size": [
+        370.01025390625,
+        541.7451171875
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            42
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StarFiveWildcards"
+      },
+      "widgets_values": [
+        357505720702041,
+        "randomize",
+        "",
+        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
+        "a purple __animals__ sitting on a star, the __animals__ is",
+        "wearing __outfit__ . \"STARNODES\" title text in bold letters.",
+        "__pos__",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 47,
+      "type": "Note",
+      "pos": [
+        -263.1951904296875,
+        -1227.5423583984375
+      ],
+      "size": [
+        399.6626281738281,
+        238.643798828125
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT START NODE",
+      "properties": {},
+      "widgets_values": [
+        "The Flux Star(t) Settings node is loading all your needed models. \n\nYou can choose one of the given ratios or set it to \"Free Ratio\" then it uses the input width and height.\n\nIf you prefer GGUF models, they are not implementet yet. So you have to add a GGUF loader for that models.\n\nYou can use the integrated CLIP text encoder and use the output conditioning. If you want to add loras or use a different text encoding you can use the CLIP output for conditioning."
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 27,
+      "type": "ShowText|pysssss",
+      "pos": [
+        -680.6320190429688,
+        -434.02496337890625
+      ],
+      "size": [
+        368.5205078125,
+        135.77195739746094
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 42,
+          "widget": {
+            "name": "text"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            91
+          ],
+          "slot_index": 0,
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "",
+        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Alligator sitting on a star, the Hamster is wearing Vintage-inspired lace dress cinched at the waist with a wide belt, paired with black tights and boots. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
+      ]
+    },
+    {
+      "id": 54,
+      "type": "FluxStartSettings",
+      "pos": [
+        -240,
+        -880
+      ],
+      "size": [
+        350,
+        412
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 91,
+          "widget": {
+            "name": "text"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "UNET",
+          "type": "MODEL",
+          "links": [
+            105
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": null
+        },
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            107
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            106
+          ],
+          "slot_index": 5
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            96,
+            103
+          ],
+          "slot_index": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FluxStartSettings"
+      },
+      "widgets_values": [
+        "Your positive prompt...",
+        "flux1-dev.safetensors",
+        "SD3.5\\t5xxl_fp16.safetensors",
+        "SD3.5\\clip_l.safetensors",
+        "ae.safetensors",
+        "default",
+        "1:1 [1024x1024 square]",
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 52,
+      "type": "Note",
+      "pos": [
+        963.8211669921875,
+        -1218.2825927734375
+      ],
+      "size": [
+        360,
+        110
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT OUTPUT",
+      "properties": {},
+      "widgets_values": [
+        "What you see is what you get :-)"
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 48,
+      "type": "Note",
+      "pos": [
+        179.78028869628906,
+        -1219.9063720703125
+      ],
+      "size": [
+        360.0219421386719,
+        102.07351684570312
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT FLUX SAMPLER",
+      "properties": {},
+      "widgets_values": [
+        "This is the first pass generation, you can use you preferred Sampler to generate the Image.\nThis is an example for Flux\nSeed \"-1\" generates a random seed."
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 56,
+      "type": "Fluxstarsampler",
+      "pos": [
+        200,
+        -1010
+      ],
+      "size": [
+        317.4000244140625,
+        266
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 105
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 106
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 107
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            112
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": [
+            113
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            108,
+            110
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Fluxstarsampler"
+      },
+      "widgets_values": [
+        "-1",
+        "euler",
+        "simple",
+        "20",
+        "3.5",
+        "",
+        "",
+        "1.0"
+      ]
+    },
+    {
       "id": 21,
       "type": "Starupscale",
       "pos": [
-        600.169921875,
-        -565.0618286132812
+        200,
+        -630
       ],
       "size": [
         320.1286926269531,
         170
       ],
       "flags": {},
-      "order": 16,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
           "name": "VAE_INPUT",
           "type": "VAE",
-          "link": 48,
+          "link": 96,
           "shape": 7
         },
         {
           "name": "LATENT_INPUT",
           "type": "LATENT",
-          "link": 69,
+          "link": 108,
           "shape": 7
         },
         {
@@ -293,7 +533,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            84
+            114
           ],
           "slot_index": 2
         }
@@ -309,482 +549,69 @@
       ]
     },
     {
-      "id": 32,
-      "type": "Note",
+      "id": 57,
+      "type": "Fluxstarsampler",
       "pos": [
-        -697.3704223632812,
-        -1231.8411865234375
+        600,
+        -970
       ],
       "size": [
-        384.4184875488281,
-        95.99164581298828
+        317.4000244140625,
+        266
       ],
       "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT WILDCARDS",
-      "properties": {},
-      "widgets_values": [
-        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard."
-      ],
-      "color": "#af3535"
-    },
-    {
-      "id": 52,
-      "type": "Note",
-      "pos": [
-        963.8211669921875,
-        -1218.2825927734375
-      ],
-      "size": [
-        351.8663330078125,
-        109.36874389648438
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT OUTPUT",
-      "properties": {},
-      "widgets_values": [
-        "What you see is what you get :-)"
-      ],
-      "color": "#af3535"
-    },
-    {
-      "id": 51,
-      "type": "Note",
-      "pos": [
-        583.4738159179688,
-        -328.4168701171875
-      ],
-      "size": [
-        356.9871826171875,
-        261.19586181640625
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT THE UPSCALER",
-      "properties": {},
-      "widgets_values": [
-        "The Upscaler is preparing the latent from the 1. pass to upscale it for the detailer. \n\nyou can use an input image too or use the output image.\nThe VAE chooser is for final encoding to get the right latent if you want to use a different sampler to make the latent ready for SD, SDXL, FLUX or SD3.5\n\nYou need the upscale models in your \"upscale_models\" folder of ComfyUI. \n\nThe Siax model and many more you can find on openmodeldb.info\nLink to the used Siax-Model:\nhttps://openmodeldb.info/models/4x-NMKD-Siax-CX"
-      ],
-      "color": "#af3535"
-    },
-    {
-      "id": 23,
-      "type": "FluxStartSettings",
-      "pos": [
-        -250.1488800048828,
-        -861.1906127929688
-      ],
-      "size": [
-        375.16314697265625,
-        412
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "text",
-          "type": "STRING",
-          "link": 43,
-          "widget": {
-            "name": "text"
-          }
-        }
-      ],
-      "outputs": [
-        {
-          "name": "UNET",
-          "type": "MODEL",
-          "links": [
-            76,
-            78,
-            83
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": null
-        },
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            64
-          ],
-          "slot_index": 2
-        },
-        {
-          "name": "WIDTH",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "HEIGHT",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            74
-          ],
-          "slot_index": 5
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            48,
-            57
-          ],
-          "slot_index": 6
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "FluxStartSettings"
-      },
-      "widgets_values": [
-        "Your positive prompt...",
-        "flux1-dev.safetensors",
-        "t5xxl_fp16.safetensors",
-        "ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors",
-        "ae.safetensors",
-        "default",
-        "16:9 [1344x768 landscape]",
-        1024,
-        1024,
-        1
-      ]
-    },
-    {
-      "id": 27,
-      "type": "ShowText|pysssss",
-      "pos": [
-        -680.6320190429688,
-        -434.02496337890625
-      ],
-      "size": [
-        368.5205078125,
-        135.77195739746094
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "text",
-          "type": "STRING",
-          "link": 42,
-          "widget": {
-            "name": "text"
-          }
-        }
-      ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            43
-          ],
-          "slot_index": 0,
-          "shape": 6
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "",
-        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Koala sitting on a star, the Cassowary is wearing Rockies snowboarding outfit with beanie . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
-      ]
-    },
-    {
-      "id": 22,
-      "type": "StarFiveWildcards",
-      "pos": [
-        -685.7020263671875,
-        -1030.6800537109375
-      ],
-      "size": [
-        370.01025390625,
-        541.7451171875
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            42
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "StarFiveWildcards"
-      },
-      "widgets_values": [
-        293070789807525,
-        "randomize",
-        "",
-        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
-        "a purple __animals__ sitting on a star, the __animals__ is",
-        "wearing __outfit__ . \"STARNODES\" title text in bold letters.",
-        "__pos__",
-        "",
-        ""
-      ]
-    },
-    {
-      "id": 47,
-      "type": "Note",
-      "pos": [
-        -263.1951904296875,
-        -1227.5423583984375
-      ],
-      "size": [
-        399.6626281738281,
-        238.643798828125
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT START NODE",
-      "properties": {},
-      "widgets_values": [
-        "The Flux Star(t) Settings node is loading all your needed models. \n\nYou can choose one of the given ratios or set it to \"Free Ratio\" then it uses the input width and height.\n\nIf you prefer GGUF models, they are not implementet yet. So you have to add a GGUF loader for that models.\n\nYou can use the integrated CLIP text encoder and use the output conditioning. If you want to add loras or use a different text encoding you can use the CLIP output for conditioning."
-      ],
-      "color": "#af3535"
-    },
-    {
-      "id": 37,
-      "type": "RandomNoise",
-      "pos": [
-        203.76824951171875,
-        -1002.7130737304688
-      ],
-      "size": [
-        315,
-        82
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "NOISE",
-          "type": "NOISE",
-          "links": [
-            59,
-            80
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "RandomNoise"
-      },
-      "widgets_values": [
-        672012863396222,
-        "randomize"
-      ]
-    },
-    {
-      "id": 39,
-      "type": "BasicGuider",
-      "pos": [
-        200.37083435058594,
-        -879.8821411132812
-      ],
-      "size": [
-        317.19512939453125,
-        46
-      ],
-      "flags": {},
-      "order": 13,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 76
+          "link": 112
         },
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 74
+          "link": 113
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 114
         }
       ],
       "outputs": [
-        {
-          "name": "GUIDER",
-          "type": "GUIDER",
-          "links": [
-            61,
-            81
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "BasicGuider"
-      },
-      "widgets_values": []
-    },
-    {
-      "id": 40,
-      "type": "KSamplerSelect",
-      "pos": [
-        198.94712829589844,
-        -798.076904296875
-      ],
-      "size": [
-        315,
-        58
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "SAMPLER",
-          "type": "SAMPLER",
-          "links": [
-            62,
-            82
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "KSamplerSelect"
-      },
-      "widgets_values": [
-        "euler"
-      ]
-    },
-    {
-      "id": 41,
-      "type": "BasicScheduler",
-      "pos": [
-        199.31756591796875,
-        -703.5731201171875
-      ],
-      "size": [
-        315,
-        106
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 78
-        }
-      ],
-      "outputs": [
+          "links": null
+        },
         {
-          "name": "SIGMAS",
-          "type": "SIGMAS",
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
           "links": [
-            63
+            115
           ],
-          "slot_index": 0
+          "slot_index": 2
         }
       ],
       "properties": {
-        "Node name for S&R": "BasicScheduler"
+        "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        "normal",
-        20,
-        1
+        "-1",
+        "euler",
+        "simple",
+        "20",
+        "3.5",
+        "",
+        "",
+        "0.2"
       ]
-    },
-    {
-      "id": 36,
-      "type": "SamplerCustomAdvanced",
-      "pos": [
-        205.07989501953125,
-        -556.4290771484375
-      ],
-      "size": [
-        308.9867248535156,
-        106
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "noise",
-          "type": "NOISE",
-          "link": 59
-        },
-        {
-          "name": "guider",
-          "type": "GUIDER",
-          "link": 61
-        },
-        {
-          "name": "sampler",
-          "type": "SAMPLER",
-          "link": 62
-        },
-        {
-          "name": "sigmas",
-          "type": "SIGMAS",
-          "link": 63
-        },
-        {
-          "name": "latent_image",
-          "type": "LATENT",
-          "link": 64
-        }
-      ],
-      "outputs": [
-        {
-          "name": "output",
-          "type": "LATENT",
-          "links": [
-            68,
-            69
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "denoised_output",
-          "type": "LATENT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "SamplerCustomAdvanced"
-      },
-      "widgets_values": []
     },
     {
       "id": 49,
@@ -794,43 +621,45 @@
         -1221.9075927734375
       ],
       "size": [
-        359.1418151855469,
-        161.21673583984375
+        370,
+        160
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [],
       "title": "ABOUT REFINER",
       "properties": {},
       "widgets_values": [
-        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux."
+        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux.\nYou can connect the model and condition from the first pass.\nSeed \"-1\" generates a random seed."
       ],
-      "color": "#af3535"
+      "color": "#af3535",
+      "bgcolor": "#653"
     },
     {
-      "id": 48,
+      "id": 51,
       "type": "Note",
       "pos": [
-        179.78028869628906,
-        -1219.9063720703125
+        190,
+        -390
       ],
       "size": [
-        360.0219421386719,
-        102.07351684570312
+        356.9871826171875,
+        261.19586181640625
       ],
       "flags": {},
-      "order": 8,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "ABOUT FLUX SAMPLER",
+      "title": "ABOUT THE UPSCALER",
       "properties": {},
       "widgets_values": [
-        "This is the first pass generation, you can use you preferred Sampler to generate the Image.\nThis is an example for Flux"
+        "The Upscaler is preparing the latent from the 1. pass to upscale it for the detailer. \n\nyou can use an input image too or use the output image.\nThe VAE chooser is for final encoding to get the right latent if you want to use a different sampler to make the latent ready for SD, SDXL, FLUX or SD3.5\n\nYou need the upscale models in your \"upscale_models\" folder of ComfyUI. \n\nThe Siax model and many more you can find on openmodeldb.info\nLink to the used Siax-Model:\nhttps://openmodeldb.info/models/4x-NMKD-Siax-CX"
       ],
-      "color": "#af3535"
+      "color": "#af3535",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -841,22 +670,6 @@
       27,
       0,
       "STRING"
-    ],
-    [
-      43,
-      27,
-      0,
-      23,
-      0,
-      "STRING"
-    ],
-    [
-      48,
-      23,
-      6,
-      21,
-      0,
-      "VAE"
     ],
     [
       50,
@@ -875,14 +688,6 @@
       "IMAGE"
     ],
     [
-      57,
-      23,
-      6,
-      34,
-      1,
-      "VAE"
-    ],
-    [
       58,
       34,
       0,
@@ -891,140 +696,100 @@
       "IMAGE"
     ],
     [
-      59,
-      37,
+      91,
+      27,
       0,
-      36,
+      54,
       0,
-      "NOISE"
+      "STRING"
     ],
     [
-      61,
-      39,
+      96,
+      54,
+      6,
+      21,
       0,
-      36,
+      "VAE"
+    ],
+    [
+      103,
+      54,
+      6,
+      34,
       1,
-      "GUIDER"
+      "VAE"
     ],
     [
-      62,
-      40,
+      105,
+      54,
       0,
-      36,
-      2,
-      "SAMPLER"
-    ],
-    [
-      63,
-      41,
+      56,
       0,
-      36,
-      3,
-      "SIGMAS"
+      "MODEL"
     ],
     [
-      64,
-      23,
+      106,
+      54,
+      5,
+      56,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      107,
+      54,
       2,
-      36,
-      4,
+      56,
+      2,
       "LATENT"
     ],
     [
-      68,
-      36,
-      0,
+      108,
+      56,
+      2,
+      21,
+      1,
+      "LATENT"
+    ],
+    [
+      110,
+      56,
+      2,
       34,
       0,
       "LATENT"
     ],
     [
-      69,
-      36,
+      112,
+      56,
       0,
-      21,
-      1,
-      "LATENT"
+      57,
+      0,
+      "MODEL"
     ],
     [
-      74,
-      23,
-      5,
-      39,
+      113,
+      56,
+      1,
+      57,
       1,
       "CONDITIONING"
     ],
     [
-      76,
-      23,
-      0,
-      39,
-      0,
-      "MODEL"
-    ],
-    [
-      78,
-      23,
-      0,
-      41,
-      0,
-      "MODEL"
-    ],
-    [
-      80,
-      37,
-      0,
-      46,
-      0,
-      "NOISE"
-    ],
-    [
-      81,
-      39,
-      0,
-      46,
-      1,
-      "GUIDER"
-    ],
-    [
-      82,
-      40,
-      0,
-      46,
-      2,
-      "SAMPLER"
-    ],
-    [
-      83,
-      23,
-      0,
-      50,
-      0,
-      "MODEL"
-    ],
-    [
-      84,
+      114,
       21,
       2,
-      46,
-      4,
+      57,
+      2,
       "LATENT"
     ],
     [
-      85,
-      46,
-      0,
+      115,
+      57,
+      2,
       30,
       0,
       "LATENT"
-    ],
-    [
-      86,
-      50,
-      0,
-      46,
-      3,
-      "SIGMAS"
     ]
   ],
   "groups": [
@@ -1032,8 +797,8 @@
       "id": 1,
       "title": "Process Wildcards",
       "bounding": [
-        -695.7020263671875,
-        -1104.280029296875,
+        -700,
+        -1100,
         398.86871337890625,
         812.23779296875
       ],
@@ -1045,10 +810,10 @@
       "id": 3,
       "title": "First Pass for Flux-Generation",
       "bounding": [
-        179.0533447265625,
-        -1103.7200927734375,
-        359.742431640625,
-        693.3990478515625
+        180,
+        -1100,
+        360,
+        370
       ],
       "color": "#ff7142",
       "font_size": 24,
@@ -1058,10 +823,10 @@
       "id": 5,
       "title": "Second Pass (Refiner)",
       "bounding": [
-        578.1387329101562,
-        -1043.646484375,
-        348.3485412597656,
-        349.2207946777344
+        580,
+        -1040,
+        360,
+        350
       ],
       "color": "#eb683d",
       "font_size": 24,
@@ -1071,8 +836,8 @@
       "id": 7,
       "title": "First Preview",
       "bounding": [
-        965.0953979492188,
-        -1074.8878173828125,
+        970,
+        -1070,
         350.89605712890625,
         429.3525695800781
       ],
@@ -1084,8 +849,8 @@
       "id": 2,
       "title": "Load All Needed Models",
       "bounding": [
-        -260.77716064453125,
-        -969.97509765625,
+        -260,
+        -970,
         397.67633056640625,
         529.52783203125
       ],
@@ -1097,10 +862,10 @@
       "id": 4,
       "title": "Upscale Output For Refiner",
       "bounding": [
-        584.1292724609375,
-        -650.1655883789062,
-        351.0448303222656,
-        269.78997802734375
+        180,
+        -710,
+        360,
+        270
       ],
       "color": "#8882ca",
       "font_size": 24,
@@ -1110,8 +875,8 @@
       "id": 6,
       "title": "Save Final Image",
       "bounding": [
-        968.1497802734375,
-        -623.2894897460938,
+        970,
+        -620,
         348.4594421386719,
         550.24951171875
       ],
@@ -1123,10 +888,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.7088742511247625,
+      "scale": 0.4665073802097333,
       "offset": [
-        -168.68625141654942,
-        1272.8627845591716
+        1410.9692876513254,
+        1324.776244640518
       ]
     }
   },
