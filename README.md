@@ -8,8 +8,9 @@ This are little nodes that are helping to make big workflows a bit smaller.
 
 This are nodes i made for my daily work with ComfyUi to make my life a bit easier. Maybe they can help you too.
 
-![nodes1](https://github.com/user-attachments/assets/c0a83f7d-8089-4572-9ca8-a337d4031fbf)
+![nodes1](https://github.com/user-attachments/assets/31a6e5b3-0f33-4075-810a-e3dd992e84dd)
 
+- NEW: StarSampler FLUX: A Ksampler for Flux with settings and outputs for model and conditioning passtrough
 
 - SD(XL) Starter : Is loading checkpoint (with CLIP and VAE) and create an empty latend (you can choose resolutions or set your own)
 
