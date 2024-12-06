@@ -39,7 +39,7 @@ class Fluxstarsampler:
                     "model": ("MODEL", ),
                     "conditioning": ("CONDITIONING", ),
                     "latent": ("LATENT", ),
-                    "seed": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "-1" }),
+                    "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
                     "steps": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "20" }),
@@ -57,93 +57,62 @@ class Fluxstarsampler:
     def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise):
         is_schnell = model.model.model_type == comfy.model_base.ModelType.FLOW
 
-        noise = seed.replace("\n", ",").split(",")
-        noise = [random.randint(0, 999999) if "-1" in n else int(n) for n in noise]
-        if not noise:
-            noise = [random.randint(0, 999999)]
-
-        sampler = [sampler]  # Convert single selection to list for compatibility
-        scheduler = [scheduler]  # Convert single selection to list for compatibility
-
-        if steps == "":
-            if is_schnell:
-                steps = "4"
-            else:
-                steps = "20"
+        # Parse all input parameters
         steps = parse_string_to_list(steps)
-
-        denoise = "1.0" if denoise == "" else denoise
-        denoise = parse_string_to_list(denoise)
-
-        guidance = "3.5" if guidance == "" else guidance
-        guidance = parse_string_to_list(guidance)
+        denoise = parse_string_to_list("1.0" if denoise == "" else denoise)
+        guidance = parse_string_to_list("3.5" if guidance == "" else guidance)
 
         if not is_schnell:
-            max_shift = "1.15" if max_shift == "" else max_shift
-            base_shift = "0.5" if base_shift == "" else base_shift
+            max_shift = parse_string_to_list("1.15" if max_shift == "" else max_shift)
+            base_shift = parse_string_to_list("0.5" if base_shift == "" else base_shift)
         else:
-            max_shift = "0"
-            base_shift = "1.0" if base_shift == "" else base_shift
+            max_shift = parse_string_to_list("0")
+            base_shift = parse_string_to_list("1.0" if base_shift == "" else base_shift)
 
-        max_shift = parse_string_to_list(max_shift)
-        base_shift = parse_string_to_list(base_shift)
+        # Process latent dimensions
+        width = latent["samples"].shape[3] * 8
+        height = latent["samples"].shape[2] * 8
 
-        if isinstance(conditioning, dict) and "encoded" in conditioning:
-            cond_encoded = conditioning["encoded"]
-        else:
-            cond_encoded = [conditioning]
-
+        # Initialize output latent
         out_latent = None
-
-        basicschedueler = BasicScheduler()
-        basicguider = BasicGuider()
-        samplercustomadvanced = SamplerCustomAdvanced()
-        latentbatch = LatentBatch()
-        modelsamplingflux = ModelSamplingFlux() if not is_schnell else ModelSamplingAuraFlow()
-        width = latent["samples"].shape[3]*8
-        height = latent["samples"].shape[2]*8
-
-        total_samples = len(cond_encoded) * len(noise) * len(max_shift) * len(base_shift) * len(guidance) * len(sampler) * len(scheduler) * len(steps) * len(denoise)
+        total_samples = len(max_shift) * len(base_shift) * len(guidance) * len(steps) * len(denoise)
         current_sample = 0
+
         if total_samples > 1:
             pbar = ProgressBar(total_samples)
 
-        for i in range(len(cond_encoded)):
-            conditioning = cond_encoded[i]
-            for n in noise:
-                randnoise = Noise_RandomNoise(n)
-                for ms in max_shift:
-                    for bs in base_shift:
-                        if is_schnell:
-                            work_model = modelsamplingflux.patch_aura(model, bs)[0]
-                        else:
-                            work_model = modelsamplingflux.patch(model, ms, bs, width, height)[0]
-                        for g in guidance:
-                            cond = conditioning_set_values(conditioning, {"guidance": g})
-                            guider = basicguider.get_guider(work_model, cond)[0]
-                            for s in sampler:
-                                samplerobj = comfy.samplers.sampler_object(s)
-                                for sc in scheduler:
-                                    for st in steps:
-                                        for d in denoise:
-                                            sigmas = basicschedueler.get_sigmas(work_model, sc, st, d)[0]
-                                            current_sample += 1
-                                            log = f"Sampling {current_sample}/{total_samples} with seed {n}, sampler {s}, scheduler {sc}, steps {st}, guidance {g}, max_shift {ms}, base_shift {bs}, denoise {d}"
-                                            logging.info(log)
-                                            latent = samplercustomadvanced.sample(randnoise, guider, samplerobj, sigmas, latent)[1]
+        # Main sampling loop
+        for ms in max_shift:
+            for bs in base_shift:
+                if is_schnell:
+                    work_model = ModelSamplingAuraFlow().patch_aura(model, bs)[0]
+                else:
+                    work_model = ModelSamplingFlux().patch(model, ms, bs, width, height)[0]
+                
+                for g in guidance:
+                    # Update conditioning with guidance while preserving original structure
+                    cond = conditioning_set_values(conditioning, {"guidance": g})
+                    
+                    for st in steps:
+                        for d in denoise:
+                            current_sample += 1
+                            log = f"Sampling {current_sample}/{total_samples} with seed {seed}, steps {st}, guidance {g}, max_shift {ms}, base_shift {bs}, denoise {d}"
+                            logging.info(log)
 
-                                            if out_latent is None:
-                                                out_latent = latent
-                                            else:
-                                                out_latent = latentbatch.batch(out_latent, latent)[0]
+                            # Create a copy of the input latent to avoid modifying it
+                            current_latent = {"samples": latent["samples"].clone()}
 
-                                            if total_samples > 1:
-                                                pbar.update(1)
-                                            
-                                            # Generate new random seed for next iteration if seed is "-1"
-                                            if "-1" in seed:
-                                                n = random.randint(0, 999999)
-                                                randnoise = Noise_RandomNoise(n)
+                            # Use common_ksampler for more reliable sampling
+                            samples = common_ksampler(work_model, seed, st, g, sampler, scheduler, cond, cond, current_latent, denoise=d)[0]
+
+                            if out_latent is None:
+                                out_latent = samples
+                            else:
+                                # Both latents should already be in the correct format
+                                out_latent = LatentBatch().batch(out_latent, samples)[0]
+
+                            if total_samples > 1:
+                                pbar.update(1)
 
         return (model, conditioning, out_latent)
 
@@ -153,5 +122,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Fluxstarsampler": "⭐StarSampler FLUX"
+    "Fluxstarsampler": "⭐ StarSampler FLUX"
 }
