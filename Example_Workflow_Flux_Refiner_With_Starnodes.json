@@ -1,6 +1,6 @@
 {
-  "last_node_id": 57,
-  "last_link_id": 115,
+  "last_node_id": 59,
+  "last_link_id": 126,
   "nodes": [
     {
       "id": 35,
@@ -47,7 +47,7 @@
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 110
+          "link": 122
         },
         {
           "name": "vae",
@@ -117,7 +117,7 @@
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 115
+          "link": 126
         },
         {
           "name": "vae",
@@ -193,7 +193,7 @@
         "Node name for S&R": "StarFiveWildcards"
       },
       "widgets_values": [
-        357505720702041,
+        757619033928779,
         "randomize",
         "",
         "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
@@ -268,7 +268,7 @@
       },
       "widgets_values": [
         "",
-        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Alligator sitting on a star, the Hamster is wearing Vintage-inspired lace dress cinched at the waist with a wide belt, paired with black tights and boots. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
+        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Manatee sitting on a star, the Chimpanzee is wearing Vintage-inspired lace dress cinched at the waist with a wide belt, paired with black tights and boots. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
       ]
     },
     {
@@ -300,7 +300,7 @@
           "name": "UNET",
           "type": "MODEL",
           "links": [
-            105
+            116
           ],
           "slot_index": 0
         },
@@ -313,7 +313,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            107
+            118
           ],
           "slot_index": 2
         },
@@ -331,7 +331,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            106
+            117
           ],
           "slot_index": 5
         },
@@ -410,78 +410,6 @@
       "bgcolor": "#653"
     },
     {
-      "id": 56,
-      "type": "Fluxstarsampler",
-      "pos": [
-        200,
-        -1010
-      ],
-      "size": [
-        317.4000244140625,
-        266
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 105
-        },
-        {
-          "name": "conditioning",
-          "type": "CONDITIONING",
-          "link": 106
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "link": 107
-        }
-      ],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            112
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "conditioning",
-          "type": "CONDITIONING",
-          "links": [
-            113
-          ],
-          "slot_index": 1
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "links": [
-            108,
-            110
-          ],
-          "slot_index": 2
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "Fluxstarsampler"
-      },
-      "widgets_values": [
-        "-1",
-        "euler",
-        "simple",
-        "20",
-        "3.5",
-        "",
-        "",
-        "1.0"
-      ]
-    },
-    {
       "id": 21,
       "type": "Starupscale",
       "pos": [
@@ -505,7 +433,7 @@
         {
           "name": "LATENT_INPUT",
           "type": "LATENT",
-          "link": 108,
+          "link": 121,
           "shape": 7
         },
         {
@@ -533,7 +461,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            114
+            125
           ],
           "slot_index": 2
         }
@@ -546,71 +474,6 @@
         "4x_NMKD-Siax_200k.pth",
         2000,
         "bicubic"
-      ]
-    },
-    {
-      "id": 57,
-      "type": "Fluxstarsampler",
-      "pos": [
-        600,
-        -970
-      ],
-      "size": [
-        317.4000244140625,
-        266
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 112
-        },
-        {
-          "name": "conditioning",
-          "type": "CONDITIONING",
-          "link": 113
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "link": 114
-        }
-      ],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": null
-        },
-        {
-          "name": "conditioning",
-          "type": "CONDITIONING",
-          "links": null
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "links": [
-            115
-          ],
-          "slot_index": 2
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "Fluxstarsampler"
-      },
-      "widgets_values": [
-        "-1",
-        "euler",
-        "simple",
-        "20",
-        "3.5",
-        "",
-        "",
-        "0.2"
       ]
     },
     {
@@ -660,6 +523,141 @@
       ],
       "color": "#af3535",
       "bgcolor": "#653"
+    },
+    {
+      "id": 58,
+      "type": "Fluxstarsampler",
+      "pos": [
+        200,
+        -1030
+      ],
+      "size": [
+        317.4000244140625,
+        290
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 116
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 117
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 118
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            123
+          ]
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": [
+            124
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            121,
+            122
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Fluxstarsampler"
+      },
+      "widgets_values": [
+        364422341364666,
+        "randomize",
+        "euler",
+        "simple",
+        "20",
+        "3.5",
+        "",
+        "",
+        "1.0"
+      ]
+    },
+    {
+      "id": 59,
+      "type": "Fluxstarsampler",
+      "pos": [
+        600,
+        -970
+      ],
+      "size": [
+        317.4000244140625,
+        290
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 123
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 124
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 125
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": []
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": []
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            126
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Fluxstarsampler"
+      },
+      "widgets_values": [
+        876981886370755,
+        "randomize",
+        "euler",
+        "simple",
+        "20",
+        "3.5",
+        "",
+        "",
+        "0.2"
+      ]
     }
   ],
   "links": [
@@ -720,72 +718,72 @@
       "VAE"
     ],
     [
-      105,
+      116,
       54,
       0,
-      56,
+      58,
       0,
       "MODEL"
     ],
     [
-      106,
+      117,
       54,
       5,
-      56,
+      58,
       1,
       "CONDITIONING"
     ],
     [
-      107,
+      118,
       54,
       2,
-      56,
+      58,
       2,
       "LATENT"
     ],
     [
-      108,
-      56,
+      121,
+      58,
       2,
       21,
       1,
       "LATENT"
     ],
     [
-      110,
-      56,
+      122,
+      58,
       2,
       34,
       0,
       "LATENT"
     ],
     [
-      112,
-      56,
+      123,
+      58,
       0,
-      57,
+      59,
       0,
       "MODEL"
     ],
     [
-      113,
-      56,
+      124,
+      58,
       1,
-      57,
+      59,
       1,
       "CONDITIONING"
     ],
     [
-      114,
+      125,
       21,
       2,
-      57,
+      59,
       2,
       "LATENT"
     ],
     [
-      115,
-      57,
+      126,
+      59,
       2,
       30,
       0,
@@ -826,7 +824,7 @@
         580,
         -1040,
         360,
-        350
+        380
       ],
       "color": "#eb683d",
       "font_size": 24,
@@ -888,10 +886,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.4665073802097333,
+      "scale": 0.7513148009015777,
       "offset": [
-        1410.9692876513254,
-        1324.776244640518
+        796.5956591641407,
+        1305.8703235639582
       ]
     }
   },
