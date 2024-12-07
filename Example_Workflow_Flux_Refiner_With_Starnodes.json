@@ -1,5 +1,5 @@
 {
-  "last_node_id": 62,
+  "last_node_id": 63,
   "last_link_id": 130,
   "nodes": [
     {
@@ -14,7 +14,7 @@
         246
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -41,7 +41,7 @@
         46
       ],
       "flags": {},
-      "order": 13,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -82,7 +82,7 @@
         290.2170104980469
       ],
       "flags": {},
-      "order": 17,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -111,7 +111,7 @@
         50.83784484863281
       ],
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -176,7 +176,7 @@
         135.77195739746094
       ],
       "flags": {},
-      "order": 8,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -204,7 +204,7 @@
       },
       "widgets_values": [
         "",
-        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Cobra sitting on a star, a cute deamon is injecting a golden glowing liquid into the star. \"STARNODES\" title text in bold letters. Second Text line: \"New Deamon Injectors Added!\" Background color: purple  "
+        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Bee sitting on a star, a cute deamon is injecting a golden glowing liquid into the star. \"STARNODES\" title text in bold letters. Second Text line: \"New Deamon Injectors Added!\" Background color: purple  "
       ]
     },
     {
@@ -267,7 +267,7 @@
         170
       ],
       "flags": {},
-      "order": 12,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -460,7 +460,7 @@
         "Node name for S&R": "StarFiveWildcards"
       },
       "widgets_values": [
-        789192688514403,
+        427923326016439,
         "randomize",
         "",
         "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
@@ -483,7 +483,7 @@
         310
       ],
       "flags": {},
-      "order": 11,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -536,7 +536,7 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        26768286917616,
+        462226262435473,
         "randomize",
         "euler",
         "simple",
@@ -559,7 +559,7 @@
         310
       ],
       "flags": {},
-      "order": 14,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -607,7 +607,7 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        610611775768601,
+        315678393146534,
         "randomize",
         "euler",
         "simple",
@@ -630,7 +630,7 @@
         82
       ],
       "flags": {},
-      "order": 10,
+      "order": 11,
       "mode": 4,
       "inputs": [
         {
@@ -669,7 +669,7 @@
         412
       ],
       "flags": {},
-      "order": 9,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
@@ -746,6 +746,30 @@
         1024,
         1
       ]
+    },
+    {
+      "id": 63,
+      "type": "Note",
+      "pos": [
+        570,
+        -1220
+      ],
+      "size": [
+        370,
+        160
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT REFINER",
+      "properties": {},
+      "widgets_values": [
+        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux.\nYou can connect the model and condition from the first pass.\nSeed \"-1\" generates a random seed."
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -1011,10 +1035,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6031515144693596,
+      "scale": 0.6634666659162958,
       "offset": [
-        1035.2055750487775,
-        1263.5626989414118
+        926.2547199607006,
+        1372.9471099556636
       ]
     }
   },
