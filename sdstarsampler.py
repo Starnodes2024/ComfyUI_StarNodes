@@ -10,6 +10,9 @@ from nodes import common_ksampler, CLIPTextEncode, KSampler
 from comfy.utils import ProgressBar
 from comfy_extras.nodes_latent import LatentBatch
 
+# Detail Deamon adapted by https://github.com/muerrilla/sd-webui-detail-daemon
+# Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
+
 def parse_string_to_list(value):
     """Parse a string into a list of values, handling both numeric and string inputs."""
     if isinstance(value, (int, float)):

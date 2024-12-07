@@ -1,3 +1,6 @@
+
+# Detail Deamon adapted by https://github.com/muerrilla/sd-webui-detail-daemon
+# Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
 class DetailStarDaemon:
     @classmethod
     def INPUT_TYPES(s):

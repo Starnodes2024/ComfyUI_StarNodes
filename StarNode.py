@@ -1,6 +1,6 @@
 import random
 
-class StarNode:
+class StarImageSwitch:
     CATEGORY = 'StarNodes'
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("img_out",)
@@ -13,27 +13,27 @@ class StarNode:
                 "select": ("INT", {"default": 1, "min": 1, "max": 8, "step": 1}),
             },
             "optional": {
-                "SDXL = 1": ("IMAGE",),
-                "AURAFLOW = 2": ("IMAGE",),
-                "SD3 = 3": ("IMAGE",),
-                "PIXART SIGMA = 4": ("IMAGE",),
-                "KOLORS = 5": ("IMAGE",),
-                "STABLE CASCADE = 6": ("IMAGE",),
-                "FREE = 7": ("IMAGE",),
-                "FREE = 8": ("IMAGE",),
+                "Image 1 = 1": ("IMAGE",),
+                "Image 2 = 2": ("IMAGE",),
+                "Image 3 = 3": ("IMAGE",),
+                "Image 4  = 4": ("IMAGE",),
+                "Image 5  = 5": ("IMAGE",),
+                "Image 6  = 6": ("IMAGE",),
+                "Image 7  = 7": ("IMAGE",),
+                "Image 8  = 8": ("IMAGE",),
             }
         }
 
     def process_images(self, select, **kwargs):
         images = [
-            kwargs.get("SDXL = 1"),
-            kwargs.get("AURAFLOW = 2"),
-            kwargs.get("SD3 = 3"),
-            kwargs.get("PIXART SIGMA = 4"),
-            kwargs.get("KOLORS = 5"),
-            kwargs.get("STABLE CASCADE = 6"),
-            kwargs.get("FREE = 7"),
-            kwargs.get("FREE = 8")
+            kwargs.get("Image 1 = 1"),
+            kwargs.get("Image 2 = 2"),
+            kwargs.get("Image 3 = 3"),
+            kwargs.get("Image 4 = 4"),
+            kwargs.get("Image 4 = 5"),
+            kwargs.get("Image 5 = 6"),
+            kwargs.get("Image 6 = 7"),
+            kwargs.get("Image 7 = 8"),
         ]
         
         if 1 <= select <= 8:
@@ -44,9 +44,9 @@ class StarNode:
         return (img_out,)
 
 NODE_CLASS_MAPPINGS = {
-    "StarNode": StarNode
+    "StarImageSwitch": StarImageSwitch
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarNode": "⭐ StarNode Input Image Chooser"
+    "StarImageSwitch": "⭐ Star Input Image Chooser"
 }

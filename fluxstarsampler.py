@@ -13,6 +13,9 @@ from comfy_extras.nodes_latent import LatentBatch
 from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
 from comfy import utils
 
+# Detail Deamon adapted by https://github.com/muerrilla/sd-webui-detail-daemon
+# Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
+
 class AnyType(str):
     """A special class that is always equal in not equal comparisons."""
     def __ne__(self, __value: object) -> bool:
