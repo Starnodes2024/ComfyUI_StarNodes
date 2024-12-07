@@ -22,37 +22,37 @@ class Starupscale:
         
         return {
             "required": {
-                "vae_out": (["Default"] + available_vaes, {"default": "ae.safetensors"}),
-                "upscale_model": (["Default"] + available_upscalers, {"default": "Default"}),
-                "output_longest_side": ("INT", { 
+                "VAE_OUT": (["Default"] + available_vaes, {"default": "ae.safetensors"}),
+                "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "Default"}),
+                "OUTPUT_LONGEST_SIDE": ("INT", { 
                     "default": 2000, 
                     "min": 0, 
                     "step": 1, 
                     "max": 99999, 
                     "display_name": "Output Size (longest)"
                 }),
-                "interpolation_mode": (
+                "INTERPOLATION_MODE": (
                     ["bicubic", "bilinear", "nearest", "nearest exact"],
                     {"default": "bicubic"}
                 ),
             },
             "optional": {
-                "vae_input": ("vae", ),  # Optional VAE input
-                "latent_input": ("latent", ),  # Optional latent input
-                "image": ("image", ),  # Optional image input
+                "VAE_INPUT": ("VAE", ),  # Optional VAE input
+                "LATENT_INPUT": ("LATENT", ),  # Optional latent input
+                "IMAGE": ("IMAGE", ),  # Optional image input
             }
         }
     
     RETURN_TYPES = (
-        "vae",       # VAE output
-        "image",     # Image output
-        "latent",    # Added Latent output
+        "VAE",       # VAE output
+        "IMAGE",     # Image output
+        "LATENT",    # Added Latent output
     )
     
     RETURN_NAMES = (
-        "output vae",
-        "image",
-        "latent",  # Added Latent output name
+        "OUTPUT VAE",
+        "IMAGE",
+        "LATENT",  # Added Latent output name
     )
     
     FUNCTION = "process_settings"
@@ -61,19 +61,19 @@ class Starupscale:
 
     def process_settings(
         self, 
-        vae_out,
-        upscale_model,
-        output_longest_side,
-        interpolation_mode,
-        vae_input=None,  # Optional VAE input
-        latent_input=None,  # Optional latent input
-        image=None,  # Optional image input
+        VAE_OUT,
+        UPSCALE_MODEL,
+        OUTPUT_LONGEST_SIDE,
+        INTERPOLATION_MODE,
+        VAE_INPUT=None,  # Optional VAE input
+        LATENT_INPUT=None,  # Optional latent input
+        IMAGE=None,  # Optional image input
     ):
         # VAE Loading
         vaeout = None
         decoder_name = "Default"
-        if vae_out != "Default":
-            decoder_name = vae_out
+        if VAE_OUT != "Default":
+            decoder_name = VAE_OUT
             vae = nodes.VAELoader().load_vae(decoder_name)[0]
             vaeout = vae
         
@@ -81,12 +81,12 @@ class Starupscale:
         output_image = None
         
         # Path 1: If both VAE and latent are connected, decode first
-        if vae_input is not None and latent_input is not None:
-            output_image = nodes.VAEDecode().decode(vae_input, latent_input)[0]
+        if VAE_INPUT is not None and LATENT_INPUT is not None:
+            output_image = nodes.VAEDecode().decode(VAE_INPUT, LATENT_INPUT)[0]
         
         # Path 2: If only image is connected, use the image directly
-        elif image is not None:
-            output_image = image
+        elif IMAGE is not None:
+            output_image = IMAGE
         
         # If no image or latent input, create a default black image
         if output_image is None:
@@ -96,8 +96,8 @@ class Starupscale:
         if output_image is not None:
             # Load upscale model
             upscale_model = None
-            if upscale_model != "Default":
-                upscale_model = UpscaleModelLoader().load_model(upscale_model)[0]
+            if UPSCALE_MODEL != "Default":
+                upscale_model = UpscaleModelLoader().load_model(UPSCALE_MODEL)[0]
             
             # Upscale the image if a model is available
             if upscale_model is not None:
@@ -105,17 +105,17 @@ class Starupscale:
             
             # Resize the image based on longest side
             assert isinstance(output_image, torch.Tensor)
-            assert isinstance(output_longest_side, int)
-            assert isinstance(interpolation_mode, str)
+            assert isinstance(OUTPUT_LONGEST_SIDE, int)
+            assert isinstance(INTERPOLATION_MODE, str)
             
-            INTERPOLATION_MODE = interpolation_mode.upper().replace(" ", "_")
+            INTERPOLATION_MODE = INTERPOLATION_MODE.upper().replace(" ", "_")
             INTERPOLATION_MODE = getattr(InterpolationMode, INTERPOLATION_MODE)
             _, h, w, _ = output_image.shape
             if h >= w:
-                new_h = output_longest_side
+                new_h = OUTPUT_LONGEST_SIDE
                 new_w = round(w * new_h / h)
             else:  # h < w
-                new_w = output_longest_side
+                new_w = OUTPUT_LONGEST_SIDE
                 new_h = round(h * new_w / w)
             
             # Resize the image
