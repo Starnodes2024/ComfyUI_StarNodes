@@ -1,6 +1,6 @@
 {
-  "last_node_id": 59,
-  "last_link_id": 126,
+  "last_node_id": 60,
+  "last_link_id": 128,
   "nodes": [
     {
       "id": 35,
@@ -14,7 +14,7 @@
         246
       ],
       "flags": {},
-      "order": 13,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -41,7 +41,7 @@
         46
       ],
       "flags": {},
-      "order": 11,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -82,7 +82,7 @@
         290.2170104980469
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -111,7 +111,7 @@
         50.83784484863281
       ],
       "flags": {},
-      "order": 14,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -141,70 +141,6 @@
       "widgets_values": []
     },
     {
-      "id": 32,
-      "type": "Note",
-      "pos": [
-        -697.3704223632812,
-        -1231.8411865234375
-      ],
-      "size": [
-        384.4184875488281,
-        95.99164581298828
-      ],
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT WILDCARDS",
-      "properties": {},
-      "widgets_values": [
-        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard."
-      ],
-      "color": "#af3535",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 22,
-      "type": "StarFiveWildcards",
-      "pos": [
-        -685.7020263671875,
-        -1030.6800537109375
-      ],
-      "size": [
-        370.01025390625,
-        541.7451171875
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            42
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "StarFiveWildcards"
-      },
-      "widgets_values": [
-        757619033928779,
-        "randomize",
-        "",
-        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
-        "a purple __animals__ sitting on a star, the __animals__ is",
-        "wearing __outfit__ . \"STARNODES\" title text in bold letters.",
-        "__pos__",
-        "",
-        ""
-      ]
-    },
-    {
       "id": 47,
       "type": "Note",
       "pos": [
@@ -216,7 +152,7 @@
         238.643798828125
       ],
       "flags": {},
-      "order": 2,
+      "order": 0,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -240,7 +176,7 @@
         135.77195739746094
       ],
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -268,7 +204,7 @@
       },
       "widgets_values": [
         "",
-        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Manatee sitting on a star, the Chimpanzee is wearing Vintage-inspired lace dress cinched at the waist with a wide belt, paired with black tights and boots. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
+        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Hedgehog sitting on a star, the Aardvark is wearing Wide-leg jumpsuit in bold stripes, paired with black pumps and oversized sunglasses. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
       ]
     },
     {
@@ -283,7 +219,7 @@
         412
       ],
       "flags": {},
-      "order": 8,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -373,7 +309,7 @@
         110
       ],
       "flags": {},
-      "order": 3,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -397,7 +333,7 @@
         102.07351684570312
       ],
       "flags": {},
-      "order": 4,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -421,7 +357,7 @@
         170
       ],
       "flags": {},
-      "order": 10,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -477,30 +413,6 @@
       ]
     },
     {
-      "id": 49,
-      "type": "Note",
-      "pos": [
-        571.6559448242188,
-        -1221.9075927734375
-      ],
-      "size": [
-        370,
-        160
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT REFINER",
-      "properties": {},
-      "widgets_values": [
-        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux.\nYou can connect the model and condition from the first pass.\nSeed \"-1\" generates a random seed."
-      ],
-      "color": "#af3535",
-      "bgcolor": "#653"
-    },
-    {
       "id": 51,
       "type": "Note",
       "pos": [
@@ -512,7 +424,7 @@
         261.19586181640625
       ],
       "flags": {},
-      "order": 6,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -533,10 +445,10 @@
       ],
       "size": [
         317.4000244140625,
-        290
+        310
       ],
       "flags": {},
-      "order": 9,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
@@ -553,6 +465,12 @@
           "name": "latent",
           "type": "LATENT",
           "link": 118
+        },
+        {
+          "name": "detail_schedule",
+          "type": "DETAIL_SCHEDULE",
+          "link": 128,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -583,7 +501,7 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        364422341364666,
+        794898248791904,
         "randomize",
         "euler",
         "simple",
@@ -603,10 +521,10 @@
       ],
       "size": [
         317.4000244140625,
-        290
+        310
       ],
       "flags": {},
-      "order": 12,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -623,6 +541,12 @@
           "name": "latent",
           "type": "LATENT",
           "link": 125
+        },
+        {
+          "name": "detail_schedule",
+          "type": "DETAIL_SCHEDULE",
+          "link": 127,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -648,7 +572,7 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        876981886370755,
+        344715936839421,
         "randomize",
         "euler",
         "simple",
@@ -658,6 +582,131 @@
         "",
         "0.2"
       ]
+    },
+    {
+      "id": 60,
+      "type": "DetailStarDaemon",
+      "pos": [
+        610,
+        -540
+      ],
+      "size": [
+        315,
+        154
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "detail_schedule",
+          "type": "DETAIL_SCHEDULE",
+          "links": [
+            127,
+            128
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DetailStarDaemon"
+      },
+      "widgets_values": [
+        0.1,
+        0.2,
+        0.8,
+        0.5,
+        1
+      ]
+    },
+    {
+      "id": 49,
+      "type": "Note",
+      "pos": [
+        580,
+        -300
+      ],
+      "size": [
+        370,
+        160
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT DETAIL DEAMON",
+      "properties": {},
+      "widgets_values": [
+        "The Detail Star Deamon is adapted from the original sources. \nThis can improve the details of your generated images.\nRead more about the settings and how it works on the original sources:\nhttps://github.com/muerrilla/sd-webui-detail-daemon\nhttps://github.com/Jonseed/ComfyUI-Detail-Daemon\n\nThis is optional and connects to the SD and FLUX samplers"
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 22,
+      "type": "StarFiveWildcards",
+      "pos": [
+        -685.7020263671875,
+        -1030.6800537109375
+      ],
+      "size": [
+        370.01025390625,
+        541.7451171875
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            42
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StarFiveWildcards"
+      },
+      "widgets_values": [
+        158512648959147,
+        "randomize",
+        "",
+        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
+        "a purple __animals__ sitting on a star, the __animals__ is",
+        "wearing __outfit__ . \"STARNODES\" title text in bold letters.",
+        "Background color: {red|blue|purple|}",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 32,
+      "type": "Note",
+      "pos": [
+        -697.3704223632812,
+        -1231.8411865234375
+      ],
+      "size": [
+        390,
+        110
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT WILDCARDS",
+      "properties": {},
+      "widgets_values": [
+        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard.\nIt also picks a random if you give different options within {}  Example {red|blue|green]  will give one of the 3 colors."
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -788,6 +837,22 @@
       30,
       0,
       "LATENT"
+    ],
+    [
+      127,
+      60,
+      0,
+      59,
+      3,
+      "DETAIL_SCHEDULE"
+    ],
+    [
+      128,
+      60,
+      0,
+      58,
+      3,
+      "DETAIL_SCHEDULE"
     ]
   ],
   "groups": [
@@ -875,10 +940,23 @@
       "bounding": [
         970,
         -620,
-        348.4594421386719,
-        550.24951171875
+        350,
+        500
       ],
       "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 8,
+      "title": "Detail Deamon",
+      "bounding": [
+        590,
+        -610,
+        350,
+        240
+      ],
+      "color": "#a50303",
       "font_size": 24,
       "flags": {}
     }
@@ -886,10 +964,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7513148009015777,
+      "scale": 0.5483195586085079,
       "offset": [
-        796.5956591641407,
-        1305.8703235639582
+        1006.5562055873224,
+        1313.1664178338442
       ]
     }
   },
