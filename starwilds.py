@@ -40,41 +40,58 @@ class Starwildcards:
         return (final_text,)
 
 def find_and_replace_wildcards(prompt, offset_seed, debug=False):
-    # Split the prompt into parts based on wildcards
-    parts = re.split(r'(__[^_]*?__)', prompt)
+    # Split the prompt into parts based on wildcards, including potential folder paths
+    # This pattern matches folder paths followed by wildcards: ([^_\\]+\\)?(__[^_]*?__)
+    parts = re.split(r'((?:[^_\\]+\\)?(?:__[^_]*?__))', prompt)
     
     # Process each part
     result = ""
     wildcard_count = 0  # Counter for wildcards processed
     
     for part in parts:
-        # Check if this part is a wildcard
-        if part.startswith('__') and part.endswith('__'):
-            # Get the wildcard name
-            wildcard_name = part[2:-2]
+        # Skip empty parts
+        if not part:
+            continue
             
-            # Get the path to the wildcard file
-            wildcard_path = os.path.join(folder_paths.base_path, 'wildcards', wildcard_name + '.txt')
+        # Check if this part contains a wildcard
+        wildcard_match = re.search(r'((?:[^_\\]+\\)?)((?:__[^_]*?__))', part)
+        if wildcard_match:
+            folder_path = wildcard_match.group(1) or ''  # This will include the folder path if it exists
+            wildcard = wildcard_match.group(2)     # This will be just the wildcard
+            
+            # Get the wildcard name without the __
+            wildcard_name = wildcard[2:-2]
+            
+            # Build the full path
+            if folder_path:
+                # Remove trailing backslash from folder path
+                folder_path = folder_path.rstrip('\\')
+                wildcard_path = os.path.join(folder_paths.base_path, 'wildcards', folder_path, wildcard_name + '.txt')
+            else:
+                wildcard_path = os.path.join(folder_paths.base_path, 'wildcards', wildcard_name + '.txt')
             
             # Check if the file exists
             if os.path.exists(wildcard_path):
-                # Read the lines from the file
-                with open(wildcard_path, 'r', encoding='utf-8') as f:
-                    lines = [line.strip() for line in f.readlines() if line.strip()]
-                
-                # Use a different seed for each wildcard by adding the counter
-                current_seed = offset_seed + wildcard_count
-                random.seed(current_seed)
-                selected_line = random.choice(lines)
-                wildcard_count += 1  # Increment counter after processing
-                
-                if debug:
-                    print(f"Selected '{selected_line}' from {wildcard_name} with seed {current_seed}")
-                
-                result += selected_line
+                try:
+                    # Read the lines from the file
+                    with open(wildcard_path, 'r', encoding='utf-8') as f:
+                        lines = [line.strip() for line in f.readlines() if line.strip()]
+                    
+                    if lines:  # Only process if we have lines
+                        # Use a different seed for each wildcard by adding the counter
+                        current_seed = offset_seed + wildcard_count
+                        random.seed(current_seed)
+                        selected_line = random.choice(lines)
+                        wildcard_count += 1  # Increment counter after processing
+                        result += selected_line
+                    else:
+                        # File exists but is empty, use wildcard name as fallback
+                        result += wildcard_name
+                except Exception as e:
+                    result += wildcard_name
             else:
-                # If the file doesn't exist, just use the wildcard as-is
-                result += part
+                # If the file doesn't exist, just use the wildcard name
+                result += wildcard_name
         else:
             # Not a wildcard, just add it to the result
             result += part
@@ -92,7 +109,8 @@ def process_random_options(text, seed):
         if selected.startswith('__') and selected.endswith('__'):
             # Process the wildcard using the existing functionality
             # We add 1 to the seed to ensure it's different from the main seed
-            return find_and_replace_wildcards(selected, seed + 1)
+            processed = find_and_replace_wildcards(selected, seed + 1)
+            return processed
         return selected
     
     # Replace all occurrences of {options} with a random choice
@@ -119,5 +137,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarFiveWildcards": "⭐ Star Seven Wildcards"
+    "StarFiveWildcards": " Star Seven Wildcards"
 }
