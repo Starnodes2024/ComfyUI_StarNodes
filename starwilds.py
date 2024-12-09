@@ -82,11 +82,18 @@ def find_and_replace_wildcards(prompt, offset_seed, debug=False):
     return result
 
 def process_random_options(text, seed):
-    # Use regex to find patterns like {option1|option2|option3}
+    # Use regex to find patterns like {option1|option2|option3} or {__wildcard1__|__wildcard2__}
     random.seed(seed)
     def replace_options(match):
-        options = match.group(1).split('|')
-        return random.choice(options)
+        options = [opt.strip() for opt in match.group(1).split('|')]
+        selected = random.choice(options)
+        
+        # Check if the selected option is a wildcard
+        if selected.startswith('__') and selected.endswith('__'):
+            # Process the wildcard using the existing functionality
+            # We add 1 to the seed to ensure it's different from the main seed
+            return find_and_replace_wildcards(selected, seed + 1)
+        return selected
     
     # Replace all occurrences of {options} with a random choice
     processed = re.sub(r'\{([^{}]+)\}', replace_options, text)

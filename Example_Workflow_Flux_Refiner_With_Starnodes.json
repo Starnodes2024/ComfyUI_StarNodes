@@ -1,6 +1,6 @@
 {
-  "last_node_id": 63,
-  "last_link_id": 130,
+  "last_node_id": 60,
+  "last_link_id": 128,
   "nodes": [
     {
       "id": 35,
@@ -14,7 +14,7 @@
         246
       ],
       "flags": {},
-      "order": 16,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -41,7 +41,7 @@
         46
       ],
       "flags": {},
-      "order": 14,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -82,7 +82,7 @@
         290.2170104980469
       ],
       "flags": {},
-      "order": 18,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -111,7 +111,7 @@
         50.83784484863281
       ],
       "flags": {},
-      "order": 17,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -176,7 +176,7 @@
         135.77195739746094
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -204,7 +204,97 @@
       },
       "widgets_values": [
         "",
-        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Bee sitting on a star, a cute deamon is injecting a golden glowing liquid into the star. \"STARNODES\" title text in bold letters. Second Text line: \"New Deamon Injectors Added!\" Background color: purple  "
+        " Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of a purple Hedgehog sitting on a star, the Aardvark is wearing Wide-leg jumpsuit in bold stripes, paired with black pumps and oversized sunglasses. . \"STARNODES\" title text in bold letters. high detail, sharp, hyperreal, photoreal, 4k, masterpiece  "
+      ]
+    },
+    {
+      "id": 54,
+      "type": "FluxStartSettings",
+      "pos": [
+        -240,
+        -880
+      ],
+      "size": [
+        350,
+        412
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 91,
+          "widget": {
+            "name": "text"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "UNET",
+          "type": "MODEL",
+          "links": [
+            116
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": null
+        },
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            118
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            117
+          ],
+          "slot_index": 5
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            96,
+            103
+          ],
+          "slot_index": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FluxStartSettings"
+      },
+      "widgets_values": [
+        "Your positive prompt...",
+        "flux1-dev.safetensors",
+        "SD3.5\\t5xxl_fp16.safetensors",
+        "SD3.5\\clip_l.safetensors",
+        "ae.safetensors",
+        "default",
+        "1:1 [1024x1024 square]",
+        1024,
+        1024,
+        1
       ]
     },
     {
@@ -267,7 +357,7 @@
         170
       ],
       "flags": {},
-      "order": 13,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -323,91 +413,6 @@
       ]
     },
     {
-      "id": 60,
-      "type": "DetailStarDaemon",
-      "pos": [
-        610,
-        -540
-      ],
-      "size": [
-        315,
-        154
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "detail_schedule",
-          "type": "DETAIL_SCHEDULE",
-          "links": [
-            127,
-            128
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "DetailStarDaemon"
-      },
-      "widgets_values": [
-        0.1,
-        0.2,
-        0.8,
-        0.5,
-        1
-      ]
-    },
-    {
-      "id": 32,
-      "type": "Note",
-      "pos": [
-        -697.3704223632812,
-        -1231.8411865234375
-      ],
-      "size": [
-        390,
-        110
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT WILDCARDS",
-      "properties": {},
-      "widgets_values": [
-        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard.\nIt also picks a random if you give different options within {}  Example {red|blue|green]  will give one of the 3 colors."
-      ],
-      "color": "#af3535",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 49,
-      "type": "Note",
-      "pos": [
-        580,
-        -300
-      ],
-      "size": [
-        370,
-        160
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "ABOUT DETAIL DEAMON",
-      "properties": {},
-      "widgets_values": [
-        "The Detail Star Deamon is adapted from the original sources. \nThis can improve the details of your generated images.\nRead more about the settings and how it works on the original sources:\nhttps://github.com/muerrilla/sd-webui-detail-daemon\nhttps://github.com/Jonseed/ComfyUI-Detail-Daemon\n\nThis is optional and connects to the SD and FLUX samplers"
-      ],
-      "color": "#af3535",
-      "bgcolor": "#653"
-    },
-    {
       "id": 51,
       "type": "Note",
       "pos": [
@@ -415,11 +420,11 @@
         -390
       ],
       "size": [
-        350,
-        260
+        356.9871826171875,
+        261.19586181640625
       ],
       "flags": {},
-      "order": 6,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -430,46 +435,6 @@
       ],
       "color": "#af3535",
       "bgcolor": "#653"
-    },
-    {
-      "id": 22,
-      "type": "StarFiveWildcards",
-      "pos": [
-        -685.7020263671875,
-        -1030.6800537109375
-      ],
-      "size": [
-        370.01025390625,
-        541.7451171875
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            42
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "StarFiveWildcards"
-      },
-      "widgets_values": [
-        427923326016439,
-        "randomize",
-        "",
-        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
-        "a purple __animals__ sitting on a star, a cute deamon is injecting a golden glowing liquid into the star.",
-        "\"STARNODES\" title text in bold letters. Second Text line: \"New Deamon Injectors Added!\"",
-        "Background color: {red|blue|purple|}",
-        "",
-        ""
-      ]
     },
     {
       "id": 58,
@@ -483,13 +448,13 @@
         310
       ],
       "flags": {},
-      "order": 12,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 130
+          "link": 116
         },
         {
           "name": "conditioning",
@@ -536,11 +501,11 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        462226262435473,
+        794898248791904,
         "randomize",
         "euler",
         "simple",
-        "8",
+        "20",
         "3.5",
         "",
         "",
@@ -559,7 +524,7 @@
         310
       ],
       "flags": {},
-      "order": 15,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -607,11 +572,11 @@
         "Node name for S&R": "Fluxstarsampler"
       },
       "widgets_values": [
-        315678393146534,
+        344715936839421,
         "randomize",
         "euler",
         "simple",
-        "7",
+        "20",
         "3.5",
         "",
         "",
@@ -619,154 +584,126 @@
       ]
     },
     {
-      "id": 62,
-      "type": "LoraLoaderModelOnly",
+      "id": 60,
+      "type": "DetailStarDaemon",
       "pos": [
-        -260,
-        -370
+        610,
+        -540
       ],
       "size": [
-        390,
-        82
+        315,
+        154
       ],
       "flags": {},
-      "order": 11,
-      "mode": 4,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 129
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            130
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoraLoaderModelOnly"
-      },
-      "widgets_values": [
-        "Blackforest\\flux1-canny-dev-lora.safetensors",
-        1
-      ]
-    },
-    {
-      "id": 54,
-      "type": "FluxStartSettings",
-      "pos": [
-        -240,
-        -880
-      ],
-      "size": [
-        350,
-        412
-      ],
-      "flags": {},
-      "order": 10,
+      "order": 4,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "text",
-          "type": "STRING",
-          "link": 91,
-          "widget": {
-            "name": "text"
-          }
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "UNET",
-          "type": "MODEL",
+          "name": "detail_schedule",
+          "type": "DETAIL_SCHEDULE",
           "links": [
-            129
+            127,
+            128
           ],
           "slot_index": 0
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": null
-        },
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            118
-          ],
-          "slot_index": 2
-        },
-        {
-          "name": "WIDTH",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "HEIGHT",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            117
-          ],
-          "slot_index": 5
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            96,
-            103
-          ],
-          "slot_index": 6
         }
       ],
       "properties": {
-        "Node name for S&R": "FluxStartSettings"
+        "Node name for S&R": "DetailStarDaemon"
       },
       "widgets_values": [
-        "Your positive prompt...",
-        "FluxDevTurbo8Steps.safetensors",
-        "SD3.5\\t5xxl_fp16.safetensors",
-        "SD3.5\\ViT-L-14-TEXT-detail-improved-hiT-GmP-HF.safetensors",
-        "ae.safetensors",
-        "default",
-        "16:9 [1344x768 landscape]",
-        1024,
-        1024,
+        0.1,
+        0.2,
+        0.8,
+        0.5,
         1
       ]
     },
     {
-      "id": 63,
+      "id": 49,
       "type": "Note",
       "pos": [
-        570,
-        -1220
+        580,
+        -300
       ],
       "size": [
         370,
         160
       ],
       "flags": {},
-      "order": 8,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "ABOUT REFINER",
+      "title": "ABOUT DETAIL DEAMON",
       "properties": {},
       "widgets_values": [
-        "This is the second pass generation, you can use you preferred Sampler to generate the Image.\n\nIt uses the upscaler output latent and a lower denoise to keep the original image and just add details.\nThis is an example for Flux.\nYou can connect the model and condition from the first pass.\nSeed \"-1\" generates a random seed."
+        "The Detail Star Deamon is adapted from the original sources. \nThis can improve the details of your generated images.\nRead more about the settings and how it works on the original sources:\nhttps://github.com/muerrilla/sd-webui-detail-daemon\nhttps://github.com/Jonseed/ComfyUI-Detail-Daemon\n\nThis is optional and connects to the SD and FLUX samplers"
+      ],
+      "color": "#af3535",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 22,
+      "type": "StarFiveWildcards",
+      "pos": [
+        -685.7020263671875,
+        -1030.6800537109375
+      ],
+      "size": [
+        370.01025390625,
+        541.7451171875
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            42
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StarFiveWildcards"
+      },
+      "widgets_values": [
+        158512648959147,
+        "randomize",
+        "",
+        "Magazine cover with big bold text title word \"STARNODES\" using a photo real photo taken with iphone of",
+        "a purple __animals__ sitting on a star, the __animals__ is",
+        "wearing __outfit__ . \"STARNODES\" title text in bold letters.",
+        "Background color: {red|blue|purple|}",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 32,
+      "type": "Note",
+      "pos": [
+        -697.3704223632812,
+        -1231.8411865234375
+      ],
+      "size": [
+        390,
+        110
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "ABOUT WILDCARDS",
+      "properties": {},
+      "widgets_values": [
+        "Copy the \"wildcards\" folder to your ComfyUI directory.\nThere are a few examples included.\nUse the wildcard using __ example: __animals__ if you have a animals.txt wildcard.\nIt also picks a random if you give different options within {}  Example {red|blue|green]  will give one of the 3 colors."
       ],
       "color": "#af3535",
       "bgcolor": "#653"
@@ -828,6 +765,14 @@
       34,
       1,
       "VAE"
+    ],
+    [
+      116,
+      54,
+      0,
+      58,
+      0,
+      "MODEL"
     ],
     [
       117,
@@ -908,22 +853,6 @@
       58,
       3,
       "DETAIL_SCHEDULE"
-    ],
-    [
-      129,
-      54,
-      0,
-      62,
-      0,
-      "MODEL"
-    ],
-    [
-      130,
-      62,
-      0,
-      58,
-      0,
-      "MODEL"
     ]
   ],
   "groups": [
@@ -1035,10 +964,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6634666659162958,
+      "scale": 0.5483195586085079,
       "offset": [
-        926.2547199607006,
-        1372.9471099556636
+        1006.5562055873224,
+        1313.1664178338442
       ]
     }
   },
