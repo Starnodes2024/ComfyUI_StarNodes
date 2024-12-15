@@ -74,8 +74,8 @@ class Fluxstarsampler:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT")
-    RETURN_NAMES = ("model", "conditioning", "latent")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
+    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule")
     FUNCTION = "execute"
     CATEGORY = "sampling"
 
@@ -299,7 +299,7 @@ class Fluxstarsampler:
                             if total_samples > 1:
                                 pbar.update(1)
 
-        return (model, conditioning, out_latent)
+        return (model, conditioning, out_latent, detail_schedule)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

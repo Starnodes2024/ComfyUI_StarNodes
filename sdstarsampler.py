@@ -42,8 +42,8 @@ class SDstarsampler:
                 }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT")
-    RETURN_NAMES = ("model", "positive", "negative", "latent")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule")
     FUNCTION = "execute"
     CATEGORY = "sampling"
 
@@ -207,7 +207,7 @@ class SDstarsampler:
             # Use common_ksampler for sampling without detail schedule
             samples = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, current_latent, denoise=denoise)[0]
         
-        return (model, positive, negative, samples)
+        return (model, positive, negative, samples, detail_schedule)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {
