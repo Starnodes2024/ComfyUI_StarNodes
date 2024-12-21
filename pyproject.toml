@@ -9,6 +9,6 @@ Repository = "https://github.com/Starnodes2024/ComfyUI_StarNodes"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "starnodes"
 DisplayName = "ComfyUI_StarNodes"
 Icon = ""
