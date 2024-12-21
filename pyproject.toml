@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_starnodes"
+description = "NODES: StarNode Input Image Chooser, SD(XL) Star(t) Settings, SD3.5 Star(t) Settings, Starnode Ollama Helper"
+version = "1.0.0"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/Starnodes2024/ComfyUI_StarNodes"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_StarNodes"
+Icon = ""
