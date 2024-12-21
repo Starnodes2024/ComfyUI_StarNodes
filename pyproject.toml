@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_starnodes"
-description = "NODES: StarNode Input Image Chooser, SD(XL) Star(t) Settings, SD3.5 Star(t) Settings, Starnode Ollama Helper"
-version = "1.0.0"
+description = "NODES: StarNode Startsettings for Flux and SD, Smplers for Flux and SD, Detail Deamon, Wildcards and more Helper Nodes"
+version = "1.0.1"
 license = {file = "LICENSE"}
 
 [project.urls]
