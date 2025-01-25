@@ -1,7 +1,7 @@
 import random
 
 class StarImageSwitch:
-    CATEGORY = 'StarNodes'
+    CATEGORY = '⭐StarNodes'
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("img_out",)
     FUNCTION = "process_images"

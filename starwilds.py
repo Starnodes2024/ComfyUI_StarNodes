@@ -6,8 +6,8 @@ import folder_paths
 class Starwildcards:
     
     RETURN_TYPES = ('STRING',)
-    FUNCTION = 'process'
-    CATEGORY = 'StarNodes'
+    FUNCTION = 'star_wilds'
+    CATEGORY = '⭐StarNodes'
 
     @classmethod
     def INPUT_TYPES(s):
@@ -137,5 +137,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarFiveWildcards": " Star Seven Wildcards"
+    "StarFiveWildcards": "⭐Star Seven Wildcards"
 }

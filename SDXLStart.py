@@ -45,7 +45,7 @@ class SDXLStartSettings:
     )
     
     FUNCTION = "process_settings"
-    CATEGORY = "StarNodes"
+    CATEGORY = "⭐StarNodes"
 
     @staticmethod
     def read_ratios():

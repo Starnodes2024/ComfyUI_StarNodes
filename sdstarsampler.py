@@ -45,7 +45,7 @@ class SDstarsampler:
     RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
     RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule")
     FUNCTION = "execute"
-    CATEGORY = "sampling"
+    CATEGORY = "⭐StarNodes"
 
     def make_detail_schedule(self, steps, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         start = min(detail_start, detail_end)

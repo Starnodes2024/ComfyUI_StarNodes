@@ -56,7 +56,7 @@ class Starupscale:
     )
     
     FUNCTION = "process_settings"
-    CATEGORY = "StarNodes"
+    CATEGORY = "⭐StarNodes"
     DESCRIPTION = "TESTNODE FOR NEW FUNCTIONS"
 
     def process_settings(

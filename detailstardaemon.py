@@ -1,4 +1,3 @@
-
 # Detail Deamon adapted by https://github.com/muerrilla/sd-webui-detail-daemon
 # Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
 class DetailStarDaemon:
@@ -17,7 +16,7 @@ class DetailStarDaemon:
     RETURN_TYPES = ("DETAIL_SCHEDULE",)
     RETURN_NAMES = ("detail_schedule",)
     FUNCTION = "create_schedule"
-    CATEGORY = "sampling"
+    CATEGORY = "⭐StarNodes"
 
     def create_schedule(self, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         return ({

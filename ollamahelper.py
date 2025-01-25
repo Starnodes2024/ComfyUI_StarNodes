@@ -32,7 +32,7 @@ class OllamaModelChooser:
     RETURN_TYPES = ("STRING", (),)
     RETURN_NAMES = ("Instructions (System)", "Ollama Model",)
     FUNCTION = "select_model"
-    CATEGORY = "StarNodes"
+    CATEGORY = "⭐StarNodes"
 
     def select_model(self, Model, Instructions):
         return (Instructions, Model)

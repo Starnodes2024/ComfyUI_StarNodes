@@ -74,10 +74,10 @@ class Fluxstarsampler:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
-    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule")
-    FUNCTION = "execute"
-    CATEGORY = "sampling"
+    RETURN_TYPES = ("LATENT",)
+    FUNCTION = "sample"
+    CATEGORY = "⭐StarNodes"
+    RETURN_NAMES = ("latent",)
 
     def make_detail_schedule(self, steps, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         start = min(detail_start, detail_end)
@@ -177,7 +177,7 @@ class Fluxstarsampler:
                 
         return wrapper
 
-    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, detail_schedule=None):
+    def sample(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, detail_schedule=None):
         is_schnell = model.model.model_type == comfy.model_base.ModelType.FLOW
 
         # Parse all input parameters
@@ -299,7 +299,7 @@ class Fluxstarsampler:
                             if total_samples > 1:
                                 pbar.update(1)
 
-        return (model, conditioning, out_latent, detail_schedule)
+        return (out_latent,)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

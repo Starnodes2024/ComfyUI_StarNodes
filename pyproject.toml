@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_starnodes"
+description = "NODES: StarNode Startsettings for Flux and SD, Smplers for Flux and SD, Detail Deamon, Wildcards and more Helper Nodes"
+version = "1.0.2"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/Starnodes2024/ComfyUI_StarNodes"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "starnodes"
+DisplayName = "ComfyUI_StarNodes"
+Icon = ""
