@@ -24,7 +24,7 @@ class Starwildcards:
             }
         }
     
-    def process(self, seed, prompt_1, prompt_2, prompt_3, prompt_4, prompt_5, prompt_6, prompt_7):
+    def star_wilds(self, seed, prompt_1, prompt_2, prompt_3, prompt_4, prompt_5, prompt_6, prompt_7):
         # Process each prompt individually
         processed_1 = process_wildcard_syntax(prompt_1, seed)
         processed_2 = process_wildcard_syntax(prompt_2, seed+144)
