@@ -1,4 +1,5 @@
-import random
+import torch
+import numpy as np
 
 class StarImageSwitch:
     CATEGORY = '⭐StarNodes'
@@ -10,43 +11,44 @@ class StarImageSwitch:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "select": ("INT", {"default": 1, "min": 1, "max": 8, "step": 1}),
             },
             "optional": {
-                "Image 1 = 1": ("IMAGE",),
-                "Image 2 = 2": ("IMAGE",),
-                "Image 3 = 3": ("IMAGE",),
-                "Image 4  = 4": ("IMAGE",),
-                "Image 5  = 5": ("IMAGE",),
-                "Image 6  = 6": ("IMAGE",),
-                "Image 7  = 7": ("IMAGE",),
-                "Image 8  = 8": ("IMAGE",),
+                "Image 1": ("IMAGE",),
+                "Image 2": ("IMAGE",),
+                "Image 3": ("IMAGE",),
+                "Image 4": ("IMAGE",),
+                "Image 5": ("IMAGE",),
+                "Image 6": ("IMAGE",),
+                "Image 7": ("IMAGE",),
             }
         }
 
-    def process_images(self, select, **kwargs):
-        images = [
-            kwargs.get("Image 1 = 1"),
-            kwargs.get("Image 2 = 2"),
-            kwargs.get("Image 3 = 3"),
-            kwargs.get("Image 4 = 4"),
-            kwargs.get("Image 4 = 5"),
-            kwargs.get("Image 5 = 6"),
-            kwargs.get("Image 6 = 7"),
-            kwargs.get("Image 7 = 8"),
-        ]
+    def process_images(self, **kwargs):
+        # Try to get the first connected image
+        for i in range(1, 8):
+            img = kwargs.get(f"Image {i}")
+            if img is not None:
+                return (img,)
         
-        if 1 <= select <= 8:
-            img_out = images[select - 1]
-        else:
-            img_out = images[0]  # Default to first image if selection is out of range
+        # If no image is connected, create a default gray image with text pattern
+        h, w = 512, 512
+        # Create a gray image with a gradient
+        default_img = np.ones((h, w, 3), dtype=np.float32) * 0.5
+        # Add some visual pattern
+        for i in range(0, h, 32):
+            for j in range(0, w, 32):
+                if (i + j) % 64 == 0:
+                    default_img[i:i+16, j:j+16] = 0.7
         
-        return (img_out,)
+        # Convert to tensor and add batch dimension
+        img_tensor = torch.from_numpy(default_img)
+        img_tensor = img_tensor.unsqueeze(0)
+        return (img_tensor,)
 
 NODE_CLASS_MAPPINGS = {
     "StarImageSwitch": StarImageSwitch
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarImageSwitch": "⭐ Star Input Image Chooser"
+    "StarImageSwitch": "⭐ Star Seven Inputs (img)"
 }
