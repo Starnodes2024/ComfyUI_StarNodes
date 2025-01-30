@@ -8,12 +8,18 @@ This are little nodes that are helping to make big workflows a bit smaller.
 
 This are nodes i made for my daily work with ComfyUi to make my life a bit easier. Maybe they can help you too.
 
-- NEW: ⭐ Detail Star Deamon is adapted from the original sources. This can improve the details of your generated images and can be connected to the Starsamplers. Works with Flux and all SD Models.
+- ⭐ NEW Star Text Filter: Simple filter to clean string text, remove blanks, empty lines or text beween two given words.
+
+- ⭐ NEW Star Seven Inputs(img): Automatic input image switch. Always pass the first provided input image to the output
+
+- ⭐ NEW Star Seven Inputs(txt): Text Concat with optional inputs. Works as automatic switch too. If more than one inputs are provided it will concatenate the inputs.
+
+- ⭐ Detail Star Deamon is adapted from the original sources. This can improve the details of your generated images and can be connected to the Starsamplers. Works with Flux and all SD Models.
 Read more about the settings and how it works on the original sources: https://github.com/muerrilla/sd-webui-detail-daemon / https://github.com/Jonseed/ComfyUI-Detail-Daemon
 
-- NEW: ⭐ StarSampler SD / SDXL: A Ksampler for SD, SDXL, SD3.5 with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
+- ⭐ StarSampler SD / SDXL: A Ksampler for SD, SDXL, SD3.5 with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
 
-- NEW: ⭐ StarSampler FLUX: A Ksampler for Flux with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
+- ⭐ StarSampler FLUX: A Ksampler for Flux with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
 
 - ⭐ SD(XL) Starter : Is loading checkpoint (with CLIP and VAE) and create an empty latend (you can choose resolutions or set your own)
 
@@ -28,6 +34,7 @@ Read more about the settings and how it works on the original sources: https://g
 
 - ⭐ Star Seven Wildcards: A prompt maker that use 7 inputs with wildcards to create prompts with different wildcards and multiple random inputs from one wildcard used. Also works without wildcards as text concatenate.
   You will find many wildcards in the "wildcards" subfolder of the node. To use them just copy the whole folder to your main ComfyUI directory.
+  NEW: Recursive wildcard processing up to 10 layers. 
 
 - ⭐ Input Image Chooser: A simple switch for big workflows to switch between 8 input images 
 
