@@ -39,7 +39,11 @@ class Starwildcards:
                              processed_5, processed_6, processed_7])
         return (final_text,)
 
-def find_and_replace_wildcards(prompt, offset_seed, debug=False):
+def find_and_replace_wildcards(prompt, offset_seed, debug=False, recursion_depth=0):
+    # Prevent infinite recursion
+    if recursion_depth > 10:  # Maximum recursion depth
+        return prompt
+        
     # Split the prompt into parts based on wildcards, including potential folder paths
     # This pattern matches folder paths followed by wildcards: ([^_\\]+\\)?(__[^_]*?__)
     parts = re.split(r'((?:[^_\\]+\\)?(?:__[^_]*?__))', prompt)
@@ -82,12 +86,24 @@ def find_and_replace_wildcards(prompt, offset_seed, debug=False):
                         current_seed = offset_seed + wildcard_count
                         random.seed(current_seed)
                         selected_line = random.choice(lines)
+                        
+                        # Process any nested wildcards in the selected line
+                        if '__' in selected_line:
+                            selected_line = find_and_replace_wildcards(
+                                selected_line, 
+                                current_seed, 
+                                debug,
+                                recursion_depth + 1
+                            )
+                            
                         wildcard_count += 1  # Increment counter after processing
                         result += selected_line
                     else:
                         # File exists but is empty, use wildcard name as fallback
                         result += wildcard_name
                 except Exception as e:
+                    if debug:
+                        print(f"Error processing wildcard {wildcard_name}: {str(e)}")
                     result += wildcard_name
             else:
                 # If the file doesn't exist, just use the wildcard name
