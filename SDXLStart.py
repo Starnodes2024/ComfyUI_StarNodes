@@ -12,11 +12,14 @@ class SDXLStartSettings:
         
         # Get available checkpoints
         available_checkpoints = folder_paths.get_filename_list("checkpoints")
+        available_vaes = folder_paths.get_filename_list("vae")
         
         return {
             "required": {
-                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "Your positive prompt..."}),
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "Your positive prompt..."}),
+                "negative_text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "Your negative prompt..."}),
                 "Checkpoint": (available_checkpoints, {"tooltip": "The checkpoint (model) to load"}),
+                "VAE": (["Default"] + available_vaes, {"default": "Default"}),
                 "Latent_Ratio": (ratio_sizes, {"default": "1:1 [1024x1024 square]"}),
                 "Latent_Width": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
                 "Latent_Height": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
@@ -31,7 +34,8 @@ class SDXLStartSettings:
         "LATENT",    # Latent Image
         "INT",       # Width
         "INT",       # Height
-        "CONDITIONING"  # Conditioning Output
+        "CONDITIONING",  # Positive Conditioning Output
+        "CONDITIONING"   # Negative Conditioning Output
     )
     
     RETURN_NAMES = (
@@ -41,7 +45,8 @@ class SDXLStartSettings:
         "latent",
         "width", 
         "height",
-        "conditioning"  # Conditioning Name
+        "conditioning_POS",  # Positive Conditioning Name
+        "conditioning_NEG"   # Negative Conditioning Name
     )
     
     FUNCTION = "process_settings"
@@ -71,12 +76,20 @@ class SDXLStartSettings:
     def process_settings(
         cls, 
         text,
-        Checkpoint, 
+        negative_text,
+        Checkpoint,
+        VAE,
         Latent_Ratio,
         Latent_Width,
         Latent_Height,
         Batch_Size
     ):
+        # Default prompts when input is empty
+        if not text.strip():
+            text = "a confused looking fluffy purple monster with a \"?\" sign"
+        if not negative_text.strip():
+            negative_text = "bad quality"
+
         # Checkpoint Loading
         ckpt_path = folder_paths.get_full_path_or_raise("checkpoints", Checkpoint)
         
@@ -91,13 +104,26 @@ class SDXLStartSettings:
         # Unpack the first 3 values
         model, clip, vae = checkpoint_data[:3]
         
-        # Generate Conditioning
-        conditioning = None
+        # Load custom VAE if specified
+        if VAE != "Default":
+            vae_path = folder_paths.get_full_path_or_raise("vae", VAE)
+            vae = comfy.sd.VAE(ckpt_path=vae_path)
+        
+        # Generate Positive Conditioning
+        conditioning_pos = None
         if clip and text:
             tokens = clip.tokenize(text)
             output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
             cond = output.pop("cond")
-            conditioning = [[cond, output]]
+            conditioning_pos = [[cond, output]]
+        
+        # Generate Negative Conditioning
+        conditioning_neg = None
+        if clip and negative_text:
+            tokens = clip.tokenize(negative_text)
+            output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+            cond = output.pop("cond")
+            conditioning_neg = [[cond, output]]
         
         # Latent Image Generation
         _, ratio_dict = cls.read_ratios()
@@ -119,13 +145,14 @@ class SDXLStartSettings:
         latent = torch.zeros([Batch_Size, 4, height // 8, width // 8])
         
         return (
-            model,          # Model
-            clip,           # CLIP model
-            vae,            # VAE model
+            model, 
+            clip, 
+            vae, 
             {"samples": latent},  # Latent image
-            width,          # Width as an INT output
-            height,         # Height as an INT output
-            conditioning    # Conditioning
+            width, 
+            height,
+            conditioning_pos,
+            conditioning_neg
         )
 
 # Mapping for ComfyUI to recognize the node

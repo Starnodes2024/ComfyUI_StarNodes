@@ -34,7 +34,8 @@ class SD35StartSettings:
         
         return {
             "required": {
-                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "Your positive prompt..."}),
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "Your positive prompt..."}),
+                "negative_text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "Your negative prompt..."}),
                 "UNET": (["Default"] + available_unets, {"default": "sd3.5_large_turbo.safetensors"}),
                 "CLIP_1": (["Default"] + available_clips, {"default": "clip_l.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "clip_g.safetensors"}),
@@ -54,8 +55,9 @@ class SD35StartSettings:
         "LATENT",    # Latent Image
         "INT",       # Width
         "INT",       # Height
-        "CONDITIONING",  # Conditioning hinzugefügt
-        "VAE"       # Added VAE output
+        "CONDITIONING",  # Positive Conditioning
+        "CONDITIONING",  # Negative Conditioning
+        "VAE"       # VAE
     )
     
     RETURN_NAMES = (
@@ -64,7 +66,8 @@ class SD35StartSettings:
         "LATENT",
         "WIDTH",
         "HEIGHT",
-        "CONDITIONING",  
+        "CONDITIONING_POS",
+        "CONDITIONING_NEG",
         "VAE"
     )
     
@@ -94,6 +97,7 @@ class SD35StartSettings:
     def process_settings(
         self, 
         text,
+        negative_text,
         UNET, 
         CLIP_1, 
         CLIP_2, 
@@ -105,6 +109,12 @@ class SD35StartSettings:
         Latent_Height,
         Batch_Size
     ):
+        # Default prompts when input is empty
+        if not text.strip():
+            text = "a confused looking fluffy purple monster with a \"?\" sign"
+        if not negative_text.strip():
+            negative_text = "bad quality"
+
         # UNET laden
         unet = None
         if UNET != "Default":
@@ -121,7 +131,8 @@ class SD35StartSettings:
             unet = comfy.sd.load_diffusion_model(unet_path, model_options=model_options)
         
         # CLIP laden und Conditioning erzeugen
-        conditioning = None
+        conditioning_pos = None
+        conditioning_neg = None
         clip = None
         if CLIP_1 != "Default" and CLIP_2 != "Default" and CLIP_3 != "Default":
             clip_paths = [
@@ -136,10 +147,17 @@ class SD35StartSettings:
             )
             
             if clip:
+                # Process positive prompt
                 tokens = clip.tokenize(text)
                 output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
-                conditioning = [[cond, output]]
+                conditioning_pos = [[cond, output]]
+
+                # Process negative prompt
+                tokens = clip.tokenize(negative_text)
+                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                cond = output.pop("cond")
+                conditioning_neg = [[cond, output]]
                 
         # VAE Loading
         vae = None
@@ -164,8 +182,9 @@ class SD35StartSettings:
             {"samples": latent},
             width,
             height,
-            conditioning,  # Conditioning hinzufügen
-            vae            # Added VAE output
+            conditioning_pos,
+            conditioning_neg,
+            vae
         )
 
 # Node-Mapping für ComfyUI

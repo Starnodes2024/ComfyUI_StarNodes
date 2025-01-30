@@ -34,7 +34,7 @@ class FluxStartSettings:
         
         return {
             "required": {
-                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "Your positive prompt..."}),
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "", "placeholder": "Your positive prompt..."}),
                 "UNET": (["Default"] + available_unets, {"default": "flux1-dev.safetensors"}),
                 "CLIP_1": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "ViT-L-14-BEST-smooth-GmP-ft.safetensors"}),
@@ -104,6 +104,10 @@ class FluxStartSettings:
         Latent_Height,
         Batch_Size
     ):
+        # If no text input is provided, use default creative prompt
+        if not text.strip():
+            text = "a confused looking fluffy purple monster with a \"?\" sign"
+            
         # UNET Loading
         unet = None
         if UNET != "Default":
@@ -194,5 +198,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "FluxStartSettings": "⭐ Flux Star(t) Settings"
+    "FluxStartSettings": "⭐ FLUX Star(t) Settings"
 }

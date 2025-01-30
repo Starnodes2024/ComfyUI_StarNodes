@@ -215,5 +215,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SDstarsampler": "⭐ StarSampler SD / SDXL"
+    "SDstarsampler": "⭐ StarSampler SD / SDXL / SD3.5"
 }
