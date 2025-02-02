@@ -1,52 +1,51 @@
 # ComfyUI_StarNodes
 
- Little Helper Nodes For ComfyUI
+Little Helper Nodes For ComfyUI
  
 ![nodes1](https://github.com/user-attachments/assets/7e858aeb-3cf7-4675-bc44-473ec345ef1c)
 
-This are little nodes that are helping to make big workflows a bit smaller. 
+A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-This are nodes i made for my daily work with ComfyUi to make my life a bit easier. Maybe they can help you too.
+## Available Nodes
 
-- ⭐ NEW Star Text Filter: Simple filter to clean string text, remove blanks, empty lines or text beween two given words.
+### Input & Control Nodes
+- ⭐ Star Seven Inputs(img): Switch that automatically passes the first provided input image to the output
+- ⭐ Star Seven Inputs(txt): Text concatenation with optional inputs. Works as automatic switch and concatenates multiple inputs
+- ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
+- ⭐ Star Text Filter: Cleans string text by removing blanks, empty lines or text between two given words
+- ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that that works like the "load image" node but saves images in a special faces-folder for later use.
 
-- ⭐ NEW Star Seven Inputs(img): Automatic input image switch. Always pass the first provided input image to the output
+### Model & Sampling Nodes
+- ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
+- ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
+- ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 
-- ⭐ NEW Star Seven Inputs(txt): Text Concat with optional inputs. Works as automatic switch too. If more than one inputs are provided it will concatenate the inputs.
+### Starter Nodes
+- ⭐ SD(XL) Starter: Loads checkpoint with CLIP and VAE, creates empty latent with customizable resolution
+- ⭐ FLUX Starter: Loads Unet with 2 CLIPs and creates empty latent
+- ⭐ SD3.0/3.5 Starter: Loads Unet with 3 CLIPs and creates empty latent
 
-- ⭐ Detail Star Deamon is adapted from the original sources. This can improve the details of your generated images and can be connected to the Starsamplers. Works with Flux and all SD Models.
-Read more about the settings and how it works on the original sources: https://github.com/muerrilla/sd-webui-detail-daemon / https://github.com/Jonseed/ComfyUI-Detail-Daemon
+### Upscaling & Processing
+- ⭐ Star Model Latent Upscaler: Complete pipeline for latent upscaling with model choice and VAE encoding/decoding
 
-- ⭐ StarSampler SD / SDXL: A Ksampler for SD, SDXL, SD3.5 with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
+### Text & Prompt Generation
+- ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
+- ⭐ Ollama Helper: Loads Ollama models from ollamamodels.txt for integration with Ollama nodes
 
-- ⭐ StarSampler FLUX: A Ksampler for Flux with settings and outputs for model and conditioning passtrough. Optional: Connector for Detail Star Deamon
+*Note: You can add custom resolutions by editing the .json files in the node folder.
 
-- ⭐ SD(XL) Starter : Is loading checkpoint (with CLIP and VAE) and create an empty latend (you can choose resolutions or set your own)
+## Installation
 
-- ⭐ FLUX Starter : Is loading Unet (Diffusion Model), 2 Clips and create an empty latend (you can choose resolutions  or set your own)
+### Via ComfyUI Manager (Recommended)
+Search for "Starnodes" in ComfyUI Manager and install
 
-- ⭐ SD3.0/3.5 Starter: Is loading Unet (Diffusion Model), 3 Clips and create an empty latend (you can choose resolutions or set your own)
-
-*you can add more ratios if you edit the .json-files in the node folder.
-
-
-- ⭐ Star Model Latent Upscaler: Decode an input Latent and Vae to an Image, upscale with choosen model, resize to given size, decode output image back to laten with selected VAE.
-
-- ⭐ Star Seven Wildcards: A prompt maker that use 7 inputs with wildcards to create prompts with different wildcards and multiple random inputs from one wildcard used. Also works without wildcards as text concatenate.
-  You will find many wildcards in the "wildcards" subfolder of the node. To use them just copy the whole folder to your main ComfyUI directory.
-  NEW: Recursive wildcard processing up to 10 layers. 
-
-- ⭐ Input Image Chooser: A simple switch for big workflows to switch between 8 input images 
-
-- ⭐ Ollama Helper: Is loading your Ollama models from ollamamodels.txt file in the nodes folder and pass it and a system prompt to Ollama nodes.
-This helps when ollama models are not show up in the list.
-
-## Install:
-Just search for Starnodes in ComfyUI Manager
-
-Manual install:
+### Manual Installation
 1. Open CMD within your custom nodes folder
-2. Type: git clone https://github.com/Starnodes2024/ComfyUI_StarNodes
-3.  Restart ComfyUI
+2. Run: `git clone https://github.com/Starnodes2024/ComfyUI_StarNodes`
+3. Restart ComfyUI
 
-You will find the Nodes under "Starnodes" or search for "star"  
+Find the nodes under "⭐StarNodes" category or search for "star" in the node browser.
+
+### Wildcards
+For the Star Seven Wildcards node, you'll find many wildcards in the "wildcards" subfolder. Copy this folder to your main ComfyUI directory to use them.
+- Supports recursive wildcard processing up to 10 layers
