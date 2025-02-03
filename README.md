@@ -13,7 +13,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Seven Inputs(txt): Text concatenation with optional inputs. Works as automatic switch and concatenates multiple inputs
 - ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
 - ⭐ Star Text Filter: Cleans string text by removing blanks, empty lines or text between two given words
-- ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that that works like the "load image" node but saves images in a special faces-folder for later use.
+- ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use.
 
 ### Model & Sampling Nodes
 - ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
