@@ -8,6 +8,8 @@ from PIL import Image, ImageGrab
 import folder_paths
 import nodes
 import comfy.sd
+import comfy.utils
+import types
 from comfy_extras.nodes_upscale_model import UpscaleModelLoader, ImageUpscaleWithModel
 
 class Starupscale:
@@ -15,14 +17,93 @@ class Starupscale:
     def __init__(self):
         pass
         
+    @staticmethod
+    def vae_list():
+        vaes = folder_paths.get_filename_list("vae")
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+        sdxl_taesd_enc = False
+        sdxl_taesd_dec = False
+        sd1_taesd_enc = False
+        sd1_taesd_dec = False
+        sd3_taesd_enc = False
+        sd3_taesd_dec = False
+        f1_taesd_enc = False
+        f1_taesd_dec = False
+
+        for v in approx_vaes:
+            if v.startswith("taesd_decoder."):
+                sd1_taesd_dec = True
+            elif v.startswith("taesd_encoder."):
+                sd1_taesd_enc = True
+            elif v.startswith("taesdxl_decoder."):
+                sdxl_taesd_dec = True
+            elif v.startswith("taesdxl_encoder."):
+                sdxl_taesd_enc = True
+            elif v.startswith("taesd3_decoder."):
+                sd3_taesd_dec = True
+            elif v.startswith("taesd3_encoder."):
+                sd3_taesd_enc = True
+            elif v.startswith("taef1_encoder."):
+                f1_taesd_dec = True
+            elif v.startswith("taef1_decoder."):
+                f1_taesd_enc = True
+        if sd1_taesd_dec and sd1_taesd_enc:
+            vaes.append("taesd")
+        if sdxl_taesd_dec and sdxl_taesd_enc:
+            vaes.append("taesdxl")
+        if sd3_taesd_dec and sd3_taesd_enc:
+            vaes.append("taesd3")
+        if f1_taesd_dec and f1_taesd_enc:
+            vaes.append("taef1")
+        return vaes
+
+    @staticmethod
+    def load_taesd(name):
+        sd = {}
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+
+        encoder = next(filter(lambda a: a.startswith("{}_encoder.".format(name)), approx_vaes))
+        decoder = next(filter(lambda a: a.startswith("{}_decoder.".format(name)), approx_vaes))
+
+        enc = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", encoder))
+        for k in enc:
+            sd["taesd_encoder.{}".format(k)] = enc[k]
+
+        dec = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", decoder))
+        for k in dec:
+            sd["taesd_decoder.{}".format(k)] = dec[k]
+
+        if name == "taesd":
+            sd["vae_scale"] = torch.tensor(0.18215)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesdxl":
+            sd["vae_scale"] = torch.tensor(0.13025)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesd3":
+            sd["vae_scale"] = torch.tensor(1.5305)
+            sd["vae_shift"] = torch.tensor(0.0609)
+        elif name == "taef1":
+            sd["vae_scale"] = torch.tensor(0.3611)
+            sd["vae_shift"] = torch.tensor(0.1159)
+        return sd
+        
     @classmethod
     def INPUT_TYPES(cls):
-        available_vaes = folder_paths.get_filename_list("vae")
+        # Get available devices
+        devices = ["cpu"]
+        cuda_devices = [f"cuda:{k}" for k in range(0, torch.cuda.device_count())]
+        devices.extend(cuda_devices)
+        
+        # Set default VAE device to first CUDA device if available
+        default_vae_device = cuda_devices[0] if cuda_devices else "cpu"
+        
+        available_vaes = ["Default"] + cls.vae_list()
         available_upscalers = folder_paths.get_filename_list("upscale_models")
         
         return {
             "required": {
-                "VAE_OUT": (["Default"] + available_vaes, {"default": "ae.safetensors"}),
+                "VAE_OUT": (available_vaes, {"default": "ae.safetensors"}),
+                "VAE_Device": (devices, {"default": default_vae_device}),
                 "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "Default"}),
                 "OUTPUT_LONGEST_SIDE": ("INT", { 
                     "default": 2000, 
@@ -59,9 +140,28 @@ class Starupscale:
     CATEGORY = "⭐StarNodes"
     DESCRIPTION = "TESTNODE FOR NEW FUNCTIONS"
 
+    def override_device(self, model, model_attr, device):
+        # Set model/patcher attributes
+        model.device = device
+        patcher = getattr(model, "patcher", model)
+        for name in ["device", "load_device", "offload_device", "current_device", "output_device"]:
+            setattr(patcher, name, device)
+
+        # Move model to device
+        py_model = getattr(model, model_attr)
+        py_model.to = types.MethodType(torch.nn.Module.to, py_model)
+        py_model.to(device)
+
+        # Remove ability to move model
+        def to(*args, **kwargs):
+            pass
+        py_model.to = types.MethodType(to, py_model)
+        return model
+
     def process_settings(
         self, 
         VAE_OUT,
+        VAE_Device,
         UPSCALE_MODEL,
         OUTPUT_LONGEST_SIDE,
         INTERPOLATION_MODE,
@@ -71,11 +171,18 @@ class Starupscale:
     ):
         # VAE Loading
         vaeout = None
-        decoder_name = "Default"
         if VAE_OUT != "Default":
-            decoder_name = VAE_OUT
-            vae = nodes.VAELoader().load_vae(decoder_name)[0]
-            vaeout = vae
+            if VAE_OUT in ["taesd", "taesdxl", "taesd3", "taef1"]:
+                sd = self.load_taesd(VAE_OUT)
+            else:
+                vae_path = folder_paths.get_full_path_or_raise("vae", VAE_OUT)
+                sd = comfy.utils.load_torch_file(vae_path)
+            vaeout = comfy.sd.VAE(sd=sd)
+            
+            # Set VAE device
+            if vaeout is not None:
+                vae_device = torch.device(VAE_Device)
+                vaeout = self.override_device(vaeout, "first_stage_model", vae_device)
         
         # Determine processing path
         output_image = None

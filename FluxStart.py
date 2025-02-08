@@ -5,10 +5,90 @@ import torch
 import folder_paths
 import nodes
 import comfy.sd
+import comfy.utils
+import types
 
 class FluxStartSettings:
+    @staticmethod
+    def vae_list():
+        vaes = folder_paths.get_filename_list("vae")
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+        sdxl_taesd_enc = False
+        sdxl_taesd_dec = False
+        sd1_taesd_enc = False
+        sd1_taesd_dec = False
+        sd3_taesd_enc = False
+        sd3_taesd_dec = False
+        f1_taesd_enc = False
+        f1_taesd_dec = False
+
+        for v in approx_vaes:
+            if v.startswith("taesd_decoder."):
+                sd1_taesd_dec = True
+            elif v.startswith("taesd_encoder."):
+                sd1_taesd_enc = True
+            elif v.startswith("taesdxl_decoder."):
+                sdxl_taesd_dec = True
+            elif v.startswith("taesdxl_encoder."):
+                sdxl_taesd_enc = True
+            elif v.startswith("taesd3_decoder."):
+                sd3_taesd_dec = True
+            elif v.startswith("taesd3_encoder."):
+                sd3_taesd_enc = True
+            elif v.startswith("taef1_encoder."):
+                f1_taesd_dec = True
+            elif v.startswith("taef1_decoder."):
+                f1_taesd_enc = True
+        if sd1_taesd_dec and sd1_taesd_enc:
+            vaes.append("taesd")
+        if sdxl_taesd_dec and sdxl_taesd_enc:
+            vaes.append("taesdxl")
+        if sd3_taesd_dec and sd3_taesd_enc:
+            vaes.append("taesd3")
+        if f1_taesd_dec and f1_taesd_enc:
+            vaes.append("taef1")
+        return vaes
+
+    @staticmethod
+    def load_taesd(name):
+        sd = {}
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+
+        encoder = next(filter(lambda a: a.startswith("{}_encoder.".format(name)), approx_vaes))
+        decoder = next(filter(lambda a: a.startswith("{}_decoder.".format(name)), approx_vaes))
+
+        enc = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", encoder))
+        for k in enc:
+            sd["taesd_encoder.{}".format(k)] = enc[k]
+
+        dec = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", decoder))
+        for k in dec:
+            sd["taesd_decoder.{}".format(k)] = dec[k]
+
+        if name == "taesd":
+            sd["vae_scale"] = torch.tensor(0.18215)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesdxl":
+            sd["vae_scale"] = torch.tensor(0.13025)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesd3":
+            sd["vae_scale"] = torch.tensor(1.5305)
+            sd["vae_shift"] = torch.tensor(0.0609)
+        elif name == "taef1":
+            sd["vae_scale"] = torch.tensor(0.3611)
+            sd["vae_shift"] = torch.tensor(0.1159)
+        return sd
+
     @classmethod
     def INPUT_TYPES(cls):
+        # Get available devices
+        devices = ["cpu"]
+        cuda_devices = [f"cuda:{k}" for k in range(0, torch.cuda.device_count())]
+        devices.extend(cuda_devices)
+        
+        # Set default VAE device to first CUDA device if available
+        default_vae_device = cuda_devices[0] if cuda_devices else "cpu"
+
         # Existing model path and model loading logic
         models_paths, _ = folder_paths.folder_names_and_paths.get("diffusion_models", 
                           folder_paths.folder_names_and_paths.get("unet", [[], set()]))
@@ -16,7 +96,7 @@ class FluxStartSettings:
         available_models = ["Default"]
         available_unets = folder_paths.get_filename_list("diffusion_models")
         available_clips = folder_paths.get_filename_list("text_encoders")
-        available_vaes = folder_paths.get_filename_list("vae")
+        available_vaes = ["Default"] + cls.vae_list()
         
         try:
             for path in models_paths:
@@ -38,7 +118,9 @@ class FluxStartSettings:
                 "UNET": (["Default"] + available_unets, {"default": "flux1-dev.safetensors"}),
                 "CLIP_1": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "ViT-L-14-BEST-smooth-GmP-ft.safetensors"}),
-                "VAE": (["Default"] + available_vaes, {"default": "ae.safetensors"}),
+                "CLIP_Device": (devices, {"default": "cpu"}),
+                "VAE": (available_vaes, {"default": "ae.safetensors"}),
+                "VAE_Device": (devices, {"default": default_vae_device}),
                 "Weight_Dtype": (["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], {"default": "default"}),
                 "Latent_Ratio": (ratio_sizes, {"default": "1:1 [1024x1024 square]"}),
                 "Latent_Width": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 64}),
@@ -91,13 +173,33 @@ class FluxStartSettings:
         
         return ratio_sizes, ratio_dict
 
+    def override_device(self, model, model_attr, device):
+        # Set model/patcher attributes
+        model.device = device
+        patcher = getattr(model, "patcher", model)
+        for name in ["device", "load_device", "offload_device", "current_device", "output_device"]:
+            setattr(patcher, name, device)
+
+        # Move model to device
+        py_model = getattr(model, model_attr)
+        py_model.to = types.MethodType(torch.nn.Module.to, py_model)
+        py_model.to(device)
+
+        # Remove ability to move model
+        def to(*args, **kwargs):
+            pass
+        py_model.to = types.MethodType(to, py_model)
+        return model
+
     def process_settings(
         self, 
         text,
         UNET, 
         CLIP_1, 
-        CLIP_2, 
+        CLIP_2,
+        CLIP_Device,
         VAE,
+        VAE_Device,
         Weight_Dtype, 
         Latent_Ratio,
         Latent_Width,
@@ -140,8 +242,12 @@ class FluxStartSettings:
                 clip_type=clip_type
             )
             
-            # Generate conditioning using both CLIPs
+            # Set CLIP device
             if clip is not None:
+                clip_device = torch.device(CLIP_Device)
+                clip = self.override_device(clip, "cond_stage_model", clip_device)
+                
+                # Generate conditioning using both CLIPs
                 # Tokenize the text
                 tokens = clip.tokenize(text)
                 
@@ -158,10 +264,18 @@ class FluxStartSettings:
 
         # VAE Loading
         vae = None
-        decoder_name = "Default"
         if VAE != "Default":
-            decoder_name = VAE
-            vae = nodes.VAELoader().load_vae(decoder_name)[0]
+            if VAE in ["taesd", "taesdxl", "taesd3", "taef1"]:
+                sd = self.load_taesd(VAE)
+            else:
+                vae_path = folder_paths.get_full_path_or_raise("vae", VAE)
+                sd = comfy.utils.load_torch_file(vae_path)
+            vae = comfy.sd.VAE(sd=sd)
+            
+            # Set VAE device
+            if vae is not None:
+                vae_device = torch.device(VAE_Device)
+                vae = self.override_device(vae, "first_stage_model", vae_device)
 
         # Latent Image Generation
         _, ratio_dict = self.read_ratios()
