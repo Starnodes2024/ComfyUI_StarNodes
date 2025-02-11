@@ -77,7 +77,7 @@ class Fluxstarsampler:
     RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
     RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule")
     FUNCTION = "execute"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "StarNodes"
 
     def make_detail_schedule(self, steps, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         start = min(detail_start, detail_end)
@@ -138,49 +138,14 @@ class Fluxstarsampler:
         # Mix the DD schedule high/low items according to the ratio
         return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], ratio).item()
 
-    def create_model_wrapper(self, model, sigmas, detail_schedule, guidance_scale):
-        sigmas_cpu = sigmas.detach().clone().cpu()
-        sigma_max, sigma_min = float(sigmas_cpu[0]), float(sigmas_cpu[-1]) + 1e-05
-        
-        def wrapper(x, sigma, **extra_args):
-            sigma_float = float(sigma.max().detach().cpu())
-            if not (sigma_min <= sigma_float <= sigma_max):
-                return model(x, sigma, **extra_args)
-                
-            dd_adjustment = self.get_dd_schedule(sigma_float, sigmas_cpu, detail_schedule) * 0.1
-            adjusted_sigma = sigma * max(1e-06, 1.0 - dd_adjustment * guidance_scale)
-            return model(x, adjusted_sigma, **extra_args)
-            
-        # Copy all model attributes that might be needed
-        model_attrs = [
-            'inner_model', 'sigmas', 'model', 'model_type', 'get_model_object',
-            'latent_channels', 'latent_format', 'model_size', 'model_type',
-            'is_adm', 'is_sdxl', 'is_sd2', 'is_sd1', 'is_v2', 'patcher',
-            'clip', 'loaded_model'
-        ]
-        
-        for k in model_attrs:
-            if hasattr(model, k):
-                setattr(wrapper, k, getattr(model, k))
-        
-        # Add model object methods
-        def get_model_object(self=None):
-            return model
-        
-        wrapper.get_model_object = get_model_object
-        wrapper.model_type = getattr(model, 'model_type', None)
-        wrapper.model = model
-        
-        # Set default latent channels if not present
-        if not hasattr(wrapper, 'latent_channels'):
-            wrapper.latent_channels = 4  # Default for SD models
-                
-        return wrapper
-
     def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, detail_schedule=None):
+        from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicScheduler, BasicGuider, SamplerCustomAdvanced
+        from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
+        from comfy_extras.nodes_latent import LatentBatch
+
         is_schnell = model.model.model_type == comfy.model_base.ModelType.FLOW
 
-        # Parse all input parameters
+        # Parse input parameters
         steps_list = parse_string_to_list(steps)
         denoise = parse_string_to_list("1.0" if denoise == "" else denoise)
         guidance = parse_string_to_list("3.5" if guidance == "" else guidance)
@@ -192,61 +157,68 @@ class Fluxstarsampler:
             max_shift = parse_string_to_list("0")
             base_shift = parse_string_to_list("1.0" if base_shift == "" else base_shift)
 
-        # Process latent dimensions
+        # Get dimensions
         width = latent["samples"].shape[3] * 8
         height = latent["samples"].shape[2] * 8
 
-        # Initialize output latent
-        out_latent = None
-        total_samples = len(max_shift) * len(base_shift) * len(guidance) * len(steps_list) * len(denoise)
-        current_sample = 0
+        # If no detail schedule is connected, use the fast path
+        if detail_schedule is None:
+            # Initialize components for fast path
+            noise_gen = Noise_RandomNoise(seed)
+            basic_scheduler = BasicScheduler()
+            basic_guider = BasicGuider()
+            sampler_advanced = SamplerCustomAdvanced()
+            model_sampling = ModelSamplingFlux() if not is_schnell else ModelSamplingAuraFlow()
 
-        if total_samples > 1:
-            pbar = ProgressBar(total_samples)
+            # Process model and get sampling components
+            if is_schnell:
+                work_model = model_sampling.patch_aura(model, base_shift[0])[0]
+            else:
+                work_model = model_sampling.patch(model, max_shift[0], base_shift[0], width, height)[0]
 
-        # Sampler name mapping
-        sampler_map = {
-            'euler': 'EulerSampler',
-            'euler_ancestral': 'EulerAncestralSampler',
-            'heun': 'HeunSampler',
-            'dpm_2': 'DPMSolver2Sampler',
-            'dpm_2_ancestral': 'DPMSolver2AncestralSampler',
-            'lms': 'LMSSampler',
-            'dpm_fast': 'DPMSolverFastSampler',
-            'dpm_adaptive': 'DPMSolverAdaptiveSampler',
-            'dpmpp_2s_ancestral': 'DPMppSDE2SAncestralSampler',
-            'dpmpp_sde': 'DPMppSDESampler',
-            'dpmpp_2m': 'DPMpp2MSampler',
-            'ddim': 'DDIMSampler',
-            'uni_pc': 'UniPCSampler',
-            'uni_pc_bh2': 'UniPCBh2Sampler'
-        }
+            # Setup guidance
+            cond = conditioning_set_values(conditioning, {"guidance": guidance[0]})
+            guider = basic_guider.get_guider(work_model, cond)[0]
 
-        # Main sampling loop
-        for ms in max_shift:
-            for bs in base_shift:
-                if is_schnell:
-                    work_model = ModelSamplingAuraFlow().patch_aura(model, bs)[0]
-                else:
-                    work_model = ModelSamplingFlux().patch(model, ms, bs, width, height)[0]
-                
-                for g in guidance:
-                    # Update conditioning with guidance while preserving original structure
-                    cond = conditioning_set_values(conditioning, {"guidance": g})
+            # Get sampler and sigmas
+            sampler_obj = comfy.samplers.sampler_object(sampler)
+            sigmas = basic_scheduler.get_sigmas(work_model, scheduler, steps_list[0], denoise[0])[0]
+
+            # Perform sampling
+            out_latent = sampler_advanced.sample(noise_gen, guider, sampler_obj, sigmas, latent)[1]
+
+        else:
+            # Use detail schedule path
+            out_latent = None
+            total_samples = len(max_shift) * len(base_shift) * len(guidance) * len(steps_list) * len(denoise)
+            current_sample = 0
+
+            if total_samples > 1:
+                pbar = ProgressBar(total_samples)
+
+            # Main sampling loop with detail schedule
+            for ms in max_shift:
+                for bs in base_shift:
+                    if is_schnell:
+                        work_model = ModelSamplingAuraFlow().patch_aura(model, bs)[0]
+                    else:
+                        work_model = ModelSamplingFlux().patch(model, ms, bs, width, height)[0]
                     
-                    for st in steps_list:
-                        for d in denoise:
-                            current_sample += 1
-                            log = f"Sampling {current_sample}/{total_samples} with seed {seed}, steps {st}, guidance {g}, max_shift {ms}, base_shift {bs}, denoise {d}"
-                            logging.info(log)
+                    for g in guidance:
+                        cond = conditioning_set_values(conditioning, {"guidance": g})
+                        
+                        for st in steps_list:
+                            for d in denoise:
+                                current_sample += 1
+                                log = f"Sampling {current_sample}/{total_samples} with seed {seed}, steps {st}, guidance {g}, max_shift {ms}, base_shift {bs}, denoise {d}"
+                                logging.info(log)
 
-                            # Create a copy of the input latent to avoid modifying it
-                            current_latent = {"samples": latent["samples"].clone()}
-                            
-                            # Initialize sampler to get sigmas for detail daemon adjustments
-                            k_sampler = comfy.samplers.KSampler(work_model, steps=st, device=latent["samples"].device, sampler=sampler, scheduler=scheduler, denoise=d)
-                            
-                            if detail_schedule is not None:
+                                # Create a copy of the input latent
+                                current_latent = {"samples": latent["samples"].clone()}
+                                
+                                # Initialize sampler
+                                k_sampler = comfy.samplers.KSampler(work_model, steps=st, device=latent["samples"].device, sampler=sampler, scheduler=scheduler, denoise=d)
+                                
                                 # Create detail schedule
                                 detail_schedule_tensor = torch.tensor(
                                     self.make_detail_schedule(
@@ -261,7 +233,7 @@ class Fluxstarsampler:
                                     device="cpu"
                                 )
                                 
-                                # Store original sigmas and create modified ones
+                                # Store original sigmas
                                 original_sigmas = k_sampler.sigmas.clone()
                                 sigmas_cpu = original_sigmas.detach().cpu()
                                 sigma_max, sigma_min = float(sigmas_cpu[0]), float(sigmas_cpu[-1]) + 1e-05
@@ -286,18 +258,14 @@ class Fluxstarsampler:
                                 finally:
                                     # Restore original forward method
                                     work_model.model.diffusion_model.forward = original_forward
-                            else:
-                                # Use common_ksampler without detail daemon
-                                samples = common_ksampler(work_model, seed, st, g, sampler, scheduler, cond, cond, current_latent, denoise=d)[0]
 
-                            if out_latent is None:
-                                out_latent = samples
-                            else:
-                                # Both latents should already be in the correct format
-                                out_latent = LatentBatch().batch(out_latent, samples)[0]
+                                if out_latent is None:
+                                    out_latent = samples
+                                else:
+                                    out_latent = LatentBatch().batch(out_latent, samples)[0]
 
-                            if total_samples > 1:
-                                pbar.update(1)
+                                if total_samples > 1:
+                                    pbar.update(1)
 
         return (model, conditioning, out_latent, detail_schedule)
 
