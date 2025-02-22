@@ -32,6 +32,9 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
 - ⭐ Ollama Helper: Loads Ollama models from ollamamodels.txt for integration with Ollama nodes
 
+### Web & Data 🆕
+- ⭐ Star Web Scraper (Headlines) 📰: Scrapes news headlines from websites. Includes URL management with saved sites for quick access. NEW!
+
 *Note: You can add custom resolutions by editing the .json files in the node folder.
 
 ## Installation
