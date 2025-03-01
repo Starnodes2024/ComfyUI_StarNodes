@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_starnodes"
 description = "NODES: StarNode Startsettings for Flux and SD, Smplers for Flux and SD, Detail Deamon, Wildcards and more Helper Nodes"
-version = "1.0.5"
+version = "1.0.6"
 license = {file = "LICENSE"}
 
 [project.urls]
