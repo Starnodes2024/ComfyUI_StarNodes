@@ -19,6 +19,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
 - ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
+- ⭐ Star FluxFill Inpainter 🆕: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
 
 ### Starter Nodes
 - ⭐ SD(XL) Starter: Loads checkpoint with CLIP and VAE, creates empty latent with customizable resolution
