@@ -1,6 +1,8 @@
 # Detail Deamon adapted by https://github.com/muerrilla/sd-webui-detail-daemon
 # Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
 class DetailStarDaemon:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(s):
         return {

@@ -5,6 +5,8 @@ import folder_paths
 import comfy.sd
 
 class SDXLStartSettings:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(cls):
         # Read ratios

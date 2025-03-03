@@ -23,6 +23,8 @@ def parse_string_to_list(value):
     return value if value else [0]
 
 class SDstarsampler:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {

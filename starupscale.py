@@ -13,6 +13,8 @@ import types
 from comfy_extras.nodes_upscale_model import UpscaleModelLoader, ImageUpscaleWithModel
 
 class Starupscale:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
    
     def __init__(self):
         pass

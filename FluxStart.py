@@ -9,6 +9,8 @@ import comfy.utils
 import types
 
 class FluxStartSettings:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @staticmethod
     def vae_list():
         vaes = folder_paths.get_filename_list("vae")

@@ -17,11 +17,15 @@ from comfy import utils
 # Detail Deamon adapted by https://github.com/Jonseed/ComfyUI-Detail-Daemon
 
 class AnyType(str):
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     """A special class that is always equal in not equal comparisons."""
     def __ne__(self, __value: object) -> bool:
         return False
 
 class FlexibleInputs(dict):
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     """A special class to make flexible node inputs."""
     def __init__(self, type):
         self.type = type
@@ -53,6 +57,8 @@ def parse_string_to_list(value):
     return value if value else [0]
 
 class Fluxstarsampler:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(s):
         return {

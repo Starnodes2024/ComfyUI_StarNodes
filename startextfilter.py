@@ -1,4 +1,6 @@
 class StarTextFilter:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     def __init__(self):
         pass
     

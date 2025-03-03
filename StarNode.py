@@ -2,6 +2,8 @@ import torch
 import numpy as np
 
 class StarImageSwitch:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     CATEGORY = '⭐StarNodes'
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("img_out",)

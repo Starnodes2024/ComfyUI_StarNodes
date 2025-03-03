@@ -4,6 +4,8 @@ from typing import List, Dict
 import os
 
 class StarNewsScraper:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     """
     A ComfyUI node that scrapes news headlines from a given URL and outputs them as formatted text.
     """

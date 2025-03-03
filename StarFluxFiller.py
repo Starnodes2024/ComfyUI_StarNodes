@@ -28,6 +28,11 @@ class DifferentialDiffusion:
         return (denoise_mask >= threshold).to(denoise_mask.dtype)
 
 class StarFluxFiller:
+    # Define custom colors for the node
+    COLOR = "#19124d"  # Title color
+    BGCOLOR = "#3d124d"  # Background color
+    CATEGORY = "⭐StarNodes"
+    
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
@@ -54,7 +59,6 @@ class StarFluxFiller:
     RETURN_TYPES = ("LATENT", "IMAGE",)
     RETURN_NAMES = ("latent", "image",)
     FUNCTION = "execute"
-    CATEGORY = "⭐StarNodes"
     
     # Cache for negative prompt encoding to avoid redundant computation
     _neg_cond_cache = {}
@@ -184,20 +188,19 @@ class StarFluxFiller:
                     # Process in chunks
                     decoded_chunks = []
                     for i in range(0, latent_result["samples"].shape[0], max_decode_batch):
-                        chunk = latent_result["samples"][i:i+max_decode_batch]
-                        decoded_chunk = vae.decode(chunk)
+                        end_idx = min(i + max_decode_batch, latent_result["samples"].shape[0])
+                        chunk = {"samples": latent_result["samples"][i:end_idx]}
+                        decoded_chunk = vae.decode(chunk["samples"])
                         decoded_chunks.append(decoded_chunk)
+                    
+                    # Combine chunks
                     decoded_image = torch.cat(decoded_chunks, dim=0)
                 else:
-                    # Decode all at once
+                    # Decode all at once for smaller batches
                     decoded_image = vae.decode(latent_result["samples"])
-                
-                # Handle batch dimension reshaping if needed
-                if len(decoded_image.shape) == 5:
-                    decoded_image = decoded_image.reshape(-1, decoded_image.shape[-3], decoded_image.shape[-2], decoded_image.shape[-1])
             else:
-                # Return the original input image when not decoding
-                decoded_image = image
+                # Return empty tensor if decoding is not requested
+                decoded_image = torch.zeros((1, 3, 64, 64))  # Placeholder empty image
         
         # Clean up any unused tensors to help with memory management
         torch.cuda.empty_cache()

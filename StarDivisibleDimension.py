@@ -1,6 +1,8 @@
 # divisibledimensions.py
 
 class StarDivisibleDimension:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(s):
         return {

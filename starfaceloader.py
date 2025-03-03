@@ -8,6 +8,8 @@ from nodes import PreviewImage, SaveImage
 import time
 
 class FlexibleInputs(dict):
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     """A special class to make flexible node inputs."""
     def __init__(self, type):
         self.type = type
@@ -19,6 +21,8 @@ class FlexibleInputs(dict):
         return True
 
 class StarFaceLoader:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
         if "image" in kwargs:

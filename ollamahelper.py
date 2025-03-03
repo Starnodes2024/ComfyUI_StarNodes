@@ -2,6 +2,8 @@ import os
 import nodes
 
 class OllamaModelChooser:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     @classmethod
     def INPUT_TYPES(cls):
         # Dynamically load models for the dropdown

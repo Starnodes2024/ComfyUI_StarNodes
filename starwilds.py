@@ -4,6 +4,8 @@ import re
 import folder_paths
 
 class Starwildcards:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     
     RETURN_TYPES = ('STRING',)
     FUNCTION = 'star_wilds'

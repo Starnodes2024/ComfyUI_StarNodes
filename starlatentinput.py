@@ -1,6 +1,8 @@
 import torch
 
 class StarLatentSwitch:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
     CATEGORY = '⭐StarNodes'
     RETURN_TYPES = ("LATENT",)
     RETURN_NAMES = ("latent_out",)
