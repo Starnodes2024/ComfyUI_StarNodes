@@ -1,8 +1,31 @@
 import torch
+import logging
 from nodes import common_ksampler, InpaintModelConditioning
 from comfy_extras.nodes_flux import FluxGuidance
 import node_helpers
 import comfy.samplers
+
+class DifferentialDiffusion:
+    def apply(self, model):
+        model = model.clone()
+        model.set_model_denoise_mask_function(self.forward)
+        return model
+
+    def forward(self, sigma: torch.Tensor, denoise_mask: torch.Tensor, extra_options: dict):
+        model = extra_options["model"]
+        step_sigmas = extra_options["sigmas"]
+        sigma_to = model.inner_model.model_sampling.sigma_min
+        if step_sigmas[-1] > sigma_to:
+            sigma_to = step_sigmas[-1]
+        sigma_from = step_sigmas[0]
+
+        ts_from = model.inner_model.model_sampling.timestep(sigma_from)
+        ts_to = model.inner_model.model_sampling.timestep(sigma_to)
+        current_ts = model.inner_model.model_sampling.timestep(sigma[0])
+
+        threshold = (current_ts - ts_to) / (ts_from - ts_to)
+
+        return (denoise_mask >= threshold).to(denoise_mask.dtype)
 
 class StarFluxFiller:
     @classmethod
@@ -23,6 +46,8 @@ class StarFluxFiller:
                     "noise_mask": ("BOOLEAN", {"default": True, "tooltip": "Add a noise mask to the latent so sampling will only happen within the mask. Might improve results or completely break things depending on the model."}),
                     "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
                     "batch_size": ("INT", {"default": 1, "min": 1, "max": 16, "step": 1, "tooltip": "Process multiple samples in parallel for better GPU utilization"}),
+                    "differential_attention": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use Differential Attention for better results"}),
+                    "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use TeaCache to speed up generation"}),
                 }
         }
 
@@ -34,7 +59,34 @@ class StarFluxFiller:
     # Cache for negative prompt encoding to avoid redundant computation
     _neg_cond_cache = {}
 
-    def execute(self, model, clip, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, decode_image=False, batch_size=1):
+    def execute(self, model, clip, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, decode_image=False, batch_size=1, differential_attention=True, use_teacache=True):
+        # Apply Differential Diffusion if enabled
+        if differential_attention:
+            try:
+                # Apply Differential Diffusion
+                diff_diffusion = DifferentialDiffusion()
+                model = diff_diffusion.apply(model)
+                logging.info("Using differential attention!")
+            except Exception as e:
+                logging.warning(f"Failed to apply Differential Diffusion: {str(e)}")
+        
+        # Apply TeaCache if enabled
+        if use_teacache:
+            try:
+                # Import TeaCache functionality
+                from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
+                
+                # Create a clone of the model
+                teacache_model = model.clone()
+                
+                # Apply TeaCache with fixed settings (Model Flux, threshold 0.40)
+                teacache = TeaCacheForImgGen()
+                model = teacache.apply_teacache(teacache_model, "flux", 0.40)[0]
+                
+                logging.info("TeaCache applied to the model with threshold 0.40")
+            except Exception as e:
+                logging.warning(f"Failed to apply TeaCache: {str(e)}")
+        
         # Use default prompt if text input is empty
         if not text.strip():
             text = "A Fluffy Confused Purple Monster with a \"?\" Sign"

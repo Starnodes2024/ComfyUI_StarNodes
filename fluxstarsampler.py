@@ -68,6 +68,7 @@ class Fluxstarsampler:
                 "max_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "base_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "denoise": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "1.0" }),
+                "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No"}),
             },
             "optional": {
                 "detail_schedule": ("DETAIL_SCHEDULE",),
@@ -138,12 +139,29 @@ class Fluxstarsampler:
         # Mix the DD schedule high/low items according to the ratio
         return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], ratio).item()
 
-    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, detail_schedule=None):
+    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, detail_schedule=None):
         from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicScheduler, BasicGuider, SamplerCustomAdvanced
         from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
         from comfy_extras.nodes_latent import LatentBatch
 
         is_schnell = model.model.model_type == comfy.model_base.ModelType.FLOW
+
+        # Apply TeaCache if enabled and model is Flux
+        if use_teacache and not is_schnell:
+            try:
+                # Import TeaCache functionality
+                from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
+                
+                # Create a clone of the model
+                teacache_model = model.clone()
+                
+                # Apply TeaCache with fixed settings (Model Flux, threshold 0.40)
+                teacache = TeaCacheForImgGen()
+                model = teacache.apply_teacache(teacache_model, "flux", 0.40)[0]
+                
+                logging.info("TeaCache applied to the model with threshold 0.40")
+            except Exception as e:
+                logging.warning(f"Failed to apply TeaCache: {str(e)}")
 
         # Parse input parameters
         steps_list = parse_string_to_list(steps)
