@@ -75,14 +75,16 @@ class Fluxstarsampler:
                 "base_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "denoise": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "1.0" }),
                 "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No"}),
+                "vae": ("VAE", ),
+                "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
             },
             "optional": {
                 "detail_schedule": ("DETAIL_SCHEDULE",),
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
-    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE")
+    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -145,7 +147,7 @@ class Fluxstarsampler:
         # Mix the DD schedule high/low items according to the ratio
         return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], ratio).item()
 
-    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, detail_schedule=None):
+    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, vae, decode_image=True, detail_schedule=None):
         from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicScheduler, BasicGuider, SamplerCustomAdvanced
         from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
         from comfy_extras.nodes_latent import LatentBatch
@@ -290,8 +292,14 @@ class Fluxstarsampler:
 
                                 if total_samples > 1:
                                     pbar.update(1)
+        
+        # Decode the latent to an image if requested
+        image = None
+        if decode_image:
+            print("Decoding latent to image using VAE")
+            image = vae.decode(out_latent["samples"])
 
-        return (model, conditioning, out_latent, detail_schedule)
+        return (model, conditioning, out_latent, detail_schedule, image)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

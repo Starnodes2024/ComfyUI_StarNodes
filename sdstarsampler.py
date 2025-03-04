@@ -38,14 +38,16 @@ class SDstarsampler:
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "normal"}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
+                    "vae": ("VAE", ),
+                    "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
                 },
                 "optional": {
                     "detail_schedule": ("DETAIL_SCHEDULE",),
                 }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE")
-    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -121,7 +123,7 @@ class SDstarsampler:
             
         return result
 
-    def execute(self, model, positive, negative, latent, seed, steps, cfg, sampler_name, scheduler, denoise, detail_schedule=None):
+    def execute(self, model, positive, negative, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, decode_image=True, detail_schedule=None):
         print("\n=== Starting SDstarsampler execution ===")
         print(f"Parameters: steps={steps}, cfg={cfg}, sampler={sampler_name}, scheduler={scheduler}, denoise={denoise}")
         if detail_schedule:
@@ -202,14 +204,19 @@ class SDstarsampler:
             finally:
                 # Restore original forward method
                 target_module.forward = original_forward
+                
+            print(" Detail Daemon Sampling Complete")
         else:
-            # Create a copy of the input latent to avoid modifying it
-            current_latent = {"samples": latent["samples"].clone()}
+            # Standard sampling without detail daemon
+            samples = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise=denoise)[0]
             
-            # Use common_ksampler for sampling without detail schedule
-            samples = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, current_latent, denoise=denoise)[0]
-        
-        return (model, positive, negative, samples, detail_schedule)
+        # Decode the latent to an image if requested
+        image = None
+        if decode_image:
+            print("Decoding latent to image using VAE")
+            image = vae.decode(samples["samples"])
+            
+        return (model, positive, negative, samples, detail_schedule, image)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

@@ -121,6 +121,7 @@ class FluxStartSettings:
                 "CLIP_1": (["Default"] + available_clips, {"default": "t5xxl_fp16.safetensors"}),
                 "CLIP_2": (["Default"] + available_clips, {"default": "ViT-L-14-BEST-smooth-GmP-ft.safetensors"}),
                 "CLIP_Device": (devices, {"default": "cpu"}),
+                "CLIP_AttentionMultiply": ("BOOLEAN", {"default": True}),
                 "VAE": (available_vaes, {"default": "ae.safetensors"}),
                 "VAE_Device": (devices, {"default": default_vae_device}),
                 "Weight_Dtype": (["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], {"default": "default"}),
@@ -193,6 +194,28 @@ class FluxStartSettings:
         py_model.to = types.MethodType(to, py_model)
         return model
 
+    def patch_clip_attention(self, clip):
+        """Apply attention multipliers to CLIP model"""
+        # Fixed values as specified
+        q = 1.20
+        k = 1.10
+        v = 0.8
+        out = 1.25
+        
+        m = clip.clone()
+        sd = m.patcher.model_state_dict()
+
+        for key in sd:
+            if key.endswith("self_attn.q_proj.weight") or key.endswith("self_attn.q_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, q)
+            if key.endswith("self_attn.k_proj.weight") or key.endswith("self_attn.k_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, k)
+            if key.endswith("self_attn.v_proj.weight") or key.endswith("self_attn.v_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, v)
+            if key.endswith("self_attn.out_proj.weight") or key.endswith("self_attn.out_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, out)
+        return m
+
     def process_settings(
         self, 
         text,
@@ -200,6 +223,7 @@ class FluxStartSettings:
         CLIP_1, 
         CLIP_2,
         CLIP_Device,
+        CLIP_AttentionMultiply,
         VAE,
         VAE_Device,
         Weight_Dtype, 
@@ -249,12 +273,18 @@ class FluxStartSettings:
                 clip_device = torch.device(CLIP_Device)
                 clip = self.override_device(clip, "cond_stage_model", clip_device)
                 
+                # Apply CLIP attention multiply if enabled
+                if CLIP_AttentionMultiply:
+                    clip_for_cond = self.patch_clip_attention(clip)
+                else:
+                    clip_for_cond = clip
+                
                 # Generate conditioning using both CLIPs
                 # Tokenize the text
-                tokens = clip.tokenize(text)
+                tokens = clip_for_cond.tokenize(text)
                 
                 # Encode tokens using both CLIPs
-                output = clip.encode_from_tokens(
+                output = clip_for_cond.encode_from_tokens(
                     tokens, 
                     return_pooled=True, 
                     return_dict=True
@@ -263,6 +293,10 @@ class FluxStartSettings:
                 # Extract the conditioning
                 cond = output.pop("cond")
                 conditioning = [[cond, output]]
+
+                # Apply CLIP attention multiply to output CLIP if enabled
+                if CLIP_AttentionMultiply:
+                    clip = self.patch_clip_attention(clip)
 
         # VAE Loading
         vae = None
