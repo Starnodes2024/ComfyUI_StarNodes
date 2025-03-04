@@ -53,6 +53,7 @@ class StarFluxFiller:
                     "batch_size": ("INT", {"default": 1, "min": 1, "max": 16, "step": 1, "tooltip": "Process multiple samples in parallel for better GPU utilization"}),
                     "differential_attention": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use Differential Attention for better results"}),
                     "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use TeaCache to speed up generation"}),
+                    "clip_attention_multiply": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Apply attention multipliers to the CLIP model for better results"}),
                 }
         }
 
@@ -62,8 +63,30 @@ class StarFluxFiller:
     
     # Cache for negative prompt encoding to avoid redundant computation
     _neg_cond_cache = {}
+    
+    def patch_clip_attention(self, clip):
+        """Apply attention multipliers to CLIP model"""
+        # Fixed values as specified
+        q = 1.20
+        k = 1.10
+        v = 0.8
+        out = 1.25
+        
+        m = clip.clone()
+        sd = m.patcher.model_state_dict()
 
-    def execute(self, model, clip, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, decode_image=False, batch_size=1, differential_attention=True, use_teacache=True):
+        for key in sd:
+            if key.endswith("self_attn.q_proj.weight") or key.endswith("self_attn.q_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, q)
+            if key.endswith("self_attn.k_proj.weight") or key.endswith("self_attn.k_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, k)
+            if key.endswith("self_attn.v_proj.weight") or key.endswith("self_attn.v_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, v)
+            if key.endswith("self_attn.out_proj.weight") or key.endswith("self_attn.out_proj.bias"):
+                m.add_patches({key: (None,)}, 0.0, out)
+        return m
+
+    def execute(self, model, clip, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, decode_image=False, batch_size=1, differential_attention=True, use_teacache=True, clip_attention_multiply=True):
         # Apply Differential Diffusion if enabled
         if differential_attention:
             try:
@@ -97,20 +120,27 @@ class StarFluxFiller:
         
         # Use torch.no_grad for all inference operations to reduce memory usage and improve speed
         with torch.no_grad():
+            # Apply CLIP attention multiply if enabled
+            if clip_attention_multiply:
+                clip_for_cond = self.patch_clip_attention(clip)
+                logging.info("CLIP attention multipliers applied")
+            else:
+                clip_for_cond = clip
+            
             # Generate Positive Conditioning from text - more efficient with single tokenize call
-            tokens = clip.tokenize(text)
-            output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+            tokens = clip_for_cond.tokenize(text)
+            output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
             cond = output.pop("cond")
             conditioning_pos = [[cond, output]]
             
             # Get negative conditioning from cache if possible
-            cache_key = f"{clip.__class__.__name__}_{id(clip)}"
+            cache_key = f"{clip_for_cond.__class__.__name__}_{id(clip_for_cond)}"
             if cache_key in self._neg_cond_cache:
                 conditioning_neg = self._neg_cond_cache[cache_key]
             else:
                 # Generate Negative Conditioning with empty string
-                tokens = clip.tokenize("")  # Empty string for negative prompt
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize("")  # Empty string for negative prompt
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_neg = [[cond, output]]
                 # Store in cache for future use
@@ -183,20 +213,17 @@ class StarFluxFiller:
             if decode_image:
                 # Use VAE to decode the latent into an image with optimized batch handling
                 # Process in smaller chunks if the batch is large to avoid OOM errors
-                max_decode_batch = 4  # Adjust based on VRAM availability
-                if latent_result["samples"].shape[0] > max_decode_batch:
+                max_batch_size = 4  # Maximum batch size for decoding to avoid OOM
+                if latent_result["samples"].shape[0] > max_batch_size:
                     # Process in chunks
                     decoded_chunks = []
-                    for i in range(0, latent_result["samples"].shape[0], max_decode_batch):
-                        end_idx = min(i + max_decode_batch, latent_result["samples"].shape[0])
-                        chunk = {"samples": latent_result["samples"][i:end_idx]}
+                    for i in range(0, latent_result["samples"].shape[0], max_batch_size):
+                        chunk = {"samples": latent_result["samples"][i:i+max_batch_size]}
                         decoded_chunk = vae.decode(chunk["samples"])
                         decoded_chunks.append(decoded_chunk)
-                    
-                    # Combine chunks
                     decoded_image = torch.cat(decoded_chunks, dim=0)
                 else:
-                    # Decode all at once for smaller batches
+                    # Decode the entire batch at once
                     decoded_image = vae.decode(latent_result["samples"])
             else:
                 # Return empty tensor if decoding is not requested
