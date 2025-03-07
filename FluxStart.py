@@ -129,6 +129,9 @@ class FluxStartSettings:
                 "Latent_Width": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 64}),
                 "Latent_Height": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 64}),
                 "Batch_Size": ("INT", {"default": 1, "min": 1, "max": 64}),
+            },
+            "optional": {
+                "LoRA_Stack": ("LORA_STACK", {"tooltip": "Optional stack of LoRAs to apply to the model and internal conditioning."})
             }
         }
     
@@ -230,7 +233,8 @@ class FluxStartSettings:
         Latent_Ratio,
         Latent_Width,
         Latent_Height,
-        Batch_Size
+        Batch_Size,
+        LoRA_Stack=None
     ):
         # If no text input is provided, use default creative prompt
         if not text.strip():
@@ -250,10 +254,12 @@ class FluxStartSettings:
 
             unet_path = folder_paths.get_full_path_or_raise("diffusion_models", UNET)
             unet = comfy.sd.load_diffusion_model(unet_path, model_options=model_options)
+            
+            # Initialize clip variable
+            clip = None
         
         # CLIP Loading and Conditioning
         conditioning = None
-        clip = None
         if CLIP_1 != "Default" and CLIP_2 != "Default":
             clip_path1 = folder_paths.get_full_path_or_raise("text_encoders", CLIP_1)
             clip_path2 = folder_paths.get_full_path_or_raise("text_encoders", CLIP_2)
@@ -279,7 +285,24 @@ class FluxStartSettings:
                 else:
                     clip_for_cond = clip
                 
-                # Generate conditioning using both CLIPs
+                # Apply LoRAs to the conditioning CLIP if provided
+                clip_for_cond = clip_for_cond.clone() if clip_for_cond is not None else None
+                if LoRA_Stack is not None and len(LoRA_Stack) > 0 and clip_for_cond is not None:
+                    for lora_item in LoRA_Stack:
+                        lora_name = lora_item["name"]
+                        clip_strength = lora_item["clip_strength"]
+                        lora = lora_item["lora"]
+                        
+                        # Apply LoRA to conditioning CLIP
+                        if clip_strength != 0:
+                            _, clip_for_cond = comfy.sd.load_lora_for_models(
+                                None, 
+                                clip_for_cond, 
+                                lora, 
+                                0, 
+                                clip_strength
+                            )
+                
                 # Tokenize the text
                 tokens = clip_for_cond.tokenize(text)
                 
@@ -297,6 +320,24 @@ class FluxStartSettings:
                 # Apply CLIP attention multiply to output CLIP if enabled
                 if CLIP_AttentionMultiply:
                     clip = self.patch_clip_attention(clip)
+                    
+        # Apply LoRAs from stack to model and clip if provided
+        if LoRA_Stack is not None and len(LoRA_Stack) > 0 and unet is not None:
+            for lora_item in LoRA_Stack:
+                lora_name = lora_item["name"]
+                model_strength = lora_item["model_strength"]
+                clip_strength = lora_item["clip_strength"]
+                lora = lora_item["lora"]
+                
+                # Apply LoRA to model and clip
+                if model_strength != 0:
+                    unet, clip = comfy.sd.load_lora_for_models(
+                        unet, 
+                        clip, 
+                        lora, 
+                        model_strength, 
+                        clip_strength if clip is not None else 0
+                    )
 
         # VAE Loading
         vae = None

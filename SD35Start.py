@@ -130,6 +130,9 @@ class SD35StartSettings:
                 "Latent_Width": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
                 "Latent_Height": ("INT", {"default": 1024, "min": 16, "max": 8192, "step": 16}),
                 "Batch_Size": ("INT", {"default": 1, "min": 1, "max": 4096}),
+            },
+            "optional": {
+                "LoRA_Stack": ("LORA_STACK", {"tooltip": "Optional stack of LoRAs to apply to the model and internal conditioning."})
             }
         }
     
@@ -211,7 +214,8 @@ class SD35StartSettings:
         Latent_Ratio,
         Latent_Width,
         Latent_Height,
-        Batch_Size
+        Batch_Size,
+        LoRA_Stack=None
     ):
         # Default prompts when input is empty
         if not text.strip():
@@ -255,15 +259,35 @@ class SD35StartSettings:
                 clip_device = torch.device(CLIP_Device)
                 clip = self.override_device(clip, "cond_stage_model", clip_device)
 
+                # Create a copy of clip for conditioning
+                clip_for_cond = clip.clone() if clip is not None else None
+                
+                # Apply LoRAs to the conditioning CLIP if provided
+                if LoRA_Stack is not None and len(LoRA_Stack) > 0 and clip_for_cond is not None:
+                    for lora_item in LoRA_Stack:
+                        lora_name = lora_item["name"]
+                        clip_strength = lora_item["clip_strength"]
+                        lora = lora_item["lora"]
+                        
+                        # Apply LoRA to conditioning CLIP
+                        if clip_strength != 0:
+                            _, clip_for_cond = comfy.sd.load_lora_for_models(
+                                None, 
+                                clip_for_cond, 
+                                lora, 
+                                0, 
+                                clip_strength
+                            )
+
                 # Process positive prompt
-                tokens = clip.tokenize(text)
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize(text)
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_pos = [[cond, output]]
 
                 # Process negative prompt
-                tokens = clip.tokenize(negative_text)
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize(negative_text)
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_neg = [[cond, output]]
                 
@@ -292,6 +316,24 @@ class SD35StartSettings:
         width, height = width - (width % 8), height - (height % 8)
         latent = torch.zeros([Batch_Size, 4, height // 8, width // 8])
         
+        # Apply LoRAs from stack to model and clip if provided
+        if LoRA_Stack is not None and len(LoRA_Stack) > 0 and unet is not None:
+            for lora_item in LoRA_Stack:
+                lora_name = lora_item["name"]
+                model_strength = lora_item["model_strength"]
+                clip_strength = lora_item["clip_strength"]
+                lora = lora_item["lora"]
+                
+                # Apply LoRA to model and clip
+                if model_strength != 0:
+                    unet, clip = comfy.sd.load_lora_for_models(
+                        unet, 
+                        clip, 
+                        lora, 
+                        model_strength, 
+                        clip_strength if clip is not None else 0
+                    )
+
         return (
             unet,
             clip,
