@@ -134,5 +134,5 @@ NODE_CLASS_MAPPINGS = {
 
 # Display names for the ComfyUI interface
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Star3LoRAs": "⭐Star 3 LoRAs"
+    "Star3LoRAs": "⭐ Star 3 LoRAs"
 }

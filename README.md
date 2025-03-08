@@ -20,6 +20,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 - ⭐ Star FluxFill Inpainter 🆕: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
+- ⭐ Star 3 LoRAs 🆕: Applies up to three LoRAs simultaneously to a model with individual weight controls for each. NEW!
 
 ### Starter Nodes
 - ⭐ SD(XL) Starter: Loads checkpoint with CLIP and VAE, creates empty latent with customizable resolution
@@ -35,6 +36,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ### Web & Data 🆕
 - ⭐ Star Web Scraper (Headlines) 📰: Scrapes news headlines from websites. Includes URL management with saved sites for quick access. NEW!
+- ⭐ Star 7 Layers 2 PSD 🆕: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions. NEW!
 
 *Note: You can add custom resolutions by editing the .json files in the node folder.
 
