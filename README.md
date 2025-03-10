@@ -32,6 +32,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ### Text & Prompt Generation
 - ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
+- ⭐ Star Easy-Text-Storage 🆕: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content.
 - ⭐ Ollama Helper: Loads Ollama models from ollamamodels.txt for integration with Ollama nodes
 
 ### Web & Data 🆕
