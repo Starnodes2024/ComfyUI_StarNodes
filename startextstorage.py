@@ -50,7 +50,7 @@ class StarEasyTextStorage:
         
         return {
             "required": {
-                "mode": (["Save Text", "Load Text", "Remove Text"], {"default": "Load Text"}),
+                "mode": (["Save Text", "Load Text", "Remove Text", "Replace Text"], {"default": "Load Text"}),
                 "Save-Name": ("STRING", {"default": "My Text"}),
             },
             "optional": {
@@ -92,6 +92,11 @@ class StarEasyTextStorage:
             if text_selector and text_selector != "No texts saved yet":
                 save_name = text_selector
             return self._load_text(save_name)
+        elif mode == "Replace Text":
+            # If the user selected from the dropdown, use that name instead
+            if text_selector and text_selector != "No texts saved yet":
+                save_name = text_selector
+            return self._replace_text(save_name, text_content)
         else:  # Remove Text
             # If the user selected from the dropdown, use that name instead
             if text_selector and text_selector != "No texts saved yet":
@@ -159,6 +164,29 @@ class StarEasyTextStorage:
                 return (f"Text '{text_name}' not found. Available texts: {text_list}",)
             else:
                 return ("No texts found in storage to remove.",)
+                
+    def _replace_text(self, text_name, text_content):
+        """Replace text in storage with new content."""
+        storage = self._load_storage()
+        
+        if not text_name.strip():
+            return ("Error: Please provide a name for the text to replace.",)
+            
+        if not text_content.strip():
+            return ("Error: Please provide new content to replace with.",)
+        
+        if text_name in storage:
+            # Replace the text content
+            storage[text_name] = text_content
+            self._save_storage(storage)
+            return (f"Text '{text_name}' replaced successfully.",)
+        else:
+            available_texts = list(storage.keys())
+            if available_texts:
+                text_list = ", ".join(available_texts)
+                return (f"Text '{text_name}' not found. Available texts: {text_list}",)
+            else:
+                return ("No texts found in storage to replace. Please save some texts first.",)
 
     @classmethod
     def IS_CHANGED(cls, mode, **kwargs):

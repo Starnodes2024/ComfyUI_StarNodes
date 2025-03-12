@@ -55,4 +55,39 @@ Find the nodes under "⭐StarNodes" category or search for "star" in the node br
 
 ### Wildcards
 For the Star Seven Wildcards node, you'll find many wildcards in the "wildcards" subfolder. Copy this folder to your main ComfyUI directory to use them.
+
+## Wildcard Rules in the Star Wildcards Node
+
+### Basic Wildcard Syntax
+- Wildcards are defined using double underscores: `__wildcard_name__`
+- The node looks for text files in the `wildcards` folder of your ComfyUI installation
+- When a wildcard is encountered, a random line from the corresponding text file is selected
+
+### Folder Structure
+- Wildcards can be organized in subfolders
+- To use a wildcard in a subfolder, use the syntax: `folder\__wildcard_name__`
+- The system will look for the file at `[ComfyUI base path]/wildcards/folder/wildcard_name.txt`
+
+### Random Options
+- You can use curly braces `{}` with pipe symbols `|` to choose randomly between options
+- Example: `{option1|option2|option3}` will randomly select one of the options
+- You can even include wildcards inside these options: `{__wildcard1__|__wildcard2__}`
+
+### Nested Wildcards
+- Wildcards can be nested within other wildcards
+- The system supports up to 10 levels of recursion to prevent infinite loops
+- When a wildcard contains another wildcard, the nested wildcard is also processed
+
+### Seed Behavior
+- The node takes a seed parameter that determines the randomization
+- Each prompt input (1-7) uses a different seed offset to ensure variety
+- Each wildcard within a prompt also gets a unique seed based on its position
+
+### Error Handling
+- If a wildcard file doesn't exist, the wildcard name itself is used as text
+- If a wildcard file exists but is empty, the wildcard name is used as fallback
+- If there's an error processing a wildcard, it falls back to using the wildcard name
+
+The Star Wildcards node allows you to combine up to 7 different prompts, each with their own wildcards, which are then joined together with spaces to create the final output string.
+
 - Supports recursive wildcard processing up to 10 layers
