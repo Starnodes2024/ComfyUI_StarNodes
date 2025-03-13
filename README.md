@@ -40,6 +40,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star 7 Layers 2 PSD 🆕: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions. NEW!
 
 *Note: You can add custom resolutions by editing the .json files in the node folder.
+** using tea cache setting need the official teacache nodes installed to work
 
 ## Installation
 
