@@ -108,10 +108,10 @@ class Starupscale:
                 "VAE_Device": (devices, {"default": default_vae_device}),
                 "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "Default"}),
                 "OUTPUT_LONGEST_SIDE": ("INT", { 
-                    "default": 2000, 
-                    "min": 0, 
-                    "step": 1, 
-                    "max": 99999, 
+                    "default": 2048, 
+                    "min": 64, 
+                    "step": 64, 
+                    "max": 99968, 
                     "display_name": "Output Size (longest)"
                 }),
                 "INTERPOLATION_MODE": (
@@ -140,7 +140,7 @@ class Starupscale:
     
     FUNCTION = "process_settings"
     CATEGORY = "⭐StarNodes"
-    DESCRIPTION = "TESTNODE FOR NEW FUNCTIONS"
+    DESCRIPTION = "Upscaler"
 
     def override_device(self, model, model_attr, device):
         # Set model/patcher attributes
@@ -217,15 +217,29 @@ class Starupscale:
             assert isinstance(OUTPUT_LONGEST_SIDE, int)
             assert isinstance(INTERPOLATION_MODE, str)
             
+            # Ensure OUTPUT_LONGEST_SIDE is divisible by 64
+            # Round to the nearest multiple of 64 (not just rounding up)
+            OUTPUT_LONGEST_SIDE = round(OUTPUT_LONGEST_SIDE / 64) * 64
+            # Ensure minimum size of 64
+            OUTPUT_LONGEST_SIDE = max(64, OUTPUT_LONGEST_SIDE)
+            
             INTERPOLATION_MODE = INTERPOLATION_MODE.upper().replace(" ", "_")
             INTERPOLATION_MODE = getattr(InterpolationMode, INTERPOLATION_MODE)
             _, h, w, _ = output_image.shape
             if h >= w:
                 new_h = OUTPUT_LONGEST_SIDE
                 new_w = round(w * new_h / h)
+                # Ensure width is divisible by 64 (round to nearest)
+                new_w = round(new_w / 64) * 64
+                # Ensure minimum size of 64
+                new_w = max(64, new_w)
             else:  # h < w
                 new_w = OUTPUT_LONGEST_SIDE
                 new_h = round(h * new_w / w)
+                # Ensure height is divisible by 64 (round to nearest)
+                new_h = round(new_h / 64) * 64
+                # Ensure minimum size of 64
+                new_h = max(64, new_h)
             
             # Resize the image
             output_image = output_image.permute(0, 3, 1, 2)

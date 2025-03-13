@@ -9,7 +9,7 @@ class StarTextFilter:
         return {
             "required": {
                 "text": ("STRING", {"multiline": True}),
-                "filter_type": (["remove_empty_lines", "remove_whitespace", "strip_lines", "remove_between_words"], ),
+                "filter_type": (["remove_between_words", "remove_before_start_word", "remove_after_end_word", "remove_empty_lines", "remove_whitespace", "strip_lines"], ),
                 "start_word": ("STRING", {"default": "INPUT"}),
                 "end_word": ("STRING", {"default": "INPUT"}),
             }
@@ -30,6 +30,26 @@ class StarTextFilter:
             import re
             pattern = re.escape(start_word) + r'.*?' + re.escape(end_word)
             result = re.sub(pattern, '', text, flags=re.DOTALL)
+        elif filter_type == "remove_before_start_word":
+            import re
+            # Find the first occurrence of start_word
+            match = re.search(re.escape(start_word), text)
+            if match:
+                # Return everything from the start_word to the end
+                result = text[match.start():]
+            else:
+                # If start_word not found, return original text
+                result = text
+        elif filter_type == "remove_after_end_word":
+            import re
+            # Find the last occurrence of end_word
+            match = re.search(re.escape(end_word), text)
+            if match:
+                # Return everything from the beginning to the end of end_word
+                result = text[:match.end()]
+            else:
+                # If end_word not found, return original text
+                result = text
         else:
             result = text
             
