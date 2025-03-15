@@ -51,7 +51,6 @@ class StarFluxFillerCropAndStitch:
     def INPUT_TYPES(s):
         return {"required": {
                     "model": ("MODEL", ),
-                    "clip": ("CLIP", ),
                     "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "What you want to inpaint?"}),
                     "vae": ("VAE", ),
                     "image": ("IMAGE", ),
@@ -66,6 +65,10 @@ class StarFluxFillerCropAndStitch:
                     "batch_size": ("INT", {"default": 1, "min": 1, "max": 16, "step": 1, "tooltip": "Process multiple samples in parallel for better GPU utilization"}),
                     "differential_attention": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use Differential Attention for better results"}),
                     "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use TeaCache to speed up generation"}),
+                },
+                "optional": {
+                    "clip": ("CLIP", ),
+                    "condition": ("CONDITIONING", ),
                 }
         }
 
@@ -367,7 +370,7 @@ class StarFluxFillerCropAndStitch:
         
         return cropped_output
 
-    def execute(self, model, clip, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, batch_size=1, differential_attention=True, use_teacache=True):
+    def execute(self, model, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, batch_size=1, differential_attention=True, use_teacache=True, clip=None, condition=None):
         # Apply Differential Diffusion if enabled
         if differential_attention:
             try:
@@ -401,28 +404,37 @@ class StarFluxFillerCropAndStitch:
         
         # Use torch.no_grad for all inference operations to reduce memory usage and improve speed
         with torch.no_grad():
-            # Generate Positive Conditioning from text - more efficient with single tokenize call
-            tokens = clip.tokenize(text)
-            output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
-            cond = output.pop("cond")
-            conditioning_pos = [[cond, output]]
-            
-            # Get negative conditioning from cache if possible
-            cache_key = f"{clip.__class__.__name__}_{id(clip)}"
-            if cache_key in self._neg_cond_cache:
-                conditioning_neg = self._neg_cond_cache[cache_key]
-            else:
-                # Generate Negative Conditioning with empty string
-                tokens = clip.tokenize("")  # Empty string for negative prompt
+            # Handle conditioning based on inputs
+            if condition is not None:
+                # Use the provided condition directly
+                conditioning_pos = condition
+                # When using external condition, use empty list for negative conditioning
+                conditioning_neg = []
+            elif clip is not None:
+                # Generate Positive Conditioning from text using provided clip
+                tokens = clip.tokenize(text)
                 output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
-                conditioning_neg = [[cond, output]]
-                # Store in cache for future use
-                self._neg_cond_cache[cache_key] = conditioning_neg
-            
-            # Apply FluxGuidance with fixed value of 30 - directly modify conditioning
-            # Use a constant value to avoid redundant computations
-            conditioning_pos = FluxGuidance().append(conditioning_pos, 30.0)[0]
+                conditioning_pos = [[cond, output]]
+                
+                # Apply FluxGuidance with fixed value of 30 - directly modify conditioning
+                # Use a constant value to avoid redundant computations
+                conditioning_pos = FluxGuidance().append(conditioning_pos, 30.0)[0]
+                
+                # Get negative conditioning from cache if possible
+                cache_key = f"{clip.__class__.__name__}_{id(clip)}"
+                if cache_key in self._neg_cond_cache:
+                    conditioning_neg = self._neg_cond_cache[cache_key]
+                else:
+                    # Generate Negative Conditioning with empty string
+                    tokens = clip.tokenize("")  # Empty string for negative prompt
+                    output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                    cond = output.pop("cond")
+                    conditioning_neg = [[cond, output]]
+                    # Store in cache for future use
+                    self._neg_cond_cache[cache_key] = conditioning_neg
+            else:
+                raise ValueError("Either 'clip' or 'condition' must be provided")
             
             # Apply CropAndStitch - crop the image and mask
             crop_info, cropped_image, cropped_mask = self.crop_image_and_mask(image, mask)
@@ -437,7 +449,7 @@ class StarFluxFillerCropAndStitch:
                     # Use a different seed for each batch item
                     batch_seed = seed + i
                     
-                    # Process this batch item
+                    # Process this batch item - always use InpaintModelConditioning
                     batch_cond_pos, batch_cond_neg, batch_latent = InpaintModelConditioning().encode(
                         conditioning_pos, 
                         conditioning_neg, 
@@ -464,7 +476,7 @@ class StarFluxFillerCropAndStitch:
                 latent_result = {"samples": combined_samples}
             else:
                 # Single sample processing - original flow with optimizations
-                # Process inpainting with optimized memory handling
+                # Process inpainting with optimized memory handling - always use InpaintModelConditioning
                 conditioning_pos, conditioning_neg, latent = InpaintModelConditioning().encode(
                     conditioning_pos, 
                     conditioning_neg, 
@@ -474,14 +486,12 @@ class StarFluxFillerCropAndStitch:
                     noise_mask
                 )
                 
-                # Optimize latent handling to reduce memory operations
+                # Perform sampling
                 if noise_mask and "noise_mask" in latent:
-                    # Use direct reference to avoid unnecessary memory operations
                     latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 
                                             conditioning_pos, conditioning_neg, latent, denoise=denoise)[0]
                 else:
-                    # Create a minimal reference instead of a full copy
-                    # This avoids unnecessary tensor copying
+                    # Avoid unnecessary dictionary creation
                     current_latent = {"samples": latent["samples"]}
                     latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 
                                             conditioning_pos, conditioning_neg, current_latent, denoise=denoise)[0]

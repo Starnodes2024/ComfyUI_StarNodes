@@ -27,18 +27,6 @@ class StarPSDSaver:
             "optional": {
                 "layer1": ("IMAGE",),
                 "mask1": ("MASK",),
-                "layer2": ("IMAGE",),
-                "mask2": ("MASK",),
-                "layer3": ("IMAGE",),
-                "mask3": ("MASK",),
-                "layer4": ("IMAGE",),
-                "mask4": ("MASK",),
-                "layer5": ("IMAGE",),
-                "mask5": ("MASK",),
-                "layer6": ("IMAGE",),
-                "mask6": ("MASK",),
-                "layer7": ("IMAGE",),
-                "mask7": ("MASK",),
             }
         }
 
@@ -81,14 +69,7 @@ class StarPSDSaver:
         # Convert to PIL Image (L mode for grayscale)
         return Image.fromarray(mask_np, mode='L')
 
-    def save_psd(self, filename_prefix, output_dir, 
-                 layer1=None, mask1=None, 
-                 layer2=None, mask2=None, 
-                 layer3=None, mask3=None, 
-                 layer4=None, mask4=None, 
-                 layer5=None, mask5=None, 
-                 layer6=None, mask6=None, 
-                 layer7=None, mask7=None):
+    def save_psd(self, filename_prefix, output_dir, **kwargs):
         """Save multiple image layers as a PSD file with masks."""
         
         # Ensure output directory exists
@@ -110,14 +91,20 @@ class StarPSDSaver:
         # Collect all connected layers and masks
         layers = []
         masks = []
-        layer_images = [layer1, layer2, layer3, layer4, layer5, layer6, layer7]
-        mask_images = [mask1, mask2, mask3, mask4, mask5, mask6, mask7]
+        
+        # Find all layer inputs in kwargs
+        layer_inputs = {k: v for k, v in kwargs.items() if k.startswith("layer") and v is not None}
+        
+        # Sort layer inputs by number
+        sorted_layer_keys = sorted(layer_inputs.keys(), 
+                                  key=lambda x: int(x.replace("layer", "")))
         
         # Find the maximum width and height among all layers
         max_width = 0
         max_height = 0
         
-        for i, img_tensor in enumerate(layer_images):
+        for layer_key in sorted_layer_keys:
+            img_tensor = kwargs.get(layer_key)
             if img_tensor is not None:
                 pil_img = self.tensor_to_pil(img_tensor)
                 if pil_img:
@@ -127,9 +114,13 @@ class StarPSDSaver:
                     max_height = max(max_height, height)
                     
                     # Get corresponding mask if it exists
+                    layer_num = layer_key.replace("layer", "")
+                    mask_key = f"mask{layer_num}"
+                    mask_tensor = kwargs.get(mask_key)
+                    
                     mask_pil = None
-                    if mask_images[i] is not None:
-                        mask_pil = self.tensor_to_mask(mask_images[i])
+                    if mask_tensor is not None:
+                        mask_pil = self.tensor_to_mask(mask_tensor)
                         
                         # Ensure mask has same dimensions as the image
                         if mask_pil and mask_pil.size != pil_img.size:
@@ -227,5 +218,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarPSDSaver": "⭐ Star 7 Layers 2 PSD"
+    "StarPSDSaver": "⭐ Star PSD Saver (Dynamic)"
 }

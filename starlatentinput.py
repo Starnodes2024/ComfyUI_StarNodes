@@ -15,18 +15,12 @@ class StarLatentSwitch:
             },
             "optional": {
                 "Latent 1": ("LATENT",),
-                "Latent 2": ("LATENT",),
-                "Latent 3": ("LATENT",),
-                "Latent 4": ("LATENT",),
-                "Latent 5": ("LATENT",),
-                "Latent 6": ("LATENT",),
-                "Latent 7": ("LATENT",),
             }
         }
 
     def process_latents(self, **kwargs):
         # Try to get the first connected latent
-        for i in range(1, 8):
+        for i in range(1, 21):  # Support up to 20 inputs
             latent = kwargs.get(f"Latent {i}")
             if latent is not None:
                 return (latent,)
@@ -49,5 +43,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarLatentSwitch": "⭐ Star Seven Inputs (latent)"
+    "StarLatentSwitch": "⭐ Star Latent Input (Dynamic)"
 }
