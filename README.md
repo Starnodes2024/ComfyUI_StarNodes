@@ -2,7 +2,7 @@
 
 Little Helper Nodes For ComfyUI
  
-![nodes1](https://github.com/user-attachments/assets/7e858aeb-3cf7-4675-bc44-473ec345ef1c)
+<img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
