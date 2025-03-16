@@ -72,8 +72,8 @@ class StarFluxFillerCropAndStitch:
                 }
         }
 
-    RETURN_TYPES = ("IMAGE", "LATENT")
-    RETURN_NAMES = ("image", "latent")
+    RETURN_TYPES = ("IMAGE", "LATENT", "MASK", "CLIP", "VAE")
+    RETURN_NAMES = ("image", "latent", "mask", "clip", "vae")
     FUNCTION = "execute"
     
     # Cache for negative prompt encoding to avoid redundant computation
@@ -508,8 +508,8 @@ class StarFluxFillerCropAndStitch:
         # Clean up any unused tensors to help with memory management
         torch.cuda.empty_cache()
         
-        # Return both the stitched image and the latent
-        return (stitched_image, final_latent)
+        # Return both the stitched image and the latent, along with optional outputs for mask, clip, and vae
+        return (stitched_image, final_latent, mask, clip, vae)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

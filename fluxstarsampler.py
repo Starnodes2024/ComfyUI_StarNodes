@@ -83,8 +83,8 @@ class Fluxstarsampler:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE")
-    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE")
+    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -299,7 +299,7 @@ class Fluxstarsampler:
             print("Decoding latent to image using VAE")
             image = vae.decode(out_latent["samples"])
 
-        return (model, conditioning, out_latent, detail_schedule, image)
+        return (model, conditioning, out_latent, detail_schedule, image, vae)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

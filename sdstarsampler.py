@@ -46,8 +46,8 @@ class SDstarsampler:
                 }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE")
-    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image", "vae")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -216,7 +216,7 @@ class SDstarsampler:
             print("Decoding latent to image using VAE")
             image = vae.decode(samples["samples"])
             
-        return (model, positive, negative, samples, detail_schedule, image)
+        return (model, positive, negative, samples, detail_schedule, image, vae)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {
