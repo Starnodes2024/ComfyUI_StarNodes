@@ -67,8 +67,8 @@ class Fluxstarsampler:
                 "conditioning": ("CONDITIONING", ),
                 "latent": ("LATENT", ),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
-                "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
-                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
+                "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "res_2m_sde"}),
+                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta57"}),
                 "steps": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "20" }),
                 "guidance": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "3.5" }),
                 "max_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
@@ -80,11 +80,12 @@ class Fluxstarsampler:
             },
             "optional": {
                 "detail_schedule": ("DETAIL_SCHEDULE",),
+                "settings_input": ("FLUXSTAR_SETTINGS",),
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE")
-    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "FLUXSTAR_SETTINGS")
+    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae", "settings_output")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -147,15 +148,136 @@ class Fluxstarsampler:
         # Mix the DD schedule high/low items according to the ratio
         return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], ratio).item()
 
-    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, vae, decode_image=True, detail_schedule=None):
+    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, vae, decode_image=True, detail_schedule=None, settings_input=None):
+        # Apply settings if provided
+        if settings_input is not None:
+            from .starsamplersettings import StarSamplerSettings
+            settings_manager = StarSamplerSettings()
+            # Create a dictionary with the current settings
+            current_settings = {
+                "seed": seed,
+                "sampler": sampler,
+                "scheduler": scheduler,
+                "steps": steps,
+                "guidance": guidance,
+                "max_shift": max_shift,
+                "base_shift": base_shift,
+                "denoise": denoise,
+                "use_teacache": use_teacache,
+                "control_after_generate": False  # Default value
+            }
+            
+            # Apply the input settings
+            updated_settings = settings_manager.apply_settings_to_fluxstar(current_settings, settings_input)
+            
+            # Update the local variables with proper type conversion
+            try:
+                # Handle seed conversion
+                if isinstance(updated_settings["seed"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["seed"].startswith('[') and updated_settings["seed"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        seed_str = updated_settings["seed"].strip('[]').split(',')[0].strip()
+                        seed = int(seed_str)
+                    else:
+                        seed = int(updated_settings["seed"])
+                else:
+                    seed = updated_settings["seed"]
+                
+                # Handle string values for sampler and scheduler
+                sampler = updated_settings["sampler"]
+                scheduler = updated_settings["scheduler"]
+                
+                # Handle steps conversion
+                if isinstance(updated_settings["steps"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["steps"].startswith('[') and updated_settings["steps"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        steps_str = updated_settings["steps"].strip('[]').split(',')[0].strip()
+                        steps = int(steps_str)
+                    else:
+                        steps = int(updated_settings["steps"])
+                else:
+                    steps = updated_settings["steps"]
+                
+                # Handle guidance conversion
+                if isinstance(updated_settings["guidance"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["guidance"].startswith('[') and updated_settings["guidance"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        guidance_str = updated_settings["guidance"].strip('[]').split(',')[0].strip()
+                        guidance = float(guidance_str)
+                    else:
+                        guidance = float(updated_settings["guidance"])
+                else:
+                    guidance = updated_settings["guidance"]
+                
+                # Handle max_shift conversion
+                if isinstance(updated_settings["max_shift"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["max_shift"].startswith('[') and updated_settings["max_shift"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        max_shift_str = updated_settings["max_shift"].strip('[]').split(',')[0].strip()
+                        max_shift = float(max_shift_str)
+                    else:
+                        max_shift = float(updated_settings["max_shift"])
+                else:
+                    max_shift = updated_settings["max_shift"]
+                
+                # Handle base_shift conversion
+                if isinstance(updated_settings["base_shift"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["base_shift"].startswith('[') and updated_settings["base_shift"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        base_shift_str = updated_settings["base_shift"].strip('[]').split(',')[0].strip()
+                        base_shift = float(base_shift_str)
+                    else:
+                        base_shift = float(updated_settings["base_shift"])
+                else:
+                    base_shift = updated_settings["base_shift"]
+                
+                # Handle denoise conversion
+                if isinstance(updated_settings["denoise"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["denoise"].startswith('[') and updated_settings["denoise"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        denoise_str = updated_settings["denoise"].strip('[]').split(',')[0].strip()
+                        denoise = float(denoise_str)
+                    else:
+                        denoise = float(updated_settings["denoise"])
+                else:
+                    denoise = updated_settings["denoise"]
+                
+                # Handle use_teacache conversion
+                if isinstance(updated_settings["use_teacache"], str):
+                    # Check if it's a list-like string
+                    if updated_settings["use_teacache"].startswith('[') and updated_settings["use_teacache"].endswith(']'):
+                        # Extract the first value from the list-like string
+                        use_teacache_str = updated_settings["use_teacache"].strip('[]').split(',')[0].strip()
+                        use_teacache = use_teacache_str.lower() == "true"
+                    else:
+                        use_teacache = updated_settings["use_teacache"].lower() == "true"
+                else:
+                    use_teacache = bool(updated_settings["use_teacache"])
+            except Exception as e:
+                print(f"Error converting settings: {str(e)}")
+                # Fall back to original values if conversion fails
+                seed = seed
+                sampler = sampler
+                scheduler = scheduler
+                steps = steps
+                guidance = guidance
+                max_shift = max_shift
+                base_shift = base_shift
+                denoise = denoise
+                use_teacache = use_teacache
+        
         from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicScheduler, BasicGuider, SamplerCustomAdvanced
         from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
         from comfy_extras.nodes_latent import LatentBatch
 
-        is_schnell = model.model.model_type == comfy.model_base.ModelType.FLOW
-
         # Apply TeaCache if enabled and model is Flux
-        if use_teacache and not is_schnell:
+        if use_teacache and not model.model.model_type == comfy.model_base.ModelType.FLOW:
             try:
                 # Import TeaCache functionality
                 from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
@@ -176,7 +298,7 @@ class Fluxstarsampler:
         denoise = parse_string_to_list("1.0" if denoise == "" else denoise)
         guidance = parse_string_to_list("3.5" if guidance == "" else guidance)
 
-        if not is_schnell:
+        if not model.model.model_type == comfy.model_base.ModelType.FLOW:
             max_shift = parse_string_to_list("1.15" if max_shift == "" else max_shift)
             base_shift = parse_string_to_list("0.5" if base_shift == "" else base_shift)
         else:
@@ -194,10 +316,10 @@ class Fluxstarsampler:
             basic_scheduler = BasicScheduler()
             basic_guider = BasicGuider()
             sampler_advanced = SamplerCustomAdvanced()
-            model_sampling = ModelSamplingFlux() if not is_schnell else ModelSamplingAuraFlow()
+            model_sampling = ModelSamplingFlux() if not model.model.model_type == comfy.model_base.ModelType.FLOW else ModelSamplingAuraFlow()
 
             # Process model and get sampling components
-            if is_schnell:
+            if model.model.model_type == comfy.model_base.ModelType.FLOW:
                 work_model = model_sampling.patch_aura(model, base_shift[0])[0]
             else:
                 work_model = model_sampling.patch(model, max_shift[0], base_shift[0], width, height)[0]
@@ -225,7 +347,7 @@ class Fluxstarsampler:
             # Main sampling loop with detail schedule
             for ms in max_shift:
                 for bs in base_shift:
-                    if is_schnell:
+                    if model.model.model_type == comfy.model_base.ModelType.FLOW:
                         work_model = ModelSamplingAuraFlow().patch_aura(model, bs)[0]
                     else:
                         work_model = ModelSamplingFlux().patch(model, ms, bs, width, height)[0]
@@ -296,10 +418,28 @@ class Fluxstarsampler:
         # Decode the latent to an image if requested
         image = None
         if decode_image:
-            print("Decoding latent to image using VAE")
             image = vae.decode(out_latent["samples"])
 
-        return (model, conditioning, out_latent, detail_schedule, image, vae)
+        # Create settings output 
+        settings_output = {
+            "seed": seed,
+            "sampler": sampler,
+            "scheduler": scheduler,
+            "steps": steps,
+            "guidance": guidance,
+            "max_shift": max_shift,
+            "base_shift": base_shift,
+            "denoise": denoise,
+            "use_teacache": use_teacache,
+            "control_after_generate": False  # Default value
+        }
+        
+        # Convert any non-serializable types to strings to ensure proper JSON serialization
+        for key, value in settings_output.items():
+            if not isinstance(value, (int, float, bool, str, type(None))):
+                settings_output[key] = str(value)
+
+        return (model, conditioning, out_latent, detail_schedule, image, vae, settings_output)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

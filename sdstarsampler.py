@@ -35,19 +35,20 @@ class SDstarsampler:
                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 100.0}),
-                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "normal"}),
+                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "res_2m_sde"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta57"}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "vae": ("VAE", ),
                     "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
                 },
                 "optional": {
                     "detail_schedule": ("DETAIL_SCHEDULE",),
+                    "settings_input": ("SDSTAR_SETTINGS",),
                 }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE")
-    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image", "vae")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "SDSTAR_SETTINGS")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image", "vae", "settings_output")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -123,11 +124,37 @@ class SDstarsampler:
             
         return result
 
-    def execute(self, model, positive, negative, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, decode_image=True, detail_schedule=None):
+    def execute(self, model, positive, negative, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, decode_image=True, detail_schedule=None, settings_input=None):
+        # Apply settings if provided
+        if settings_input is not None:
+            from .starsamplersettings import StarSamplerSettings
+            settings_manager = StarSamplerSettings()
+            # Create a dictionary with the current settings
+            current_settings = {
+                "seed": seed,
+                "steps": steps,
+                "cfg": cfg,
+                "sampler_name": sampler_name,
+                "scheduler": scheduler,
+                "denoise": denoise,
+                "control_after_generate": False  # Default value
+            }
+            
+            # Apply the input settings
+            updated_settings = settings_manager.apply_settings_to_sdstar(current_settings, settings_input)
+            
+            # Update the local variables
+            seed = updated_settings["seed"]
+            steps = updated_settings["steps"]
+            cfg = updated_settings["cfg"]
+            sampler_name = updated_settings["sampler_name"]
+            scheduler = updated_settings["scheduler"]
+            denoise = updated_settings["denoise"]
+        
         print("\n=== Starting SDstarsampler execution ===")
         print(f"Parameters: steps={steps}, cfg={cfg}, sampler={sampler_name}, scheduler={scheduler}, denoise={denoise}")
         if detail_schedule:
-            print(f"⭐ Detail Daemon Active with Settings: amount={detail_schedule['detail_amount']:.2f}, start={detail_schedule['detail_start']:.2f}, end={detail_schedule['detail_end']:.2f}, bias={detail_schedule['detail_bias']:.2f}, exponent={detail_schedule['detail_exponent']:.2f}")
+            print(f" Detail Daemon Active with Settings: amount={detail_schedule['detail_amount']:.2f}, start={detail_schedule['detail_start']:.2f}, end={detail_schedule['detail_end']:.2f}, bias={detail_schedule['detail_bias']:.2f}, exponent={detail_schedule['detail_exponent']:.2f}")
             
             # Create a copy of the input latent to avoid modifying it
             current_latent = {"samples": latent["samples"].clone()}
@@ -215,8 +242,19 @@ class SDstarsampler:
         if decode_image:
             print("Decoding latent to image using VAE")
             image = vae.decode(samples["samples"])
+        
+        # Create settings output
+        settings_output = {
+            "seed": seed,
+            "steps": steps,
+            "cfg": cfg,
+            "sampler_name": sampler_name,
+            "scheduler": scheduler,
+            "denoise": denoise,
+            "control_after_generate": False  # Default value
+        }
             
-        return (model, positive, negative, samples, detail_schedule, image, vae)
+        return (model, positive, negative, samples, detail_schedule, image, vae, settings_output)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

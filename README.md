@@ -18,9 +18,13 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 ### Model & Sampling Nodes
 - ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
 - ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
+- ⭐ Star Save Sampler Settings 🆕: Save customizable sampling settings for StarSamplers with support for both SD and Flux samplers
+- ⭐ Star Load Sampler Settings 🆕: Load previously saved sampling settings for StarSamplers
+- ⭐ Star Delete Sampler Settings 🆕: Delete saved sampling settings
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
-- ⭐ Star FluxFill Inpainter 🆕: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
-- ⭐ Star 3 LoRAs 🆕: Applies up to three LoRAs simultaneously to a model with individual weight controls for each. NEW!
+- ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
+- ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each.
+- ⭐ StarWildsAdv 🆕: Advanced wildcard processing node with extended functionality for complex prompt generation
 
 ### Starter Nodes
 - ⭐ SD(XL) Starter: Loads checkpoint with CLIP and VAE, creates empty latent with customizable resolution
@@ -32,12 +36,13 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ### Text & Prompt Generation
 - ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
-- ⭐ Star Easy-Text-Storage 🆕: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content.
+- ⭐ Star Wildcards Advanced 🆕: Enhanced wildcard processing with support for folder paths, random selection, and multiple prompt inputs
+- ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content.
 - ⭐ Ollama Helper: Loads Ollama models from ollamamodels.txt for integration with Ollama nodes
 
-### Web & Data 🆕
-- ⭐ Star Web Scraper (Headlines) 📰: Scrapes news headlines from websites. Includes URL management with saved sites for quick access. NEW!
-- ⭐ Star 7 Layers 2 PSD 🆕: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions. NEW!
+### Web & Data
+- ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites. Includes URL management with saved sites for quick access.
+- ⭐ Star 7 Layers 2 PSD: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions.
 
 *Note: You can add custom resolutions by editing the .json files in the node folder.
 ** using tea cache setting need the official teacache nodes installed to work

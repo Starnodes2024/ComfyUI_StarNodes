@@ -1,0 +1,56 @@
+{
+    "SDXL Fast 10 Steps Refiner": {
+        "sampler_type": "sdstar",
+        "settings": {
+            "seed": 404551899925455,
+            "steps": 10,
+            "cfg": 7.0,
+            "sampler_name": "euler",
+            "scheduler": "beta",
+            "denoise": 0.15,
+            "control_after_generate": false
+        }
+    },
+    "SDXL Fast 12 Steps ": {
+        "sampler_type": "sdstar",
+        "settings": {
+            "seed": 961512644269136,
+            "steps": 12,
+            "cfg": 7.0,
+            "sampler_name": "euler",
+            "scheduler": "beta",
+            "denoise": 1.0,
+            "control_after_generate": false
+        }
+    },
+    "FLUX Fast 12 Steps": {
+        "sampler_type": "fluxstar",
+        "settings": {
+            "seed": 1062322011239027,
+            "sampler": "euler",
+            "scheduler": "beta57",
+            "steps": "12",
+            "guidance": "[3]",
+            "max_shift": "[1.15]",
+            "base_shift": "[0.5]",
+            "denoise": "[1]",
+            "use_teacache": true,
+            "control_after_generate": false
+        }
+    },
+    "FLUX Fast 10 Steps Refiner": {
+        "sampler_type": "fluxstar",
+        "settings": {
+            "seed": 197875444447871,
+            "sampler": "euler",
+            "scheduler": "beta57",
+            "steps": "10",
+            "guidance": "[3]",
+            "max_shift": "[1.15]",
+            "base_shift": "[0.5]",
+            "denoise": "[0.2]",
+            "use_teacache": true,
+            "control_after_generate": false
+        }
+    }
+}
