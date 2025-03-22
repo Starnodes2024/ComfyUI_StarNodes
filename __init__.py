@@ -76,7 +76,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STARSAMPLERSETTINGS_NODE_DISPLAY_NAMES
 }
 
-__version__ = "1.1.1"
+__version__ = "1.3.1"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"

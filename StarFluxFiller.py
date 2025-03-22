@@ -58,8 +58,8 @@ class StarFluxFillerCropAndStitch:
                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "steps": ("INT", {"default": 30, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0}),
-                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "res_2m_sde"}),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta57"}),
+                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta"}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "noise_mask": ("BOOLEAN", {"default": True, "tooltip": "Add a noise mask to the latent so sampling will only happen within the mask. Might improve results or completely break things depending on the model."}),
                     "batch_size": ("INT", {"default": 1, "min": 1, "max": 16, "step": 1, "tooltip": "Process multiple samples in parallel for better GPU utilization"}),
@@ -72,8 +72,8 @@ class StarFluxFillerCropAndStitch:
                 }
         }
 
-    RETURN_TYPES = ("IMAGE", "LATENT", "MASK", "CLIP", "VAE")
-    RETURN_NAMES = ("image", "latent", "mask", "clip", "vae")
+    RETURN_TYPES = ("IMAGE", "LATENT", "MASK", "CLIP", "VAE", "INT")
+    RETURN_NAMES = ("image", "latent", "mask", "clip", "vae", "seed")
     FUNCTION = "execute"
     
     # Cache for negative prompt encoding to avoid redundant computation
@@ -509,7 +509,7 @@ class StarFluxFillerCropAndStitch:
         torch.cuda.empty_cache()
         
         # Return both the stitched image and the latent, along with optional outputs for mask, clip, and vae
-        return (stitched_image, final_latent, mask, clip, vae)
+        return (stitched_image, final_latent, mask, clip, vae, seed)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

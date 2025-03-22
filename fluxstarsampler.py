@@ -67,8 +67,8 @@ class Fluxstarsampler:
                 "conditioning": ("CONDITIONING", ),
                 "latent": ("LATENT", ),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
-                "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "res_2m_sde"}),
-                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta57"}),
+                "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
+                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta"}),
                 "steps": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "20" }),
                 "guidance": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "3.5" }),
                 "max_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
@@ -84,8 +84,8 @@ class Fluxstarsampler:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "FLUXSTAR_SETTINGS")
-    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae", "settings_output")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "FLUXSTAR_SETTINGS", "INT")
+    RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae", "settings_output", "seed")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -144,9 +144,10 @@ class Fluxstarsampler:
             return dd_schedule[idxlow]
             
         # Ratio of how close we are to the high neighbor
-        ratio = ((sigma - nlow) / (nhigh - nlow)).clamp(0, 1)
+        ratio = (sigma - nlow) / (nhigh - nlow)
+        ratio = max(0.0, min(1.0, ratio))  # Clamp between 0 and 1
         # Mix the DD schedule high/low items according to the ratio
-        return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], ratio).item()
+        return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], torch.tensor(ratio)).item()
 
     def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, vae, decode_image=True, detail_schedule=None, settings_input=None):
         # Apply settings if provided
@@ -439,7 +440,7 @@ class Fluxstarsampler:
             if not isinstance(value, (int, float, bool, str, type(None))):
                 settings_output[key] = str(value)
 
-        return (model, conditioning, out_latent, detail_schedule, image, vae, settings_output)
+        return (model, conditioning, out_latent, detail_schedule, image, vae, settings_output, seed)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {

@@ -35,8 +35,8 @@ class SDstarsampler:
                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 100.0}),
-                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "res_2m_sde"}),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta57"}),
+                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta"}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "vae": ("VAE", ),
                     "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
@@ -47,8 +47,8 @@ class SDstarsampler:
                 }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "SDSTAR_SETTINGS")
-    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image", "vae", "settings_output")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "SDSTAR_SETTINGS", "INT")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "detail_schedule", "image", "vae", "settings_output", "seed")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes"
 
@@ -254,7 +254,7 @@ class SDstarsampler:
             "control_after_generate": False  # Default value
         }
             
-        return (model, positive, negative, samples, detail_schedule, image, vae, settings_output)
+        return (model, positive, negative, samples, detail_schedule, image, vae, settings_output, seed)
 
 # Mapping for ComfyUI to recognize the node
 NODE_CLASS_MAPPINGS = {
