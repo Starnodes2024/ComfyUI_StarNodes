@@ -23,6 +23,15 @@ from .StarDenoiseSlider import NODE_CLASS_MAPPINGS as STARDENOISESLIDER_NODE_MAP
 from .starsamplersettings_nodes import NODE_CLASS_MAPPINGS as STARSAMPLERSETTINGS_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STARSAMPLERSETTINGS_NODE_DISPLAY_NAMES
 
 import os
+import shutil
+import sys
+
+# Try to import folder_paths from ComfyUI
+try:
+    import folder_paths
+except ImportError:
+    print("Warning: Could not import folder_paths from ComfyUI")
+    folder_paths = None
 
 NODE_CLASS_MAPPINGS = {
     **OLLAMA_NODE_MAPPINGS,
@@ -76,7 +85,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STARSAMPLERSETTINGS_NODE_DISPLAY_NAMES
 }
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"
@@ -96,3 +105,62 @@ try:
     comfy.custom_types.ensure_custom_types(get_custom_types())
 except ImportError:
     print("Warning: Could not register custom types for StarNodes settings")
+
+# Copy wildcards folder to ComfyUI main directory if it doesn't exist
+def copy_wildcards_folder():
+    if folder_paths is None:
+        print("Warning: Could not copy wildcards folder because folder_paths is not available")
+        return
+    
+    # Get the path to the main ComfyUI directory
+    comfyui_base_path = folder_paths.base_path
+    
+    # Get the path to the wildcards folder in the StarNodes extension
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    source_wildcards_path = os.path.join(current_dir, 'wildcards')
+    
+    # Get the path to the destination wildcards folder in the main ComfyUI directory
+    dest_wildcards_path = os.path.join(comfyui_base_path, 'wildcards')
+    
+    # Check if the wildcards folder already exists in the main ComfyUI directory
+    if not os.path.exists(dest_wildcards_path):
+        try:
+            print(f"StarNodes: Copying wildcards folder to {dest_wildcards_path}")
+            # Create the destination directory if it doesn't exist
+            os.makedirs(dest_wildcards_path, exist_ok=True)
+            
+            # Copy all files from the source wildcards folder to the destination
+            for item in os.listdir(source_wildcards_path):
+                source_item = os.path.join(source_wildcards_path, item)
+                dest_item = os.path.join(dest_wildcards_path, item)
+                
+                # Skip if the destination file already exists
+                if os.path.exists(dest_item):
+                    continue
+                
+                if os.path.isfile(source_item):
+                    shutil.copy2(source_item, dest_item)
+                    print(f"StarNodes: Copied wildcard file {item}")
+            
+            print("StarNodes: Successfully copied wildcards folder to ComfyUI main directory")
+        except Exception as e:
+            print(f"StarNodes: Error copying wildcards folder: {str(e)}")
+    else:
+        # Check if we need to copy any missing wildcard files
+        for item in os.listdir(source_wildcards_path):
+            source_item = os.path.join(source_wildcards_path, item)
+            dest_item = os.path.join(dest_wildcards_path, item)
+            
+            # Skip if the destination file already exists
+            if os.path.exists(dest_item):
+                continue
+            
+            if os.path.isfile(source_item):
+                try:
+                    shutil.copy2(source_item, dest_item)
+                    print(f"StarNodes: Copied missing wildcard file {item}")
+                except Exception as e:
+                    print(f"StarNodes: Error copying wildcard file {item}: {str(e)}")
+
+# Run the copy function when the module is imported
+copy_wildcards_folder()

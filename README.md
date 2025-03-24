@@ -60,7 +60,7 @@ Search for "Starnodes" in ComfyUI Manager and install
 Find the nodes under "⭐StarNodes" category or search for "star" in the node browser.
 
 ### Wildcards
-For the Star Seven Wildcards node, you'll find many wildcards in the "wildcards" subfolder. Copy this folder to your main ComfyUI directory to use them.
+You will find the wildcards in the wildcards folder of your ComfyUI main folder. If you add your own just copy the new files to this location.
 
 ## Wildcard Rules in the Star Wildcards Node
 
