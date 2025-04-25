@@ -14,6 +14,8 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
 - ⭐ Star Text Filter: Cleans string text by removing text between two given words (default), removing text before a specific word, removing text after a specific word, removing empty lines, removing all whitespace, or stripping whitespace from line edges
 - ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use.
+- ⭐ Starnodes Aspect Ratio: Calculates the closest standard aspect ratio for an input image (or user selection) and outputs the corresponding width, height, and resolution string based on megapixel size. Useful for matching or standardizing image resolutions in workflows.
+- ⭐ Starnodes Aspect Ratio Advanced: Like the standard Aspect Ratio node, but also outputs latents in the correct shape for SDXL/Flux and SD3.5 models, with batch size support. Ideal for advanced workflows requiring direct latent tensor creation for multiple models.
 
 ### Model & Sampling Nodes
 - ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
