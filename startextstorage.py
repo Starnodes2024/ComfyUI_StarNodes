@@ -104,7 +104,7 @@ class StarEasyTextStorage:
     RETURN_NAMES = ("text",)
     OUTPUT_NODE = True
     FUNCTION = "process_text"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Text And Data"
 
     def process_text(self, mode, **kwargs):
         # Extract parameters from kwargs
@@ -276,5 +276,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "StarTextStorage": "⭐StarNodes/Text & Prompt Generation/Easy-Text-Storage",
     "StarEasyTextStorage": "⭐ Star Easy-Text-Storage"
 }

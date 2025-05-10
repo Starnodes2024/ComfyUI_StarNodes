@@ -45,7 +45,7 @@ class StarFluxFillerCropAndStitch:
     # Define custom colors for the node
     COLOR = "#19124d"  # Title color
     BGCOLOR = "#3d124d"  # Background color
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Sampler"
     
     @classmethod
     def INPUT_TYPES(s):

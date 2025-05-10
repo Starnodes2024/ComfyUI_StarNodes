@@ -12,7 +12,7 @@ from psd_tools.compression import compress
 class StarPSDSaver:
     BGCOLOR = "#3d124d"  # Background color
     COLOR = "#19124d"    # Title color
-    CATEGORY = '⭐StarNodes'
+    CATEGORY = '⭐StarNodes/Image And Latent'
     RETURN_TYPES = ()
     FUNCTION = "save_psd"
     OUTPUT_NODE = True

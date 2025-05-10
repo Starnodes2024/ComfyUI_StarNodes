@@ -16,7 +16,7 @@ class StarDivisibleDimension:
     RETURN_TYPES = ("INT", "INT")
     RETURN_NAMES = ("width", "height")
     FUNCTION = "adjust_dimensions"  # Changed from "Math" to "adjust_dimensions"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Helpers And Tools"
 
     def adjust_dimensions(self, width, height, divisible_by):
         def round_to_nearest_multiple(value, multiple):

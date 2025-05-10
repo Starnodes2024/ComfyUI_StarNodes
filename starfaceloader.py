@@ -56,7 +56,7 @@ class StarFaceLoader:
             },
         }
 
-    CATEGORY = '⭐StarNodes'
+    CATEGORY = '⭐StarNodes/Image And Latent'
     RETURN_TYPES = ("IMAGE", "MASK")
     FUNCTION = "load_face_image"
     OUTPUT_NODE = True

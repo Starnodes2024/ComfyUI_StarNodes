@@ -18,7 +18,7 @@ class DetailStarDaemon:
     RETURN_TYPES = ("DETAIL_SCHEDULE",)
     RETURN_NAMES = ("detail_schedule",)
     FUNCTION = "create_schedule"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Sampler"
 
     def create_schedule(self, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         return ({

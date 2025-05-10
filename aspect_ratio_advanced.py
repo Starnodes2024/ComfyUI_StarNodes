@@ -4,7 +4,7 @@ import os
 import torch
 from PIL import Image
 
-CATEGORY = '⭐StarNodes'
+CATEGORY = '⭐StarNodes/Image And Latent'
 SDRATIOS_PATH = os.path.join(os.path.dirname(__file__), 'sdratios.json')
 
 class Starnodes_Aspect_Ratio_Advanced:

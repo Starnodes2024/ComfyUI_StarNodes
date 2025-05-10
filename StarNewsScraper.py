@@ -48,7 +48,7 @@ class StarNewsScraper:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "scrape_news"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Text And Data"
 
     def scrape_headlines(self, url: str) -> List[Dict[str, str]]:
         """

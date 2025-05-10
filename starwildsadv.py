@@ -9,7 +9,7 @@ class StarwildcardsAdvanced:
     
     RETURN_TYPES = ('STRING',)
     FUNCTION = 'star_wilds_adv'
-    CATEGORY = '⭐StarNodes'
+    CATEGORY = '⭐StarNodes/Text And Data'
 
     @classmethod
     def INPUT_TYPES(s):
@@ -269,5 +269,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "StarWildsAdv": "⭐StarNodes/Text & Prompt Generation/Wildcards Advanced",
     "StarWildcardsAdvanced": "⭐ Star Wildcards Advanced"
 }

@@ -139,7 +139,7 @@ class Starupscale:
     )
     
     FUNCTION = "process_settings"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Image And Latent"
     DESCRIPTION = "Upscaler"
 
     def override_device(self, model, model_attr, device):

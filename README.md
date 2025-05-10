@@ -14,12 +14,15 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
 - ⭐ Star Text Filter: Cleans string text by removing text between two given words (default), removing text before a specific word, removing text after a specific word, removing empty lines, removing all whitespace, or stripping whitespace from line edges
 - ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use.
-- ⭐ Starnodes Aspect Ratio: Calculates the closest standard aspect ratio for an input image (or user selection) and outputs the corresponding width, height, and resolution string based on megapixel size. Useful for matching or standardizing image resolutions in workflows.
-- ⭐ Starnodes Aspect Ratio Advanced: Like the standard Aspect Ratio node, but also outputs latents in the correct shape for SDXL/Flux and SD3.5 models, with batch size support. Ideal for advanced workflows requiring direct latent tensor creation for multiple models.
 
 ### Model & Sampling Nodes
 - ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
 - ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
+
+### Face & Identity Nodes
+- ⭐ Star InfiniteYou Apply 🆕: Apply face identity from a reference image to generated images
+- ⭐ Star InfiniteYou Patch Saver 🆕: Save face identity data for later use
+- ⭐ Star InfiniteYou Patch Loader 🆕: Load previously saved face identity data
 - ⭐ Star Save Sampler Settings 🆕: Save customizable sampling settings for StarSamplers with support for both SD and Flux samplers
 - ⭐ Star Load Sampler Settings 🆕: Load previously saved sampling settings for StarSamplers
 - ⭐ Star Delete Sampler Settings 🆕: Delete saved sampling settings
@@ -99,3 +102,22 @@ You will find the wildcards in the wildcards folder of your ComfyUI main folder.
 The Star Wildcards node allows you to combine up to 7 different prompts, each with their own wildcards, which are then joined together with spaces to create the final output string.
 
 - Supports recursive wildcard processing up to 10 layers
+
+For InfiniteYou Insightface is a requirement. If you are having trouble installing it (windows) here is how to fix that problem:
+1. Download that insightface wheel that fits your python version from: 
+https://github.com/Gourieff/Assets/tree/main/Insightface
+2. open command and input:
+PATH_TO_YOUR_COMFYUI\.venv\Scripts\python.exe -m pip install PATH_TO_DOWNLOADED_WHEEL\insightface-0.7.3-cp312-cp312-win_amd64.whl onnxruntime
+3. Restart ComfyUI
+Also this Video could help you if you having problems:
+https://www.youtube.com/watch?v=vCCVxGtCyho&ab_channel=DataLeveling
+
+You will need the InfiniteYou Models from Bytedance:
+https://huggingface.co/vuongminhkhoi4/ComfyUI_InfiniteYou/tree/main
+in models/infiniteyou place:
+aes_stage2_img_proj.bin
+sim_stage1_img_proj.bin
+
+in models/controlnet place:
+sim_stage1_control_net.safetensors
+aes_stage2_control.safetensors

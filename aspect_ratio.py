@@ -3,7 +3,7 @@ import json
 import os
 from PIL import Image
 
-CATEGORY = '⭐StarNodes'
+CATEGORY = '⭐StarNodes/Helpers And Tools'
 SDRATIOS_PATH = os.path.join(os.path.dirname(__file__), 'sdratios.json')
 
 class Starnodes_Aspect_Ratio:

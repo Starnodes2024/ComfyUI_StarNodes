@@ -159,7 +159,7 @@ class SD35StartSettings:
     )
     
     FUNCTION = "process_settings"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Starters"
 
     @staticmethod
     def read_ratios():

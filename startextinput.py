@@ -38,7 +38,7 @@ class StarTextInput:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "join_texts"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Text And Data"
 
     def join_texts(self, separator, text1="", text2="", text3="", text4="", text5="", text6="", text7=""):
         # Filter out empty strings

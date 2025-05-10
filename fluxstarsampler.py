@@ -87,7 +87,7 @@ class Fluxstarsampler:
     RETURN_TYPES = ("MODEL", "CONDITIONING", "LATENT", "DETAIL_SCHEDULE", "IMAGE", "VAE", "FLUXSTAR_SETTINGS", "INT")
     RETURN_NAMES = ("model", "conditioning", "latent", "detail_schedule", "image", "vae", "settings_output", "seed")
     FUNCTION = "execute"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Sampler"
 
     def make_detail_schedule(self, steps, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         start = min(detail_start, detail_end)

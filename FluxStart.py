@@ -156,7 +156,7 @@ class FluxStartSettings:
     )
     
     FUNCTION = "process_settings"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Starters"
     DESCRIPTION = "Flux Start Settings with text conditioning"
 
     @staticmethod

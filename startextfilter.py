@@ -17,7 +17,7 @@ class StarTextFilter:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "filter_text"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Text And Data"
 
     def filter_text(self, text, filter_type, start_word, end_word):
         if filter_type == "remove_empty_lines":

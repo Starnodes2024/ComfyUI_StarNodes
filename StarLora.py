@@ -6,7 +6,7 @@ import comfy.utils
 import comfy.sd
 
 class Star3LoRAs:
-    CATEGORY = '⭐StarNodes'
+    CATEGORY = '⭐StarNodes/Sampler'
     
     def __init__(self):
         self.loaded_loras = [None, None, None]

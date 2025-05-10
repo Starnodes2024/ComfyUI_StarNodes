@@ -3,7 +3,7 @@ import torch
 class StarDenoiseSlider:
     BGCOLOR = "#3d124d"  # Background color
     COLOR = "#19124d"  # Title color
-    CATEGORY = '⭐StarNodes'
+    CATEGORY = '⭐StarNodes/Helpers And Tools'
     RETURN_TYPES = ("FLOAT", "STRING")
     RETURN_NAMES = ("denoise", "denoise_str")
     FUNCTION = "get_denoise_value"
