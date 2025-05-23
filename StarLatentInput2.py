@@ -37,10 +37,8 @@ class StarLatentSwitch2:
         }
         return (default_latent,)
 
-NODE_CLASS_MAPPINGS = {
-    "StarLatentSwitch2": StarLatentSwitch2
-}
+NODE_CLASS_MAPPINGS = dict()
+NODE_CLASS_MAPPINGS["StarLatentSwitch2"] = StarLatentSwitch2
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarLatentSwitch2": "⭐ Star Latent Input 2 (Optimized)"
-}
+NODE_DISPLAY_NAME_MAPPINGS = dict()
+NODE_DISPLAY_NAME_MAPPINGS["StarLatentSwitch2"] = "⭐ Star Latent Input 2 (Optimized)"

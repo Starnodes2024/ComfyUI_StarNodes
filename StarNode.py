@@ -12,16 +12,19 @@ class StarImageSwitch:
     @classmethod
     def INPUT_TYPES(cls):
         return {
-            "required": {
-            },
+            "required": {},
             "optional": {
                 "Image 1": ("IMAGE",),
+                "Image 2": ("IMAGE",),
+                "Image 3": ("IMAGE",),
+                "Image 4": ("IMAGE",),
+                "Image 5": ("IMAGE",),
             }
         }
 
     def process_images(self, **kwargs):
-        # Try to get the first connected image
-        for i in range(1, 21):  # Support up to 20 inputs
+        # Try to get the first connected image (from 1 to 5)
+        for i in range(1, 6):
             img = kwargs.get(f"Image {i}")
             if img is not None:
                 return (img,)
@@ -46,5 +49,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarImageSwitch": "⭐ Star Image Input (Dynamic)"
+    "StarImageSwitch": "⭐ Star Image Input"
 }

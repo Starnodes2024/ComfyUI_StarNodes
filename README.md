@@ -1,7 +1,9 @@
 # ComfyUI_StarNodes
 
 Little Helper Nodes For ComfyUI
- 
+
+**Current Version:** 1.4.2
+
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
@@ -38,6 +40,9 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ### Upscaling & Processing
 - ⭐ Star Model Latent Upscaler: Complete pipeline for latent upscaling with model choice and VAE encoding/decoding
+- ⭐ Star Grid Composer 🆕: Compose multiple images into a grid layout with automatic sizing, captions, and customizable fonts/colors. Supports batch image and caption input via StarGridBatchers.
+- ⭐ Star Grid Image Batcher 🆕: Batch multiple images or image batches for use with Star Grid Composer, supporting up to 16 images.
+- ⭐ Star Grid Captions Batcher 🆕: Batch up to 16 caption strings for grid layouts in Star Grid Composer.
 
 ### Text & Prompt Generation
 - ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
