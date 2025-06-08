@@ -64,7 +64,7 @@ class StarFluxFillerCropAndStitch:
                     "noise_mask": ("BOOLEAN", {"default": True, "tooltip": "Add a noise mask to the latent so sampling will only happen within the mask. Might improve results or completely break things depending on the model."}),
                     "batch_size": ("INT", {"default": 1, "min": 1, "max": 16, "step": 1, "tooltip": "Process multiple samples in parallel for better GPU utilization"}),
                     "differential_attention": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use Differential Attention for better results"}),
-
+                    "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Use TeaCache to speed up generation"}),
                 },
                 "optional": {
                     "clip": ("CLIP", ),
@@ -369,44 +369,41 @@ class StarFluxFillerCropAndStitch:
         cropped_output = output[:, start_y:start_y + initial_height, start_x:start_x + initial_width, :]
         
         return cropped_output
-        
 
-    def execute(self, model, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, batch_size=1, differential_attention=True, clip=None, condition=None):
+    def execute(self, model, text, vae, image, mask, seed, steps, cfg, sampler_name, scheduler, denoise, noise_mask=True, batch_size=1, differential_attention=True, use_teacache=True, clip=None, condition=None):
         # Apply Differential Diffusion if enabled
         if differential_attention:
-            model = DifferentialDiffusion().apply(model)
-            logging.info("Using differential attention!")
-
+            try:
+                # Apply Differential Diffusion
+                diff_diffusion = DifferentialDiffusion()
+                model = diff_diffusion.apply(model)
+                logging.info("Using differential attention!")
+            except Exception as e:
+                logging.warning(f"Failed to apply Differential Diffusion: {str(e)}")
+        
+        # Apply TeaCache if enabled
+        if use_teacache:
+            try:
+                # Import TeaCache functionality
+                from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
+                
+                # Create a clone of the model
+                teacache_model = model.clone()
+                
+                # Apply TeaCache with fixed settings (Model Flux, threshold 0.40)
+                teacache = TeaCacheForImgGen()
+                model = teacache.apply_teacache(teacache_model, "flux", 0.40)[0]
+                
+                logging.info("TeaCache applied to the model with threshold 0.40")
+            except Exception as e:
+                logging.warning(f"Failed to apply TeaCache: {str(e)}")
+        
         # Use default prompt if text input is empty
         if not text.strip():
             text = "A Fluffy Confused Purple Monster with a \"?\" Sign"
-
+        
         # Use torch.no_grad for all inference operations to reduce memory usage and improve speed
         with torch.no_grad():
-            # Handle conditioning based on inputs
-            if condition is not None:
-                # Use the provided condition directly
-                conditioning_pos = condition
-                # When using external condition, use empty list for negative conditioning
-                conditioning_neg = []
-            elif clip is not None:
-                # Generate Positive Conditioning from text using provided clip
-                tokens = clip.tokenize(text)
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
-                cond = output.pop("cond")
-                conditioning_pos = [[cond, output]]
-
-                # Apply FluxGuidance with fixed value of 30 - directly modify conditioning
-                # Use a constant value to avoid redundant computations
-                conditioning_pos = FluxGuidance().append(conditioning_pos, 30.0)[0]
-
-                # Get negative conditioning from cache if possible
-                cache_key = f"{clip.__class__.__name__}_{id(clip)}"
-                if cache_key in self._neg_cond_cache:
-                    conditioning_neg = self._neg_cond_cache[cache_key]
-                else:
-                    # Generate Negative Conditioning with empty string
-                    tokens = clip.tokenize("")  # Empty string for negative prompt
             # Handle conditioning based on inputs
             if condition is not None:
                 # Use the provided condition directly
