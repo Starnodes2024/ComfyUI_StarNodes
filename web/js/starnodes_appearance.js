@@ -44,17 +44,12 @@ app.registerExtension({
                     if (this.flags.collapsed) {
                         return;
                     }
-                    
                     ctx.font = this.title_font || LiteGraph.DEFAULT_TITLE_FONT;
                     const title = this.getTitle();
                     if (title) {
-                        // Save context
                         ctx.save();
-                        // Set our custom title color
                         ctx.fillStyle = titleColor;
-                        // Draw the title text
                         ctx.fillText(title, 10, title_height * 0.75);
-                        // Restore context
                         ctx.restore();
                     }
                 };

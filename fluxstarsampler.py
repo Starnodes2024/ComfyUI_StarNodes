@@ -74,7 +74,7 @@ class Fluxstarsampler:
                 "max_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "base_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "denoise": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "1.0" }),
-                "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No"}),
+
                 "vae": ("VAE", ),
                 "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
             },
@@ -149,7 +149,7 @@ class Fluxstarsampler:
         # Mix the DD schedule high/low items according to the ratio
         return torch.lerp(dd_schedule[idxlow], dd_schedule[idxhigh], torch.tensor(ratio)).item()
 
-    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, vae, decode_image=True, detail_schedule=None, settings_input=None):
+    def execute(self, model, conditioning, latent, seed, sampler, scheduler, steps, guidance, max_shift, base_shift, denoise, use_teacache, teacache_threshold, teacache_max_skip, vae, decode_image=True, detail_schedule=None, settings_input=None):
         # Apply settings if provided
         if settings_input is not None:
             from .starsamplersettings import StarSamplerSettings
@@ -271,28 +271,10 @@ class Fluxstarsampler:
                 max_shift = max_shift
                 base_shift = base_shift
                 denoise = denoise
-                use_teacache = use_teacache
         
         from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicScheduler, BasicGuider, SamplerCustomAdvanced
         from comfy_extras.nodes_model_advanced import ModelSamplingFlux, ModelSamplingAuraFlow
         from comfy_extras.nodes_latent import LatentBatch
-
-        # Apply TeaCache if enabled and model is Flux
-        if use_teacache and not model.model.model_type == comfy.model_base.ModelType.FLOW:
-            try:
-                # Import TeaCache functionality
-                from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
-                
-                # Create a clone of the model
-                teacache_model = model.clone()
-                
-                # Apply TeaCache with fixed settings (Model Flux, threshold 0.40)
-                teacache = TeaCacheForImgGen()
-                model = teacache.apply_teacache(teacache_model, "flux", 0.40)[0]
-                
-                logging.info("TeaCache applied to the model with threshold 0.40")
-            except Exception as e:
-                logging.warning(f"Failed to apply TeaCache: {str(e)}")
 
         # Parse input parameters
         steps_list = parse_string_to_list(steps)
@@ -432,6 +414,8 @@ class Fluxstarsampler:
             "base_shift": base_shift,
             "denoise": denoise,
             "use_teacache": use_teacache,
+            "teacache_threshold": teacache_threshold,
+            "teacache_max_skip": teacache_max_skip,
             "control_after_generate": False  # Default value
         }
         

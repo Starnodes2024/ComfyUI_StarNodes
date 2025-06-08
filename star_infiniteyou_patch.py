@@ -49,35 +49,46 @@ class StarInfiniteYouPatch:
             # If no patch file is selected, just return the inputs unchanged
             return (model, positive, negative, latent_image)
         
-        # Handle random patch selection
-        if patch_file == "random":
+        # For random selection, we'll store the option and handle it during processing
+        # to ensure each batch gets a different random face
+        is_random = (patch_file == "random")
+        
+        # If not random, load the specific patch file
+        if not is_random:
+            # Load the patch data
+            patch_path = os.path.join(folder_paths.output_directory, "infiniteyoupatch", patch_file)
+            patch_data = torch.load(patch_path)
+            
+            # Get the embeddings and parameters from the patch data
+            device = comfy.model_management.get_torch_device()
+            image_prompt_embeds = patch_data["image_prompt_embeds"].to(device) if "image_prompt_embeds" in patch_data else None
+            uncond_image_prompt_embeds = patch_data["uncond_image_prompt_embeds"].to(device) if "uncond_image_prompt_embeds" in patch_data else None
+            face_kps = patch_data["face_kps"] if "face_kps" in patch_data else None
+            
+            # Get control parameters
+            cn_strength = patch_data.get("cn_strength", 1.0)
+            start_at = patch_data.get("start_at", 0.0)
+            end_at = patch_data.get("end_at", 1.0)
+        else:
             import random
             patch_dir = os.path.join(folder_paths.output_directory, "infiniteyoupatch")
             patches = [f for f in os.listdir(patch_dir) if f.endswith((".pt", ".iyou"))]
             if not patches:
                 print("No patch files found in the patch directory.")
                 return (model, positive, negative, latent_image)
-            # Pick a random patch
-            patch_file = random.choice(patches)
-            print(f"Randomly selected patch file: {patch_file}")
-        
-        # Load the patch data
-        patch_path = os.path.join(folder_paths.output_directory, "infiniteyoupatch", patch_file)
-        patch_data = torch.load(patch_path)
-        
-        # Get the embeddings and parameters from the patch data
-        device = comfy.model_management.get_torch_device()
-        image_prompt_embeds = patch_data["image_prompt_embeds"].to(device) if "image_prompt_embeds" in patch_data else None
-        uncond_image_prompt_embeds = patch_data["uncond_image_prompt_embeds"].to(device) if "uncond_image_prompt_embeds" in patch_data else None
-        face_kps = patch_data["face_kps"] if "face_kps" in patch_data else None
-        
-        # Get control parameters
-        cn_strength = patch_data.get("cn_strength", 1.0)
-        start_at = patch_data.get("start_at", 0.0)
-        end_at = patch_data.get("end_at", 1.0)
+            
+            # We'll load patch data later during the conditioning loop
+            # to ensure each batch gets a different random face
+            device = comfy.model_management.get_torch_device()
+            cn_strength = 1.0  # Default values for random
+            start_at = 0.0
+            end_at = 1.0
+            random_patches = patches  # Store the list for later use
+            
+            print(f"Random face mode enabled - will select a different face for each conditioning")
         
         # Make sure we have all the necessary data
-        if image_prompt_embeds is None or uncond_image_prompt_embeds is None or face_kps is None:
+        if not is_random and (image_prompt_embeds is None or uncond_image_prompt_embeds is None or face_kps is None):
             print("Warning: Patch file is missing essential data. Cannot apply face.")
             return (model, positive, negative, latent_image)
         
@@ -91,6 +102,26 @@ class StarInfiniteYouPatch:
         is_cond = True
         for conditioning in [positive, negative]:
             c = []
+            
+            # For random mode, select a new random face for each conditioning pass
+            if is_random:
+                # Pick a random patch for this conditioning
+                random_patch_file = random.choice(random_patches)
+                random_patch_path = os.path.join(folder_paths.output_directory, "infiniteyoupatch", random_patch_file)
+                random_patch_data = torch.load(random_patch_path)
+                
+                # Get the embeddings for this random patch
+                image_prompt_embeds = random_patch_data["image_prompt_embeds"].to(device) if "image_prompt_embeds" in random_patch_data else None
+                uncond_image_prompt_embeds = random_patch_data["uncond_image_prompt_embeds"].to(device) if "uncond_image_prompt_embeds" in random_patch_data else None
+                face_kps = random_patch_data["face_kps"] if "face_kps" in random_patch_data else None
+                
+                # Check if this random patch has valid data
+                if image_prompt_embeds is None or uncond_image_prompt_embeds is None or face_kps is None:
+                    print(f"Warning: Random patch file {random_patch_file} is missing essential data. Skipping.")
+                    continue
+                    
+                print(f"Applying random face from: {random_patch_file} for {'positive' if is_cond else 'negative'} conditioning")
+            
             for t in conditioning:
                 # Get the original weight and conditioning dictionary
                 weight, cond_dict = t
@@ -118,7 +149,7 @@ class StarInfiniteYouPatch:
                 else:
                     d['cross_attn_controlnet'] = uncond_image_prompt_embeds.to(comfy.model_management.intermediate_device(), 
                                                               dtype=c_net.cond_hint_original.dtype)
-                
+                    
                 # Create the new conditioning entry with the original weight
                 n = [weight, d]
                 c.append(n)
@@ -204,30 +235,29 @@ class StarInfiniteYouPatchCombine:
                              patch_file_3=None, weight_3=0.0, patch_file_4=None, weight_4=0.0, 
                              patch_file_5=None, weight_5=0.0, cn_strength=1.0, start_at=0.0, end_at=1.0):
         
-        # Function to handle random patch selection
-        def get_random_patch():
+        # Store which slots use random selection for later processing
+        random_slots = []
+        if patch_file_1 == "random" and weight_1 > 0.0:
+            random_slots.append((0, weight_1))
+        if patch_file_2 == "random" and weight_2 > 0.0:
+            random_slots.append((1, weight_2))
+        if patch_file_3 == "random" and weight_3 > 0.0:
+            random_slots.append((2, weight_3))
+        if patch_file_4 == "random" and weight_4 > 0.0:
+            random_slots.append((3, weight_4))
+        if patch_file_5 == "random" and weight_5 > 0.0:
+            random_slots.append((4, weight_5))
+            
+        # Get available patches for random selection
+        available_patches = None
+        if random_slots:
             import random
             patch_dir = os.path.join(folder_paths.output_directory, "infiniteyoupatch")
-            patches = [f for f in os.listdir(patch_dir) if f.endswith((".pt", ".iyou"))]
-            if not patches:
-                print("No patch files found in the patch directory.")
-                return "none"
-            # Pick a random patch
-            random_patch = random.choice(patches)
-            print(f"Randomly selected patch file: {random_patch}")
-            return random_patch
-        
-        # Process random selection for each patch slot
-        if patch_file_1 == "random":
-            patch_file_1 = get_random_patch()
-        if patch_file_2 == "random":
-            patch_file_2 = get_random_patch()
-        if patch_file_3 == "random":
-            patch_file_3 = get_random_patch()
-        if patch_file_4 == "random":
-            patch_file_4 = get_random_patch()
-        if patch_file_5 == "random":
-            patch_file_5 = get_random_patch()
+            available_patches = [f for f in os.listdir(patch_dir) if f.endswith((".pt", ".iyou"))]
+            if not available_patches:
+                print("No patch files found for random selection.")
+                # Clear random slots if no patches available
+                random_slots = []
         
         # Check if at least one patch file is selected
         if patch_file_1 == "none" and patch_file_2 == "none" and \
@@ -251,20 +281,50 @@ class StarInfiniteYouPatchCombine:
             patch_files.append((patch_file_5, weight_5))
             
         loaded_files = []
-        for patch_file, weight in patch_files:
+        for i, (patch_file, weight) in enumerate(patch_files):
             if patch_file != "none" and weight > 0.0:
+                # Skip random slots, we'll handle them differently
+                if patch_file == "random":
+                    continue
+                # For normal slots, load the patch as usual
                 patch = self.load_patch(patch_file)
                 if patch is not None:
                     patches.append(patch)
                     weights.append(weight)
                     loaded_files.append(patch_file)
         
+        # Process random slots for this batch if any exist
+        if random_slots and available_patches:
+            import random
+            import torch.nn.functional as F
+            
+            # For each random slot, select a random patch
+            for slot_index, slot_weight in random_slots:
+                # Select a new random patch for this slot
+                random_patch_file = random.choice(available_patches)
+                print(f"Randomly selected patch file for slot {slot_index}: {random_patch_file}")
+                
+                # Load the random patch
+                random_patch = self.load_patch(random_patch_file)
+                if random_patch is not None:
+                    patches.append(random_patch)
+                    weights.append(slot_weight)
+                    loaded_files.append(f"random:{random_patch_file}")
+            
+            # Log the patches being used
+            print(f"Using patches: {', '.join(loaded_files)} with weights: {weights}")
+            
+            # If we have no patches after processing, return unchanged inputs
+            if not patches:
+                print("No valid patches to combine after processing.")
+                return (model, positive, negative, latent_image, None)
+        
+        # If we have no valid patches after processing, return unchanged inputs
         if not patches:
-            print("No valid patches to combine.")
+            print("No valid patches to combine after processing.")
             return (model, positive, negative, latent_image, None)
-        
-        print(f"Combining {len(patches)} patches: {', '.join(loaded_files)} with weights: {weights}")
-        
+    
+        # Recalculate combined embeddings with the final patches
         # Normalize weights to sum to 1
         total_weight = sum(weights)
         if total_weight <= 0:
@@ -272,74 +332,37 @@ class StarInfiniteYouPatchCombine:
             weights = [1.0 / len(patches)] * len(patches)
         else:
             weights = [w / total_weight for w in weights]
-            
-        # Get shapes for reference
-        print(f"Patch 0 face_kps shape: {patches[0]['face_kps'].shape}")
         
-        # Check if all tensors have the same dimensions
-        same_dimensions = True
-        ref_shape = patches[0]['face_kps'].shape
+        # Initialize combined embeddings with the first patch weighted
+        combined_image_prompt_embeds = patches[0]["image_prompt_embeds"] * weights[0]
+        combined_uncond_image_prompt_embeds = patches[0]["uncond_image_prompt_embeds"] * weights[0]
+        combined_face_kps = patches[0]["face_kps"] * weights[0]
+        
+        # Combine the other patches with their weights
         for i in range(1, len(patches)):
-            if patches[i]['face_kps'].shape != ref_shape:
-                same_dimensions = False
-                print(f"Patch {i} has different shape: {patches[i]['face_kps'].shape} vs reference {ref_shape}")
-                break
-        
-        if same_dimensions:
-            print("All patches have the same dimensions. Simple combination.")
-            # Initialize combined embeddings with the first patch weighted
-            combined_image_prompt_embeds = patches[0]["image_prompt_embeds"] * weights[0]
-            combined_uncond_image_prompt_embeds = patches[0]["uncond_image_prompt_embeds"] * weights[0]
-            combined_face_kps = patches[0]["face_kps"] * weights[0]
-            
-            # Combine the other patches with their weights
-            for i in range(1, len(patches)):
-                combined_image_prompt_embeds += patches[i]["image_prompt_embeds"] * weights[i]
-                combined_uncond_image_prompt_embeds += patches[i]["uncond_image_prompt_embeds"] * weights[i]
-                combined_face_kps += patches[i]["face_kps"] * weights[i]
-        else:
-            # Handle different dimensions by using the dimensions of the first patch as reference
-            print("Patches have different dimensions. Resizing all to match the first patch.")
-            
-            import torch.nn.functional as F
-            
-            # Initialize combined embeddings with the first patch weighted
-            combined_image_prompt_embeds = patches[0]["image_prompt_embeds"] * weights[0]
-            combined_uncond_image_prompt_embeds = patches[0]["uncond_image_prompt_embeds"] * weights[0]
-            combined_face_kps = patches[0]["face_kps"] * weights[0]
-            
-            # Reference shapes from the first patch
-            ref_face_kps_shape = patches[0]["face_kps"].shape
-            
-            # Combine the other patches with their weights, resizing if necessary
-            for i in range(1, len(patches)):
-                # No need to resize prompt embeddings - they should have the same dim for the same model
-                combined_image_prompt_embeds += patches[i]["image_prompt_embeds"] * weights[i]
-                combined_uncond_image_prompt_embeds += patches[i]["uncond_image_prompt_embeds"] * weights[i]
+            # Handle potential dimension mismatches
+            if patches[i]['face_kps'].shape != combined_face_kps.shape:
+                import torch.nn.functional as F
+                # Resize face keypoints to match the first patch
+                curr_face_kps = patches[i]['face_kps']
+                B, H, W, C = combined_face_kps.shape
                 
-                # For face keypoints, check if resize is needed
-                curr_face_kps = patches[i]["face_kps"]
-                if curr_face_kps.shape != ref_face_kps_shape:
-                    print(f"Resizing face keypoints for patch {i} from {curr_face_kps.shape} to {ref_face_kps_shape}")
-                    
-                    # Resize face keypoints - adapt based on dimensions
-                    # Assuming face_kps is [B, H, W, C] format
-                    B, H, W, C = ref_face_kps_shape
-                    
-                    # Move channel dim for interpolation
-                    curr_face_kps = curr_face_kps.movedim(-1, 1)  # [B, C, H, W]
-                    
-                    # Resize height and width
-                    resized_face_kps = F.interpolate(curr_face_kps, size=(H, W), mode='bilinear', align_corners=False)
-                    
-                    # Move channel back
-                    resized_face_kps = resized_face_kps.movedim(1, -1)  # [B, H, W, C]
-                    
-                    # Add to combined with weight
-                    combined_face_kps += resized_face_kps * weights[i]
-                else:
-                    combined_face_kps += curr_face_kps * weights[i]
-        
+                # Move channel dim for interpolation
+                curr_face_kps = curr_face_kps.movedim(-1, 1)  # [B, C, H, W]
+                
+                # Resize height and width
+                resized_face_kps = F.interpolate(curr_face_kps, size=(H, W), mode='bilinear', align_corners=False)
+                
+                # Move channel back
+                resized_face_kps = resized_face_kps.movedim(1, -1)  # [B, H, W, C]
+                
+                combined_face_kps += resized_face_kps * weights[i]
+            else:
+                combined_face_kps += patches[i]["face_kps"] * weights[i]
+                
+            combined_image_prompt_embeds += patches[i]["image_prompt_embeds"] * weights[i]
+            combined_uncond_image_prompt_embeds += patches[i]["uncond_image_prompt_embeds"] * weights[i]
+    
         # Set up the controlnet with the combined face keypoints
         cnets = {}
         cond_uncond = []

@@ -38,10 +38,10 @@ class StarGridComposer:
         return {
             "required": {
                 # Grid settings
-                "max_width": ("INT", {"default": 2048, "min": 64, "max": 8192, "step": 8}),
-                "max_height": ("INT", {"default": 2048, "min": 64, "max": 8192, "step": 8}),
-                "cols": ("INT", {"default": 2, "min": 1, "max": 4, "step": 1}),
-                "rows": ("INT", {"default": 2, "min": 1, "max": 4, "step": 1}),
+                "max_width": ("INT", {"default": 2048, "min": 64, "max": 16384, "step": 8}),
+                "max_height": ("INT", {"default": 2048, "min": 64, "max": 16384, "step": 8}),
+                "cols": ("INT", {"default": 2, "min": 1, "max": 10, "step": 1}),
+                "rows": ("INT", {"default": 2, "min": 1, "max": 10, "step": 1}),
                 
                 # Image inputs - connect to batcher nodes
                 "Grid Image Batch": ("IMAGE", {"forceInput": True}),  # Single image input that can accept batches
@@ -213,19 +213,28 @@ class StarGridComposer:
             # Calculate position in grid
             row = i // cols
             col = i % cols
-            # Calculate position and size maintaining aspect ratio
+            # Resize and pad to fill a square cell, centered
+            # Target: cell_width x cell_height, image fills as much as possible
             img_ratio = img_pil.width / img_pil.height
-            cell_ratio = cell_width / cell_height
-            if img_ratio > cell_ratio:
-                new_width = cell_width
-                new_height = int(cell_width / img_ratio)
+            cell_dim = min(cell_width, cell_height)
+            if img_ratio > 1:
+                # Landscape: width = cell_dim
+                new_width = cell_dim
+                new_height = int(cell_dim / img_ratio)
             else:
-                new_height = cell_height
-                new_width = int(cell_height * img_ratio)
-            img_pil = img_pil.resize((new_width, new_height), Image.LANCZOS)
-            x = col * cell_width + (cell_width - new_width) // 2
-            y = row * (cell_height + cell_caption_height)
-            result.paste(img_pil, (x, y))
+                # Portrait or square: height = cell_dim
+                new_height = cell_dim
+                new_width = int(cell_dim * img_ratio)
+            img_resized = img_pil.resize((new_width, new_height), Image.LANCZOS)
+            # Pad to square (cell_dim x cell_dim)
+            pad_left = (cell_dim - new_width) // 2
+            pad_top = (cell_dim - new_height) // 2
+            square_img = Image.new('RGB', (cell_dim, cell_dim), (0, 0, 0))
+            square_img.paste(img_resized, (pad_left, pad_top))
+            # Place in grid cell
+            x = col * cell_width + (cell_width - cell_dim) // 2
+            y = row * (cell_height + cell_caption_height) + (cell_height - cell_dim) // 2
+            result.paste(square_img, (x, y))
             # Draw caption if present
             caption = caption_list[i]
             if caption:

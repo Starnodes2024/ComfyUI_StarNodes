@@ -27,6 +27,7 @@ class StarInfiniteYouPatch:
         # Sort patches alphabetically for better organization
         patches.sort()
         
+        import time
         return {
             "required": {
                 "control_net": ("CONTROL_NET",),
@@ -35,7 +36,9 @@ class StarInfiniteYouPatch:
                 "negative": ("CONDITIONING",),
                 "vae": ("VAE",),
                 "latent_image": ("LATENT",),
-                "patch_file": (["none", "random"] + patches,),
+                "patch_file": (["none", "random"] + patches),
+                # 'trigger' is a dummy input to break ComfyUI's node cache; connect a changing value (e.g., from Random Number node)
+                "trigger": ("INT", {"default": 0}),
             }
         }
     
@@ -44,22 +47,38 @@ class StarInfiniteYouPatch:
     FUNCTION = "apply_patch"
     CATEGORY = "⭐StarNodes/InfiniteYou"
     
-    def apply_patch(self, control_net, model, positive, negative, vae, latent_image, patch_file):
+    def apply_patch(self, control_net, model, positive, negative, vae, latent_image, patch_file, trigger):  # 'trigger' is unused except for cache-busting
         if patch_file == "none":
             # If no patch file is selected, just return the inputs unchanged
             return (model, positive, negative, latent_image)
         
         # Handle random patch selection
         if patch_file == "random":
-            import random
+            import random, time, torch
             patch_dir = os.path.join(folder_paths.output_directory, "infiniteyoupatch")
             patches = [f for f in os.listdir(patch_dir) if f.endswith((".pt", ".iyou"))]
             if not patches:
                 print("No patch files found in the patch directory.")
                 return (model, positive, negative, latent_image)
-            # Pick a random patch
-            patch_file = random.choice(patches)
-            print(f"Randomly selected patch file: {patch_file}")
+            # Filter patches for only those with all required keys
+            valid_patches = []
+            print(f"[DEBUG] Found {len(patches)} patch files: {patches}")
+            for pf in patches:
+                patch_path = os.path.join(patch_dir, pf)
+                try:
+                    patch_data = torch.load(patch_path, map_location="cpu")
+                    print(f"[DEBUG] Patch '{pf}' loaded. Keys: {list(patch_data.keys()) if hasattr(patch_data, 'keys') else type(patch_data)}")
+                    if all(k in patch_data for k in ("image_prompt_embeds", "uncond_image_prompt_embeds", "face_kps")):
+                        valid_patches.append(pf)
+                except Exception as e:
+                    print(f"[DEBUG] Skipping patch {pf} due to load error: {e}")
+            print(f"[DEBUG] Valid patches after filtering: {valid_patches}")
+            if not valid_patches:
+                print("[DEBUG] No valid patch files (with all required keys) found in the patch directory.")
+                return (model, positive, negative, latent_image)
+            random.seed(time.time_ns())
+            patch_file = random.choice(valid_patches)
+            print(f"[DEBUG] Randomly selected valid patch file: {patch_file}")
         
         # Load the patch data
         patch_path = os.path.join(folder_paths.output_directory, "infiniteyoupatch", patch_file)
@@ -70,19 +89,28 @@ class StarInfiniteYouPatch:
         image_prompt_embeds = patch_data["image_prompt_embeds"].to(device) if "image_prompt_embeds" in patch_data else None
         uncond_image_prompt_embeds = patch_data["uncond_image_prompt_embeds"].to(device) if "uncond_image_prompt_embeds" in patch_data else None
         face_kps = patch_data["face_kps"] if "face_kps" in patch_data else None
-        
+
         # Get control parameters
         cn_strength = patch_data.get("cn_strength", 1.0)
         start_at = patch_data.get("start_at", 0.0)
         end_at = patch_data.get("end_at", 1.0)
-        
+
         # Make sure we have all the necessary data
         if image_prompt_embeds is None or uncond_image_prompt_embeds is None or face_kps is None:
             print("Warning: Patch file is missing essential data. Cannot apply face.")
             return (model, positive, negative, latent_image)
-        
+
+        # Shape validation for face_kps
+        import torch
+        face_kps_tensor = torch.as_tensor(face_kps)
+        print(f"Loaded face_kps from patch file: {patch_file}, shape: {face_kps_tensor.shape}")
+        if face_kps_tensor.ndim != 4:
+            print(f"Warning: face_kps in patch file {patch_file} does not have 4 dimensions (got {face_kps_tensor.ndim}). Skipping patch application.")
+            return (model, positive, negative, latent_image)
+        face_kps = face_kps_tensor
+
         print(f"Applying face from patch file: {patch_file} to user conditioning")
-        
+
         # Set up the controlnet with the face keypoints
         cnets = {}
         cond_uncond = []

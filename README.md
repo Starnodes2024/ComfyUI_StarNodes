@@ -2,7 +2,7 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.4.2
+**Current Version:** 1.5.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
@@ -10,52 +10,77 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ## Available Nodes
 
-### Input & Control Nodes
-- ⭐ Star Seven Inputs(img): Switch that automatically passes the first provided input image to the output
-- ⭐ Star Seven Inputs(txt): Text concatenation with optional inputs. Works as automatic switch and concatenates multiple inputs
-- ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
-- ⭐ Star Text Filter: Cleans string text by removing text between two given words (default), removing text before a specific word, removing text after a specific word, removing empty lines, removing all whitespace, or stripping whitespace from line edges
-- ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use.
-
-### Model & Sampling Nodes
-- ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
-- ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
-
-### Face & Identity Nodes
-- ⭐ Star InfiniteYou Apply 🆕: Apply face identity from a reference image to generated images
-- ⭐ Star InfiniteYou Patch Saver 🆕: Save face identity data for later use
-- ⭐ Star InfiniteYou Patch Loader 🆕: Load previously saved face identity data
-- ⭐ Star Save Sampler Settings 🆕: Save customizable sampling settings for StarSamplers with support for both SD and Flux samplers
-- ⭐ Star Load Sampler Settings 🆕: Load previously saved sampling settings for StarSamplers
-- ⭐ Star Delete Sampler Settings 🆕: Delete saved sampling settings
-- ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
-- ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
-- ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each.
-- ⭐ StarWildsAdv 🆕: Advanced wildcard processing node with extended functionality for complex prompt generation
-
-### Starter Nodes
+### ⭐StarNodes/Starters
 - ⭐ SD(XL) Starter: Loads checkpoint with CLIP and VAE, creates empty latent with customizable resolution
 - ⭐ FLUX Starter: Loads Unet with 2 CLIPs and creates empty latent
 - ⭐ SD3.0/3.5 Starter: Loads Unet with 3 CLIPs and creates empty latent
 
-### Upscaling & Processing
-- ⭐ Star Model Latent Upscaler: Complete pipeline for latent upscaling with model choice and VAE encoding/decoding
-- ⭐ Star Grid Composer 🆕: Compose multiple images into a grid layout with automatic sizing, captions, and customizable fonts/colors. Supports batch image and caption input via StarGridBatchers.
-- ⭐ Star Grid Image Batcher 🆕: Batch multiple images or image batches for use with Star Grid Composer, supporting up to 16 images.
-- ⭐ Star Grid Captions Batcher 🆕: Batch up to 16 caption strings for grid layouts in Star Grid Composer.
+### ⭐StarNodes/Sampler
+- ⭐ StarSampler SD/SDXL: Advanced sampler for SD, SDXL, SD3.5 with model and conditioning passthroughs
+- ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
+- ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
+- ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
+- ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
 
-### Text & Prompt Generation
+### ⭐StarNodes/Image And Latent
+- ⭐ Star Seven Inputs(img): Switch that automatically passes the first provided input image to the output
+- ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
+- ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use
+- ⭐ Star Grid Composer: Compose multiple images into a grid layout with automatic sizing, captions, and customizable fonts/colors. Supports batch image and caption input via StarGridBatchers
+- ⭐ Star Grid Image Batcher: Batch multiple images or image batches for use with Star Grid Composer, supporting up to 16 images
+- ⭐ Star Grid Captions Batcher: Batch up to 16 caption strings for grid layouts in Star Grid Composer
+- ⭐ Star Model Latent Upscaler: Complete pipeline for latent upscaling with model choice and VAE encoding/decoding
+- ⭐ StarWatermark: Adds customizable watermarks to images. Supports text, image, and advanced placement options for protecting or branding your outputs
+- ⭐ Star 7 Layers 2 PSD: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions
+- ⭐ Starnodes Aspect Ratio Advanced: Enhanced version with additional options for aspect ratio calculation and resolution determination
+
+### ⭐StarNodes/Text And Data
+- ⭐ Star Seven Inputs(txt): Text concatenation with optional inputs. Works as automatic switch and concatenates multiple inputs
+- ⭐ Star Text Filter: Cleans string text by removing text between two given words (default), removing text before a specific word, removing text after a specific word, removing empty lines, removing all whitespace, or stripping whitespace from line edges
 - ⭐ Star Seven Wildcards: Advanced prompt maker with 7 inputs supporting wildcards and multiple random selections
-- ⭐ Star Wildcards Advanced 🆕: Enhanced wildcard processing with support for folder paths, random selection, and multiple prompt inputs
-- ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content.
+- ⭐ Star Wildcards Advanced: Enhanced wildcard processing with support for folder paths, random selection, and multiple prompt inputs
+- ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content
+- ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites for use in prompts or text generation
+
+### ⭐StarNodes/InfiniteYou
+- ⭐ Star InfiniteYou Apply: Apply face identity from a reference image to generated images
+- ⭐ Star InfiniteYou Face Swap Mod: Modified version of the face swap node with additional control options
+- ⭐ Star InfiniteYou Patch Saver: Save face identity data for later use
+- ⭐ Star InfiniteYou Patch Loader: Load previously saved face identity data
+- ⭐ Star InfiniteYou Patch Combine: Combine multiple face patches with weighted influence
+- ⭐ Star InfiniteYou Advanced Patch Maker: Create advanced face patches with detailed control options
+
+### ⭐StarNodes/Conditioning
+- ⭐ Star Conditioning I/O: Allows saving and loading conditioning information for reuse across workflows
+
+### ⭐StarNodes/Settings
+- ⭐ Star Save Sampler Settings: Save customizable sampling settings for StarSamplers with support for both SD and Flux samplers
+- ⭐ Star Load Sampler Settings: Load previously saved sampling settings for StarSamplers
+- ⭐ Star Delete Sampler Settings: Delete saved sampling settings
+
+### ⭐StarNodes/Helpers And Tools
+- ⭐ Star Denoise Slider: Provides a simple slider interface to control the denoising strength for samplers
+- ⭐ Starnodes Aspect Ratio: Calculates aspect ratio from an image or provides standard aspect ratios with customizable megapixel settings
+- ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
+
+### ⭐StarNodes/Color
+- ⭐ Star Palette Extractor: Extracts dominant color palette from an image with various color format options
+
+### ⭐StarNodes
 - ⭐ Ollama Helper: Loads Ollama models from ollamamodels.txt for integration with Ollama nodes
 
-### Web & Data
-- ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites. Includes URL management with saved sites for quick access.
-- ⭐ Star 7 Layers 2 PSD: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions.
-
 *Note: You can add custom resolutions by editing the .json files in the node folder.
-** using tea cache setting need the official teacache nodes installed to work
+
+## Documentation
+
+Detailed documentation for all nodes is available in the `web/docs` directory of this repository. Each node has its own markdown file with comprehensive information about:
+- Inputs and outputs
+- Usage instructions
+- Features and capabilities
+- Technical details
+- Tips and notes
+
+The documentation is automatically loaded by ComfyUI when you access the help for any node, based on your locale settings.
 
 ## Installation
 

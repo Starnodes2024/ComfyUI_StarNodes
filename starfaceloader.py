@@ -152,7 +152,7 @@ class StarFaceLoader:
         # Get preview results
         preview_basename = os.path.splitext(original_filename)[0]
         preview_results = SaveImage().save_images(image, preview_basename, None, None)
-        
+
         return {"ui": {"images": preview_results['ui']['images']},
                 "result": (image, mask)}
 
