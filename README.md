@@ -2,7 +2,7 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.5.0
+**Current Version:** 1.5.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
@@ -23,6 +23,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
 
 ### ⭐StarNodes/Image And Latent
+- ⭐ Star Adaptive Detail Enhancer: Adaptively sharpens, denoises, and enhances image details using edge, face, and texture analysis. Great for portraits, art, and upscaling. See [StarDetailEnhancer.md](web/docs/StarDetailEnhancer.md).
 - ⭐ Star Seven Inputs(img): Switch that automatically passes the first provided input image to the output
 - ⭐ Star Seven Inputs(latent): Switch that automatically passes the first provided latent to the output
 - ⭐ Star Face Loader: Specialized node for handling face-related operations. Image loader that works like the "load image" node but saves images in a special faces-folder for later use
@@ -62,6 +63,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Denoise Slider: Provides a simple slider interface to control the denoising strength for samplers
 - ⭐ Starnodes Aspect Ratio: Calculates aspect ratio from an image or provides standard aspect ratios with customizable megapixel settings
 - ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
+- ⭐ Starnodes Aspect Video Ratio: Select a video aspect ratio from a dropdown, input width, and receive width/height as int/string plus formatted size (e.g., 750x422). Calculates height automatically from width and selected ratio.
 
 ### ⭐StarNodes/Color
 - ⭐ Star Palette Extractor: Extracts dominant color palette from an image with various color format options
