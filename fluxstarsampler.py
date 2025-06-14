@@ -74,7 +74,7 @@ class Fluxstarsampler:
                 "max_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "base_shift": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "" }),
                 "denoise": ("STRING", { "multiline": False, "dynamicPrompts": False, "default": "1.0" }),
-                "use_teacache": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No"}),
+                "use_teacache": ("BOOLEAN", {"default": False, "label_on": "Yes", "label_off": "No"}),
                 "vae": ("VAE", ),
                 "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
             },
@@ -280,15 +280,27 @@ class Fluxstarsampler:
         # Apply TeaCache if enabled and model is Flux
         if use_teacache and not model.model.model_type == comfy.model_base.ModelType.FLOW:
             try:
-                # Import TeaCache functionality
-                from custom_nodes.teacache.nodes import TeaCacheForImgGen, teacache_flux_forward
+                # Import local TeaCache functionality
+                import sys
+                import os
+                teacache_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'teacache')
+                if os.path.exists(os.path.join(teacache_path, 'nodes.py')):
+                    # Import the TeaCache class from the teacache nodes module
+                    sys.path.insert(0, os.path.dirname(teacache_path))
+                    from teacache.nodes import TeaCache
+                else:
+                    print("\033[93mTo use Teacache please install the custom nodes from https://github.com/welltop-cn/ComfyUI-TeaCache\033[0m")
+                    use_teacache = False
                 
                 # Create a clone of the model
                 teacache_model = model.clone()
                 
                 # Apply TeaCache with fixed settings (Model Flux, threshold 0.40)
-                teacache = TeaCacheForImgGen()
-                model = teacache.apply_teacache(teacache_model, "flux", 0.40)[0]
+                # Apply teacache with appropriate parameters for flux models
+                if use_teacache:
+                    # Create TeaCache instance and call its apply_teacache method
+                    teacache = TeaCache()
+                    model = teacache.apply_teacache(teacache_model, model_type="flux", rel_l1_thresh=0.40, start_percent=0.0, end_percent=1.0)[0]
                 
                 logging.info("TeaCache applied to the model with threshold 0.40")
             except Exception as e:
