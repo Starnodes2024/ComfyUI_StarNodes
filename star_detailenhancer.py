@@ -206,5 +206,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "AdaptiveDetailEnhancement": "Star Adaptive Detail Enhancement"
+    "AdaptiveDetailEnhancement": "⭐ Star Adaptive Detail Enhancement"
 }
