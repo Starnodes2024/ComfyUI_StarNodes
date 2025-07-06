@@ -73,11 +73,8 @@ class Starnodes_Aspect_Ratio_Advanced:
                 if diff < min_diff:
                     min_diff = diff
                     selected_ratio_key = k
-        rw, rh = get_ratio_dims(selected_ratio_key)
-        mp = float(megapixel)
-        total_pixels = mp * 1_000_000
-        width = int(round((total_pixels * rw / rh) ** 0.5))
-        height = int(round(width * rh / rw))
+        # Use exact dimensions from the JSON file instead of calculating based on megapixels
+        width, height = get_ratio_dims(selected_ratio_key)
         resolution_str = f"{width} x {height}"
 
         # Latent for Flux/SDXL: shape [batch, 4, H//8, W//8]
@@ -85,10 +82,10 @@ class Starnodes_Aspect_Ratio_Advanced:
         height_latent = height - (height % 8)
         latent_flux_sdxl = torch.zeros([batch_size, 4, height_latent // 8, width_latent // 8])
 
-        # Latent for SD3.5: shape [batch, 4, H//16, W//16]
-        width_latent_sd35 = width - (width % 16)
-        height_latent_sd35 = height - (height % 16)
-        latent_sd35 = torch.zeros([batch_size, 4, height_latent_sd35 // 16, width_latent_sd35 // 16])
+        # Latent for SD3.5: shape [batch, 4, H//8, W//8] - SD3.5 uses the same downsampling factor as SDXL
+        width_latent_sd35 = width - (width % 8)
+        height_latent_sd35 = height - (height % 8)
+        latent_sd35 = torch.zeros([batch_size, 4, height_latent_sd35 // 8, width_latent_sd35 // 8])
 
         return (width, height, resolution_str, {"samples": latent_flux_sdxl}, {"samples": latent_sd35})
 
