@@ -19,7 +19,7 @@ class Starnodes_Aspect_Ratio_Advanced:
             ratios_data = json.load(f)["ratios"]
         ratio_choices = [k for k in ratios_data.keys() if k != "Free Ratio"]
 
-        megapixel_choices = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]
+        megapixel_choices = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]
         megapixel_choices_str = [str(mp) for mp in megapixel_choices]
 
         return {
@@ -73,8 +73,33 @@ class Starnodes_Aspect_Ratio_Advanced:
                 if diff < min_diff:
                     min_diff = diff
                     selected_ratio_key = k
-        # Use exact dimensions from the JSON file instead of calculating based on megapixels
-        width, height = get_ratio_dims(selected_ratio_key)
+        
+        # Get base dimensions from the selected ratio
+        base_width, base_height = get_ratio_dims(selected_ratio_key)
+        
+        # Convert megapixel from string to float
+        megapixel_value = float(megapixel)
+        
+        # If megapixel is 1.0, use the exact dimensions from the JSON file
+        if megapixel_value == 1.0:
+            width, height = base_width, base_height
+        else:
+            # Calculate the aspect ratio
+            aspect = base_width / base_height
+            
+            # Calculate new dimensions based on megapixels
+            # Formula: width * height = megapixels * 1,000,000
+            # and width / height = aspect
+            # Therefore: width = sqrt(megapixels * 1,000,000 * aspect)
+            #            height = width / aspect
+            target_pixels = megapixel_value * 1000000
+            width = int(math.sqrt(target_pixels * aspect))
+            height = int(width / aspect)
+            
+            # Ensure width and height are divisible by 8 for latent space
+            width = width - (width % 8)
+            height = height - (height % 8)
+        
         resolution_str = f"{width} x {height}"
 
         # Latent for Flux/SDXL: shape [batch, 4, H//8, W//8]
