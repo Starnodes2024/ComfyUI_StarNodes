@@ -2,11 +2,19 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.5.3
+**Current Version:** 1.6.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.6.0
+
+- ⭐ Star Random Image Loader (`StarRandomImageLoader`) — Load a random image from a folder, with optional subfolders and seed.
+- ⭐ Star Image Loader 1by1 (`StarImageLoader1by1`) — Sequentially loads images across runs with state saved in the folder.
+- ⭐ Star Save Panorama JPEG (`StarSavePanoramaJPEG`) — Save JPEGs with embedded XMP panorama metadata.
+- ⭐ Star Frame From Video (`StarFrameFromVideo`) — Pick first/last/specific frame from an image batch (e.g. video).
+- ⭐ Star Icon Exporter (`StarIconExporter`) — Export multi-size PNGs and ICO with shaping, stroke, and shadow options.
 
 ## Available Nodes
 
