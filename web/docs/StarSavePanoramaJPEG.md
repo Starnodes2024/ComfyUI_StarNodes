@@ -29,4 +29,4 @@ Hidden (standard ComfyUI): `prompt`, `extra_pnginfo`.
 - `projection_type = equirectangular` for 360×180 full panoramas.
 
 ## Version
-- Introduced in StarNodes 1.6.0
+- Introduced in StarNodes 1.6.1

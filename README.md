@@ -2,13 +2,13 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.6.0
+**Current Version:** 1.6.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New in 1.6.0
+## New in 1.6.1
 
 - ⭐ Star Random Image Loader (`StarRandomImageLoader`) — Load a random image from a folder, with optional subfolders and seed.
 - ⭐ Star Image Loader 1by1 (`StarImageLoader1by1`) — Sequentially loads images across runs with state saved in the folder.

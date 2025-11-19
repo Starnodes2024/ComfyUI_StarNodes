@@ -37,4 +37,4 @@ Loads images from a folder sequentially across workflow runs, persisting state i
 - No valid image files found
 
 ## Version
-- Introduced in StarNodes 1.6.0
+- Introduced in StarNodes 1.6.1

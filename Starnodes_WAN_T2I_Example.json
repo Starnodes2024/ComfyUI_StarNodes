@@ -513,7 +513,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "Starnodes_Aspect_Ratio_Advanced"
       },
       "widgets_values": [

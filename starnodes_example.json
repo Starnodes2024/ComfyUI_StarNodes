@@ -1,5 +1,5 @@
 {
-  "id": "starnodes-example-1.6.0",
+  "id": "starnodes-example-1.6.1",
   "revision": 0,
   "last_node_id": 5,
   "last_link_id": 3,
@@ -29,7 +29,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "StarImageLoader1by1"
       },
       "widgets_values": [
@@ -64,7 +64,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "StarFrameFromVideo"
       },
       "widgets_values": [
@@ -95,7 +95,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "StarIconExporter"
       },
       "widgets_values": [
@@ -146,7 +146,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "StarRandomImageLoader"
       },
       "widgets_values": [
@@ -177,7 +177,7 @@
       "outputs": [],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.6.0",
+        "ver": "1.6.1",
         "Node name for S&R": "StarSavePanoramaJPEG"
       },
       "widgets_values": [

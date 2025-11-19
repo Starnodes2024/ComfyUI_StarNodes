@@ -35,4 +35,4 @@ Loads a random image (and mask if present) from a folder. Supports optional subf
 - No valid images in directory
 
 ## Version
-- Introduced in StarNodes 1.6.0
+- Introduced in StarNodes 1.6.1

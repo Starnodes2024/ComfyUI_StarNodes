@@ -11,9 +11,20 @@ import json
 from .starinfiniteyou_resampler import Resampler
 from .starinfiniteyou_utils import tensor_to_image, resize_and_pad_image, draw_kps, add_noise
 
-from insightface.app import FaceAnalysis
-from insightface.utils import face_align
-from facexlib.recognition import init_recognition_model
+try:
+    from insightface.app import FaceAnalysis
+    from insightface.utils import face_align
+    INSIGHTFACE_AVAILABLE = True
+except ImportError:
+    INSIGHTFACE_AVAILABLE = False
+    print("StarNodes: InsightFace not available. Face features will be disabled.")
+
+try:
+    from facexlib.recognition import init_recognition_model
+    FACEXLIB_AVAILABLE = True
+except ImportError:
+    FACEXLIB_AVAILABLE = False
+    print("StarNodes: FaceXLib not available. Some face features might be disabled.")
 
 try:
     import torchvision.transforms.v2 as T
@@ -42,6 +53,8 @@ arcface_dst = np.array(
     dtype=np.float32)
 
 def extract_arcface_bgr_embedding(in_image, landmark, arcface_model=None, in_settings=None):
+    if not INSIGHTFACE_AVAILABLE:
+        raise RuntimeError("InsightFace is not available. Cannot extract arcface embedding.")
     kps = landmark
     arc_face_image = face_align.norm_crop(in_image, landmark=np.array(kps), image_size=112)
     arc_face_image = torch.from_numpy(arc_face_image).unsqueeze(0).permute(0,3,1,2) / 255.
@@ -60,19 +73,27 @@ class InfiniteYou(torch.nn.Module):
         self.image_proj_model.load_state_dict(adapter_model["image_proj"])
 
         # Load face encoder
-        self.app_640 = FaceAnalysis(name='antelopev2', 
-                                root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        self.app_640.prepare(ctx_id=0, det_size=(640, 640))
+        if INSIGHTFACE_AVAILABLE:
+            self.app_640 = FaceAnalysis(name='antelopev2', 
+                                    root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+            self.app_640.prepare(ctx_id=0, det_size=(640, 640))
 
-        self.app_320 = FaceAnalysis(name='antelopev2', 
-                                root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        self.app_320.prepare(ctx_id=0, det_size=(320, 320))
+            self.app_320 = FaceAnalysis(name='antelopev2', 
+                                    root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+            self.app_320.prepare(ctx_id=0, det_size=(320, 320))
 
-        self.app_160 = FaceAnalysis(name='antelopev2', 
-                                root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        self.app_160.prepare(ctx_id=0, det_size=(160, 160))
+            self.app_160 = FaceAnalysis(name='antelopev2', 
+                                    root=INSIGHTFACE_DIR, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+            self.app_160.prepare(ctx_id=0, det_size=(160, 160))
+        else:
+            self.app_640 = None
+            self.app_320 = None
+            self.app_160 = None
 
-        self.arcface_model = init_recognition_model('arcface', device='cuda')
+        if FACEXLIB_AVAILABLE:
+            self.arcface_model = init_recognition_model('arcface', device='cuda')
+        else:
+            self.arcface_model = None
         
 
     def init_proj(self):
@@ -89,6 +110,8 @@ class InfiniteYou(torch.nn.Module):
         return image_proj_model
     
     def detect_face(self, id_image_cv2):
+        if not INSIGHTFACE_AVAILABLE:
+            raise RuntimeError("InsightFace is not available. Cannot detect face.")
         # Try different detection sizes if face detection fails
         faces = self.app_640.get(id_image_cv2)
         if len(faces) == 0:
@@ -558,7 +581,9 @@ class StarInfiniteYouFaceSwap:
         image_cv2 = cv2.cvtColor(np.array(image_pil), cv2.COLOR_RGB2BGR)
         
         # Load face detection model
-        from insightface.app import FaceAnalysis
+        if not INSIGHTFACE_AVAILABLE:
+            raise RuntimeError("InsightFace is not available. Cannot detect face.")
+        
         import folder_paths
         
         INSIGHTFACE_DIR = os.path.join(folder_paths.models_dir, "insightface")
