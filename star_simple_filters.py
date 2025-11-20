@@ -78,18 +78,21 @@ def wavelet_color_fix(target: Image.Image, source: Image.Image) -> Image.Image:
 
 
 class StarSimpleFilters:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
+    
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "image": ("IMAGE", {"tooltip": "The input image to apply filters to."}),
-                "sharpen": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 100.0, "step": 0.1, "tooltip": "Increase image sharpness. 0 is no effect."}),
-                "blur": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 100.0, "step": 0.1, "tooltip": "Apply Gaussian Blur. 0 is no effect."}),
-                "saturation": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "tooltip": "Adjust color intensity. 0: Neutral, -100: B&W, 100: Double saturation."}),
-                "contrast": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "tooltip": "Adjust contrast. 0 is neutral."}),
-                "brightness": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "tooltip": "Adjust brightness. 0 is neutral."}),
+                "sharpen": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 100.0, "step": 0.1, "display": "slider", "tooltip": "Increase image sharpness. 0 is no effect."}),
+                "blur": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 100.0, "step": 0.1, "display": "slider", "tooltip": "Apply Gaussian Blur. 0 is no effect."}),
+                "saturation": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "display": "slider", "tooltip": "Adjust color intensity. 0: Neutral, -100: B&W, 100: Double saturation."}),
+                "contrast": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "display": "slider", "tooltip": "Adjust contrast. 0 is neutral."}),
+                "brightness": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "display": "slider", "tooltip": "Adjust brightness. 0 is neutral."}),
                 "temperature": ("FLOAT", {"default": 0.0, "min": -100.0, "max": 100.0, "step": 1.0, "tooltip": "Adjust color temperature. -100: Cooler (Blue), 100: Warmer (Red)."}),
-                "filter_strength": ("FLOAT", {"default": 100.0, "min": 0.0, "max": 100.0, "step": 1.0, "tooltip": "Global opacity of the effect. 100 is full effect, 0 is original image."}),
+                "filter_strength": ("FLOAT", {"default": 100.0, "min": 0.0, "max": 100.0, "step": 1.0, "display": "slider", "tooltip": "Global opacity of the effect. 100 is full effect, 0 is original image."}),
                 "color_match_method": (["None", "wavelet", "adain", "mkl", "hm", "reinhard", "mvgd", "hm-mvgd-hm", "hm-mkl-hm"], {"default": "None", "tooltip": "Method for color matching."}),
             },
             "optional": {

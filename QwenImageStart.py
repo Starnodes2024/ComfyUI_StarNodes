@@ -167,6 +167,9 @@ class QwenImageStartSettings:
                 "image": ("IMAGE", {
                     "tooltip": "Optional image input for automatic aspect ratio detection"
                 }),
+                "model_override": ("MODEL", {
+                    "tooltip": "Optional model input. When connected, bypasses the Diffusion_Model selector and uses this model directly."
+                }),
             }
         }
     
@@ -279,7 +282,8 @@ class QwenImageStartSettings:
         Latent_Height,
         Batch_Size,
         use_nearest_image_ratio=False,
-        image=None
+        image=None,
+        model_override=None
     ):
         # Default prompts when input is empty
         if not Positive_Prompt.strip():
@@ -291,7 +295,12 @@ class QwenImageStartSettings:
         
         # Diffusion Model Loading
         model = None
-        if Diffusion_Model != "Default":
+        
+        # Check if model_override is provided
+        if model_override is not None:
+            print("[QwenImageStart] Using model_override input, ignoring Diffusion_Model selector")
+            model = model_override
+        elif Diffusion_Model != "Default":
             # Try diffusion_models first, then unet
             try:
                 model_path = folder_paths.get_full_path_or_raise("diffusion_models", Diffusion_Model)

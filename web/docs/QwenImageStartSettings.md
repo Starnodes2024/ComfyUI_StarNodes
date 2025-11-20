@@ -77,6 +77,11 @@ The Qwen Image Star(t) Settings node is a specialized all-in-one starter node de
   - Used with `use_nearest_image_ratio` for automatic aspect ratio detection
   - Node analyzes input image dimensions and selects the nearest predefined ratio
 
+- **model_override**: Optional MODEL input
+  - When connected, bypasses the Diffusion_Model selector completely
+  - Uses the provided model directly instead of loading from selector
+  - Useful for chaining nodes or using pre-processed models (e.g., with LoRAs applied)
+
 ## Outputs
 
 1. **model**: Loaded diffusion model (MODEL type)
@@ -141,6 +146,7 @@ The Qwen Image Star(t) Settings node is a specialized all-in-one starter node de
 
 - **Qwen-Optimized Ratios**: Predefined aspect ratios specifically designed for Qwen Image models
 - **Flexible Model Loading**: Supports models from both diffusion_models and unet folders
+- **Model Override**: Optional input to bypass selector and use pre-loaded/modified models
 - **CLIP Type Selection**: Full control over CLIP model type for compatibility
 - **Device Management**: Separate device selection for CLIP to optimize VRAM usage
 - **TAESD Support**: Built-in support for TAESD approximate VAEs for faster previews
@@ -213,3 +219,5 @@ The node allows CLIP to be loaded on a different device (typically CPU) to save 
 - Leave negative prompt empty for unconditional generation
 - Use batch size > 1 for generating variations efficiently
 - Connect string outputs to save nodes for metadata preservation
+- Use `model_override` input when you need to apply LoRAs or other model modifications before this node
+- `model_override` is useful for complex workflows where models are pre-processed by other nodes
