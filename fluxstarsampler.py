@@ -460,5 +460,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Fluxstarsampler": "⭐ StarSampler FLUX"
+    "Fluxstarsampler": "⭐ StarSampler FLUX (DEPRECATED! please use Unfied Sampler)"
 }

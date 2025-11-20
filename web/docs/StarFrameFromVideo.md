@@ -23,4 +23,4 @@ Selects a single frame from a batch of images (e.g., frames produced by a video 
 - Combine with downstream nodes expecting a single image.
 
 ## Version
-- Introduced in StarNodes 1.6.1
+- Introduced in StarNodes 1.6.0

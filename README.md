@@ -2,19 +2,44 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.6.1
+**Current Version:** 1.7.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New in 1.6.1
+## New in 1.7.0
 
-- ⭐ Star Random Image Loader (`StarRandomImageLoader`) — Load a random image from a folder, with optional subfolders and seed.
-- ⭐ Star Image Loader 1by1 (`StarImageLoader1by1`) — Sequentially loads images across runs with state saved in the folder.
-- ⭐ Star Save Panorama JPEG (`StarSavePanoramaJPEG`) — Save JPEGs with embedded XMP panorama metadata.
-- ⭐ Star Frame From Video (`StarFrameFromVideo`) — Pick first/last/specific frame from an image batch (e.g. video).
-- ⭐ Star Icon Exporter (`StarIconExporter`) — Export multi-size PNGs and ICO with shaping, stroke, and shadow options.
+### Qwen/WAN Image Editing Suite
+- ⭐ Star Qwen Image Ratio (`StarQwenImageRatio`) — Aspect ratio selector for Qwen models with SD3-optimized dimensions
+- ⭐ Star Qwen / WAN Ratio (`StarQwenWanRatio`) — Unified ratio selector for Qwen and WAN video models with auto aspect ratio matching
+- ⭐ Star Qwen Image Edit Inputs (`StarQwenImageEditInputs`) — Multi-image stitcher for Qwen editing (up to 4 images)
+- ⭐ Star Qwen Edit Encoder (`StarQwenEditEncoder`) — Advanced CLIP encoder optimized for Qwen image editing
+- ⭐ Star Image Edit for Qwen/Kontext (`StarImageEditQwenKontext`) — Dynamic prompt builder with customizable templates
+- ⭐ Star Qwen Edit Plus Conditioner (`StarQwenEditPlusConditioner`) — Enhanced conditioning for Qwen models
+- ⭐ Star Qwen Rebalance Prompter (`StarQwenRebalancePrompter`) — Intelligent prompt rebalancing for better results
+- ⭐ Star Qwen Regional Prompter (`StarQwenRegionalPrompter`) — Region-based prompting for precise control
+
+### Image Processing & Effects
+- ⭐ Star Apply Overlay (Depth) (`StarApplyOverlayDepth`) — Blend filtered images using depth/mask with Gaussian blur
+- ⭐ Star Simple Filters (`StarSimpleFilters`) — Comprehensive image adjustments with color matching (sharpen, blur, saturation, etc.)
+
+### AI Generation & Prompting
+- ⭐ Star Nano Banana (Gemini) (`StarNanoBanana`) — Google Gemini 2.5 Flash image generation with 30+ templates
+- ⭐ Star Ollama Sysprompter (JC) (`StarOllamaSysprompterJC`) — Structured prompt builder for Ollama with art styles
+- ⭐ Star Sampler (`StarSampler`) — Advanced sampler with extensive configuration options
+
+### Utilities & Tools
+- ⭐ Star Save Folder String (`StarSaveFolderString`) — Flexible path builder with date-based organization
+- ⭐ Star Duplicate Model Finder (`StarDuplicateModelFinder`) — SHA256-based duplicate model scanner
+
+## Previous Updates (1.6.0)
+
+- ⭐ Star Random Image Loader — Load random images from folders with seed control
+- ⭐ Star Image Loader 1by1 — Sequential image loading with state persistence
+- ⭐ Star Save Panorama JPEG — Export JPEGs with XMP panorama metadata
+- ⭐ Star Frame From Video — Extract specific frames from video batches
+- ⭐ Star Icon Exporter — Multi-size PNG/ICO export with effects
 
 ## Available Nodes
 
@@ -29,6 +54,20 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 - ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
 - ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
+
+### ⭐StarNodes/Qwen & Image Editing
+- ⭐ Star Qwen Image Ratio: Dropdown aspect ratio selector for Qwen models with SD3-optimized dimensions (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
+- ⭐ Star Qwen / WAN Ratio: Unified ratio selector supporting both Qwen and WAN video models with automatic aspect ratio matching
+- ⭐ Star Qwen Image Edit Inputs: Prepares up to 4 input images for Qwen editing by intelligently stitching them into a single canvas
+- ⭐ Star Qwen Edit Encoder: Advanced CLIP text encoder optimized for Qwen image editing with reference latents and caching
+- ⭐ Star Image Edit for Qwen/Kontext: Dynamic prompt builder loading customizable templates from editprompts.json
+- ⭐ Star Qwen Edit Plus Conditioner: Enhanced conditioning specifically designed for Qwen models
+- ⭐ Star Qwen Rebalance Prompter: Intelligently rebalances prompts for optimal Qwen model performance
+- ⭐ Star Qwen Regional Prompter: Region-based prompting system for precise control over different image areas
+- ⭐ Star Apply Overlay (Depth): Blends filtered images over source using depth/mask with Gaussian blur options
+- ⭐ Star Simple Filters: Comprehensive image adjustments (sharpen, blur, saturation, contrast, brightness, temperature) with advanced color matching
+- ⭐ Star Nano Banana (Gemini): Google Gemini 2.5 Flash image generation/editing with 30+ prompt templates and flexible aspect ratios
+- ⭐ Star Sampler: Advanced sampler with extensive configuration options for various workflows
 
 ### ⭐StarNodes/Image And Latent
 - ⭐ Star Adaptive Detail Enhancer: Adaptively sharpens, denoises, and enhances image details using edge, face, and texture analysis. Great for portraits, art, and upscaling. See [StarDetailEnhancer.md](web/docs/StarDetailEnhancer.md).
@@ -50,6 +89,16 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Wildcards Advanced: Enhanced wildcard processing with support for folder paths, random selection, and multiple prompt inputs
 - ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content
 - ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites for use in prompts or text generation
+- ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
+
+### ⭐StarNodes/IO
+- ⭐ Star Save Folder String: Flexible path builder for organized file saving with preset folders, date-based organization, and custom naming
+- ⭐ Star Duplicate Model Finder: Scans ComfyUI models directory for duplicate files using SHA256 hashing with detailed reports
+- ⭐ Star Random Image Loader: Load random images from folders with optional subfolders and seed control
+- ⭐ Star Image Loader 1by1: Sequentially loads images across runs with state saved in the folder
+- ⭐ Star Save Panorama JPEG: Save JPEGs with embedded XMP panorama metadata for 360° viewers
+- ⭐ Star Frame From Video: Pick first/last/specific frame from an image batch (e.g., video)
+- ⭐ Star Icon Exporter: Export multi-size PNGs and ICO with shaping, stroke, and shadow options
 
 ### ⭐StarNodes/InfiniteYou
 - ⭐ Star InfiniteYou Apply: Apply face identity from a reference image to generated images
@@ -91,6 +140,13 @@ Detailed documentation for all nodes is available in the `web/docs` directory of
 - Tips and notes
 
 The documentation is automatically loaded by ComfyUI when you access the help for any node, based on your locale settings.
+
+### Additional Documentation
+- **QwenEditPromptGuide.md** - Comprehensive guide for using Qwen image editing nodes
+- **README_StarQwenRegionalPrompter.md** - Detailed documentation for regional prompting
+- **SIMPLIFIED_REGIONAL_PROMPTER_V2.md** - Simplified guide for regional prompter v2
+- **editprompts.json** - Customizable prompt templates for Qwen/Kontext nodes
+- **styles.json** - Art style definitions for Ollama Sysprompter
 
 ## Installation
 
@@ -143,6 +199,24 @@ The Star Wildcards node allows you to combine up to 7 different prompts, each wi
 
 - Supports recursive wildcard processing up to 10 layers
 
+## Requirements
+
+### Core Dependencies
+All dependencies are listed in `requirements.txt` and will be installed automatically:
+- **google-generativeai>=0.8.3** - Required for Star Nano Banana (Gemini) node
+- **color-matcher** - Required for Star Simple Filters color matching features
+- **insightface** - Required for InfiniteYou face swap nodes
+- **onnxruntime** / **onnxruntime-gpu** - Required for face detection and processing
+- **psd-tools>=1.10.0** - Required for PSD export nodes
+- **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
+
+### Google Gemini API Key
+To use the **Star Nano Banana** node:
+1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create or edit `googleapi.ini` in the starnodes folder
+3. Add your key: `[GOOGLE]` / `api_key = YOUR_API_KEY_HERE`
+
+### InfiniteYou Setup
 For InfiniteYou Insightface is a requirement. If you are having trouble installing it (windows) here is how to fix that problem:
 1. Download that insightface wheel that fits your python version from: 
 https://github.com/Gourieff/Assets/tree/main/Insightface
