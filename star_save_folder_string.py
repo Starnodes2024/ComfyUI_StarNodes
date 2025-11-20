@@ -54,8 +54,8 @@ class StarSaveFolderString:
             }
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("path",)
+    RETURN_TYPES = ("STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("path", "dir_only", "filename",)
     FUNCTION = "build"
     CATEGORY = "⭐StarNodes/IO"
 
@@ -119,8 +119,12 @@ class StarSaveFolderString:
         # Join using posix-like forward slashes for ComfyUI consistency across OS
         folder_path = "/".join(p for p in parts if p)
         path = f"{folder_path}/{name}" if folder_path else name
+        
+        # Return full path, directory only, and filename only
+        dir_only = folder_path if folder_path else ""
+        filename_only = name
 
-        return (path,)
+        return (path, dir_only, filename_only,)
 
 
 NODE_CLASS_MAPPINGS = {

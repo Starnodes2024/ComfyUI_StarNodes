@@ -8,6 +8,7 @@ from psd_tools.constants import ColorMode, ChannelID, Compression
 from psd_tools.api.mask import Mask
 from psd_tools.psd.layer_and_mask import MaskData, MaskFlags, ChannelInfo, ChannelData
 from psd_tools.compression import compress
+import folder_paths
 
 class StarPSDSaver2:
     BGCOLOR = "#3d124d"  # Background color
@@ -27,7 +28,7 @@ class StarPSDSaver2:
         return {
             "required": {
                 "filename_prefix": ("STRING", {"default": "multilayer2"}),
-                "output_dir": ("STRING", {"default": "ComfyUI/output/PSD_Layers"}),
+                "output_dir": ("STRING", {"default": "PSD_Layers"}),
             },
             "optional": optional_inputs
         }
@@ -55,11 +56,22 @@ class StarPSDSaver2:
         return Image.fromarray(mask_np, mode='L')
 
     def save_psd(self, filename_prefix, output_dir, **kwargs):
-        os.makedirs(output_dir, exist_ok=True)
+        # Get ComfyUI's standard output directory as base
+        base_output_dir = folder_paths.get_output_directory()
+        
+        # Create full output path (user's subdirectory under ComfyUI output folder)
+        full_output_dir = os.path.join(base_output_dir, output_dir)
+        
+        print(f"[StarPSDSaver2] Base output dir: {base_output_dir}")
+        print(f"[StarPSDSaver2] User subdir: {output_dir}")
+        print(f"[StarPSDSaver2] Full output path: {full_output_dir}")
+        
+        # Ensure output directory exists
+        os.makedirs(full_output_dir, exist_ok=True)
         counter = 1
         while True:
             filename = f"{filename_prefix}.psd" if counter == 1 else f"{filename_prefix}_{counter}.psd"
-            save_path = os.path.join(output_dir, filename)
+            save_path = os.path.join(full_output_dir, filename)
             if not os.path.exists(save_path):
                 break
             counter += 1

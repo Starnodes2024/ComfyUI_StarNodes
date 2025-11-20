@@ -23,7 +23,9 @@ This node outputs a single `STRING` representing a path using forward slashes (p
 
 ## Outputs
 
-- **path (STRING)**: The constructed path string (always using `/` as the separator).
+- **path (STRING)**: The constructed path string including filename (always using `/` as the separator).
+- **dir_only (STRING)**: The directory path only, without the filename. Perfect for use with save nodes that need just the folder path.
+- **filename (STRING)**: The constructed filename only (with date/timestamp if enabled), without the directory path.
 
 ## Behavior details
 
@@ -34,13 +36,19 @@ This node outputs a single `STRING` representing a path using forward slashes (p
 ## Examples
 
 1. date_folder = true, custom_folder = `folder`, custom_subfolder = `subfolder`, date_in_filename = `suffix`, filename = `Image`, add_timestamp = true, separator = `_` →
-   `2025-08-20/folder/subfolder/Image2025-08-20_18-23-59`
+   - **path**: `2025-08-20/folder/subfolder/Image2025-08-20_18-23-59`
+   - **dir_only**: `2025-08-20/folder/subfolder`
+   - **filename**: `Image2025-08-20_18-23-59`
 
 2. date_folder = false, preset_folder = `Images`, custom_folder empty, date_in_filename = `prefix`, filename = `Cat`, add_timestamp=false →
-   `Images/2025-08-20Cat`
+   - **path**: `Images/2025-08-20Cat`
+   - **dir_only**: `Images`
+   - **filename**: `2025-08-20Cat`
 
 3. preset_folder = `Images`, date_folder = true, date_folder_position = `subfolder`, custom_folder = `Renders`, custom_subfolder = `A`, filename = `Pic`, Off →
-   `Images/Renders/A/2025-08-20/Pic`
+   - **path**: `Images/Renders/A/2025-08-20/Pic`
+   - **dir_only**: `Images/Renders/A/2025-08-20`
+   - **filename**: `Pic`
 
 ## Notes
 
