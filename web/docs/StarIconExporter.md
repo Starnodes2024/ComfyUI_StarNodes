@@ -45,4 +45,4 @@ Exports a set of icons (PNGs and an ICO) from an input image, with optional shap
 - Use `square` and set `background_color` to create solid background icons.
 
 ## Version
-- Introduced in StarNodes 1.6.0
+- Introduced in StarNodes 1.6+
