@@ -2,15 +2,25 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.7.0
+**Current Version:** 1.8.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New in 1.7.0
+## New in 1.8.0
 
-### Qwen/WAN Image Editing Suite
+### Upscaling & Refinement
+- ⭐ **Star SD Upscale Refiner** (`StarSDUpscaleRefiner`) — All-in-one SD1.5 upscaling and refinement node combining checkpoint loading, LoRA support, upscale models, tiled diffusion, ControlNet tile, and advanced optimizations (FreeU, PAG, Automatic CFG) into a single workflow.
+
+### LoRA Utilities
+- ⭐ **Star Random Lora Loader** (`StarRandomLoraLoader`) — Randomly selects a LoRA from your library (with subfolder and name filters) and can optionally apply it directly to MODEL/CLIP or output the LoRA path as a string.
+
+## Previous Updates
+
+### 1.7.0 – Qwen/WAN Image Editing & Utilities
+
+#### Qwen/WAN Image Editing Suite
 - ⭐ Star Qwen Image Ratio (`StarQwenImageRatio`) — Aspect ratio selector for Qwen models with SD3-optimized dimensions
 - ⭐ Star Qwen / WAN Ratio (`StarQwenWanRatio`) — Unified ratio selector for Qwen and WAN video models with auto aspect ratio matching
 - ⭐ Star Qwen Image Edit Inputs (`StarQwenImageEditInputs`) — Multi-image stitcher for Qwen editing (up to 4 images)
@@ -20,20 +30,20 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Qwen Rebalance Prompter (`StarQwenRebalancePrompter`) — Intelligent prompt rebalancing for better results
 - ⭐ Star Qwen Regional Prompter (`StarQwenRegionalPrompter`) — Region-based prompting for precise control
 
-### Image Processing & Effects
+#### Image Processing & Effects
 - ⭐ Star Apply Overlay (Depth) (`StarApplyOverlayDepth`) — Blend filtered images using depth/mask with Gaussian blur
 - ⭐ Star Simple Filters (`StarSimpleFilters`) — Comprehensive image adjustments with color matching (sharpen, blur, saturation, etc.)
 
-### AI Generation & Prompting
+#### AI Generation & Prompting
 - ⭐ Star Nano Banana (Gemini) (`StarNanoBanana`) — Google Gemini 2.5 Flash image generation with 30+ templates
 - ⭐ Star Ollama Sysprompter (JC) (`StarOllamaSysprompterJC`) — Structured prompt builder for Ollama with art styles
 - ⭐ Star Sampler (`StarSampler`) — Advanced sampler with extensive configuration options
 
-### Utilities & Tools
+#### Utilities & Tools
 - ⭐ Star Save Folder String (`StarSaveFolderString`) — Flexible path builder with date-based organization
 - ⭐ Star Duplicate Model Finder (`StarDuplicateModelFinder`) — SHA256-based duplicate model scanner
 
-## Previous Updates (1.6.0)
+### 1.6.0 – IO & Image Utilities
 
 - ⭐ Star Random Image Loader — Load random images from folders with seed control
 - ⭐ Star Image Loader 1by1 — Sequential image loading with state persistence
@@ -78,6 +88,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Grid Image Batcher: Batch multiple images or image batches for use with Star Grid Composer, supporting up to 16 images
 - ⭐ Star Grid Captions Batcher: Batch up to 16 caption strings for grid layouts in Star Grid Composer
 - ⭐ Star Model Latent Upscaler: Complete pipeline for latent upscaling with model choice and VAE encoding/decoding
+- ⭐ Star SD Upscale Refiner: All-in-one SD1.5 upscaling and refinement node with LoRA, upscale model, tiled diffusion, and ControlNet tile integration
 - ⭐ StarWatermark: Adds customizable watermarks to images. Supports text, image, and advanced placement options for protecting or branding your outputs
 - ⭐ Star 7 Layers 2 PSD: Saves up to seven images as layers in a single PSD file with automatic sizing based on the largest image dimensions
 - ⭐ Starnodes Aspect Ratio Advanced: Enhanced version with additional options for aspect ratio calculation and resolution determination
@@ -121,6 +132,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Starnodes Aspect Ratio: Calculates aspect ratio from an image or provides standard aspect ratios with customizable megapixel settings
 - ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
 - ⭐ Starnodes Aspect Video Ratio: Select a video aspect ratio from a dropdown, input width, and receive width/height as int/string plus formatted size (e.g., 750x422). Calculates height automatically from width and selected ratio.
+- ⭐ Star Random Lora Loader: Randomly selects a LoRA from your library with subfolder/name filters and optional direct application to MODEL/CLIP or string output
 
 ### ⭐StarNodes/Color
 - ⭐ Star Palette Extractor: Extracts dominant color palette from an image with various color format options
