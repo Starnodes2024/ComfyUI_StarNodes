@@ -1,8 +1,8 @@
 {
   "id": "ea7d2c07-38d8-4b5b-a504-445bf7bfd712",
   "revision": 0,
-  "last_node_id": 24,
-  "last_link_id": 26,
+  "last_node_id": 25,
+  "last_link_id": 29,
   "nodes": [
     {
       "id": 4,
@@ -78,7 +78,7 @@
           "type": "IMAGE",
           "links": [
             12,
-            16
+            27
           ]
         },
         {
@@ -139,14 +139,14 @@
           "name": "dir_only",
           "type": "STRING",
           "links": [
-            22
+            29
           ]
         },
         {
           "name": "filename",
           "type": "STRING",
           "links": [
-            23
+            28
           ]
         }
       ],
@@ -355,233 +355,6 @@
       "bgcolor": "#335"
     },
     {
-      "id": 13,
-      "type": "StarPSDSaver2",
-      "pos": [
-        4312,
-        -308
-      ],
-      "size": [
-        249.7359375,
-        462
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "layer1",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 16
-        },
-        {
-          "name": "mask1",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer2",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask2",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer3",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask3",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer4",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask4",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer5",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask5",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer6",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask6",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer7",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask7",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer8",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask8",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer9",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask9",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "layer10",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "mask10",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
-          "name": "filename_prefix",
-          "type": "STRING",
-          "widget": {
-            "name": "filename_prefix"
-          },
-          "link": 23
-        },
-        {
-          "name": "output_dir",
-          "type": "STRING",
-          "widget": {
-            "name": "output_dir"
-          },
-          "link": 22
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "1.7.0",
-        "Node name for S&R": "StarPSDSaver2"
-      },
-      "widgets_values": [
-        "multilayer2",
-        "PSD_Layers"
-      ],
-      "color": "#051b34",
-      "bgcolor": "#3d124d"
-    },
-    {
-      "id": 20,
-      "type": "Note",
-      "pos": [
-        4312,
-        220
-      ],
-      "size": [
-        242,
-        132
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {},
-      "widgets_values": [
-        "Activate the PSD saver if you also want to save an PSD file for photoshop. You can add up to 10 layers and masks."
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
-      "id": 11,
-      "type": "SaveImage",
-      "pos": [
-        4598,
-        -308
-      ],
-      "size": [
-        418,
-        440
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 12
-        },
-        {
-          "name": "filename_prefix",
-          "type": "STRING",
-          "widget": {
-            "name": "filename_prefix"
-          },
-          "link": 11
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.70",
-        "Node name for S&R": "SaveImage"
-      },
-      "widgets_values": [
-        "ComfyUI"
-      ]
-    },
-    {
       "id": 19,
       "type": "Note",
       "pos": [
@@ -593,7 +366,7 @@
         132
       ],
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -616,7 +389,7 @@
         290
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -688,7 +461,7 @@
         132
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 4,
       "inputs": [],
       "outputs": [
@@ -724,7 +497,7 @@
         198
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -747,7 +520,7 @@
         682
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -760,6 +533,135 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
+    },
+    {
+      "id": 25,
+      "type": "StarPSDSaver",
+      "pos": [
+        4312,
+        -286
+      ],
+      "size": [
+        229.4947265625,
+        142
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "layer1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 27
+        },
+        {
+          "name": "mask1",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 28
+        },
+        {
+          "name": "output_dir",
+          "type": "STRING",
+          "widget": {
+            "name": "output_dir"
+          },
+          "link": 29
+        },
+        {
+          "name": "layer2",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "mask2",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.7.2",
+        "Node name for S&R": "StarPSDSaver"
+      },
+      "widgets_values": [
+        "multilayer",
+        "PSD_Layers"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 11,
+      "type": "SaveImage",
+      "pos": [
+        4576,
+        -286
+      ],
+      "size": [
+        418,
+        440
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 12
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 11
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.70",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "Note",
+      "pos": [
+        4312,
+        -88
+      ],
+      "size": [
+        242,
+        132
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Activate the PSD saver if you also want to save an PSD file for photoshop. You can add  layers and masks."
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
     }
   ],
   "links": [
@@ -804,30 +706,6 @@
       "IMAGE"
     ],
     [
-      16,
-      4,
-      4,
-      13,
-      0,
-      "IMAGE"
-    ],
-    [
-      22,
-      9,
-      1,
-      13,
-      21,
-      "STRING"
-    ],
-    [
-      23,
-      9,
-      2,
-      13,
-      20,
-      "STRING"
-    ],
-    [
       24,
       21,
       2,
@@ -850,19 +728,43 @@
       3,
       1,
       "MODEL"
+    ],
+    [
+      27,
+      4,
+      4,
+      25,
+      0,
+      "IMAGE"
+    ],
+    [
+      28,
+      9,
+      2,
+      25,
+      2,
+      "STRING"
+    ],
+    [
+      29,
+      9,
+      1,
+      25,
+      3,
+      "STRING"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.47362440744769757,
+      "scale": 0.5209868481924649,
       "offset": [
-        -2323.006960235741,
-        688.0931759654048
+        -2486.252982798755,
+        660.7257145951115
       ]
     },
-    "frontendVersion": "1.28.8"
+    "frontendVersion": "1.28.9"
   },
   "version": 0.4
 }

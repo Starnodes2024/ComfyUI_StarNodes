@@ -34,7 +34,6 @@ class StarSavePanoramaJPEG:
             "required": {
                 "images": ("IMAGE", {"tooltip": "The images to save."}),
                 "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "The prefix for the file to save."}),
-                "projection_type": (["cylindrical", "equirectangular"], {"default": "cylindrical"}),
             },
             "hidden": {
                 "prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"
@@ -47,7 +46,7 @@ class StarSavePanoramaJPEG:
     CATEGORY = "⭐StarNodes/Image And Latent"
     DESCRIPTION = "Saves images as JPEG with panorama XMP metadata."
 
-    def save_images(self, images, filename_prefix="ComfyUI", projection_type="cylindrical", prompt=None, extra_pnginfo=None):
+    def save_images(self, images, filename_prefix="ComfyUI", prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(
             filename_prefix, self.output_dir, images[0].shape[1], images[0].shape[0])
@@ -56,9 +55,9 @@ class StarSavePanoramaJPEG:
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
             width, height = img.size
-            # Prepare XMP metadata
+            # Prepare XMP metadata with cylindrical projection
             xmp = XMP_TEMPLATE.format(
-                projection_type=projection_type,
+                projection_type="cylindrical",
                 width=width,
                 height=height
             )

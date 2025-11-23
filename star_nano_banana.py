@@ -71,11 +71,12 @@ class StarNanoBanana:
     @classmethod
     def INPUT_TYPES(cls):
         models = [
-            "gemini-2.5-flash-image-preview",  # Official Name for Nano Banana
+            "gemini-2.5-flash-image-preview",  "gemini-3-pro-image-preview",# Official Name for Nano Banana
         ]
 
         ratios = [
             "1:1",
+            "2:1",
             "16:9",
             "9:16",
             "4:3",
@@ -136,9 +137,9 @@ class StarNanoBanana:
         return {
             "required": {
                 "prompt": ("STRING", {"default": "A beautiful fantasy landscape, cinematic lighting", "multiline": True}),
-                "model": (models, {"default": "gemini-2.5-flash-image-preview"}),
-                "ratio": (ratios, {"default": "1:1"}),
-                "megapixels": (megapixels, {"default": "1 MP (≈1024x1024)"}),
+                "model": (models, {"default": "gemini-3-pro-image-preview"}),
+                "ratio": (ratios, {"default": "16:9"}),
+                "megapixels": (megapixels, {"default": "4 MP (≈2048x2048)"}),
             },
             "optional": {
                 "prompt_template": (prompt_templates, {"default": "Use Own Prompt"}),
@@ -169,6 +170,107 @@ class StarNanoBanana:
         image_np = np.array(pil_image).astype(np.float32) / 255.0
         return torch.from_numpy(image_np).unsqueeze(0)
 
+    def _create_error_image(self, text: str = "PROMPT DECLINED", detail: str = None) -> torch.Tensor:
+        """Create a 1024x1024 black image with bold red text and optional white detail text below"""
+        from PIL import ImageDraw, ImageFont
+        
+        # Create black image
+        img = Image.new('RGB', (1024, 1024), (0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        
+        # Try to load fonts
+        main_font = None
+        detail_font = None
+        try:
+            # Try to find a system font
+            import matplotlib.font_manager as fm
+            font_path = None
+            for f in fm.findSystemFonts():
+                font_name = os.path.basename(f).lower()
+                # Look for bold fonts
+                if 'bold' in font_name and ('arial' in font_name or 'verdana' in font_name):
+                    font_path = f
+                    break
+            
+            # If no bold font found, try regular arial or verdana
+            if not font_path:
+                for f in fm.findSystemFonts():
+                    font_name = os.path.basename(f).lower()
+                    if 'arial' in font_name or 'verdana' in font_name:
+                        font_path = f
+                        break
+            
+            if font_path:
+                main_font = ImageFont.truetype(font_path, 80)
+                detail_font = ImageFont.truetype(font_path, 24)
+        except Exception:
+            pass
+        
+        # Fallback to default font if no system font found
+        if main_font is None:
+            try:
+                main_font = ImageFont.load_default()
+                detail_font = ImageFont.load_default()
+            except Exception:
+                main_font = None
+                detail_font = None
+        
+        # Draw main text in center
+        if main_font:
+            # Get text bounding box for centering
+            bbox = draw.textbbox((0, 0), text, font=main_font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Calculate center position (shift up if we have detail text)
+            y_offset = -40 if detail else 0
+            x = (1024 - text_width) // 2
+            y = (1024 - text_height) // 2 + y_offset
+            
+            # Draw main text in red
+            draw.text((x, y), text, fill=(255, 0, 0), font=main_font)
+            
+            # Draw detail text below in white if provided
+            if detail and detail_font:
+                # Word wrap the detail text to fit within image width
+                max_width = 900  # Leave some margin
+                words = detail.split()
+                lines = []
+                current_line = []
+                
+                for word in words:
+                    test_line = ' '.join(current_line + [word])
+                    test_bbox = draw.textbbox((0, 0), test_line, font=detail_font)
+                    test_width = test_bbox[2] - test_bbox[0]
+                    
+                    if test_width <= max_width:
+                        current_line.append(word)
+                    else:
+                        if current_line:
+                            lines.append(' '.join(current_line))
+                            current_line = [word]
+                        else:
+                            lines.append(word)
+                
+                if current_line:
+                    lines.append(' '.join(current_line))
+                
+                # Draw each line
+                detail_y = y + text_height + 30
+                for line in lines:
+                    detail_bbox = draw.textbbox((0, 0), line, font=detail_font)
+                    detail_width = detail_bbox[2] - detail_bbox[0]
+                    detail_x = (1024 - detail_width) // 2
+                    draw.text((detail_x, detail_y), line, fill=(255, 255, 255), font=detail_font)
+                    detail_y += detail_bbox[3] - detail_bbox[1] + 5
+        else:
+            # Fallback: draw simple text without font
+            draw.text((400, 500), text, fill=(255, 0, 0))
+            if detail:
+                draw.text((300, 550), detail[:50], fill=(255, 255, 255))  # Truncate if too long
+        
+        return self._pil_to_tensor(img)
+
     def generate_image(
         self,
         prompt: str,
@@ -182,22 +284,7 @@ class StarNanoBanana:
         image4: Optional[torch.Tensor] = None,
         image5: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, str]:
-        if not self.api_key:
-            raise ValueError("API key not found. Please add your Google Gemini API key to googleapi.ini")
-        if not genai:
-            raise ValueError("google-generativeai package not installed. Please install it with: pip install google-generativeai")
-
-        try:
-            self.model = genai.GenerativeModel(model)
-        except Exception as e:
-            raise ValueError(f"Failed to initialize Gemini model '{model}'. Error: {str(e)}")
-
-        contents = []
-        input_images = [img for img in [image1, image2, image3, image4, image5] if img is not None]
-        for img_tensor in input_images:
-            contents.append(self._tensor_to_pil(img_tensor))
-
-        # Determine final prompt based on template selection
+        # Determine final prompt first for error returns
         if prompt_template == "Use Own Prompt":
             final_prompt = prompt
         else:
@@ -206,6 +293,27 @@ class StarNanoBanana:
                 final_prompt = prompt_template.split(":", 1)[1].strip()
             else:
                 final_prompt = prompt_template
+        
+        if not self.api_key:
+            error_detail = "Please add your Google Gemini API key to googleapi.ini"
+            print(f"[StarNanoBanana] {error_detail}")
+            return (self._create_error_image("API KEY MISSING", error_detail), final_prompt)
+        if not genai:
+            error_detail = "google-generativeai package not installed. Install with: pip install google-generativeai"
+            print(f"[StarNanoBanana] {error_detail}")
+            return (self._create_error_image("PACKAGE MISSING", error_detail), final_prompt)
+
+        try:
+            self.model = genai.GenerativeModel(model)
+        except Exception as e:
+            error_detail = f"Failed to initialize model '{model}': {str(e)}"
+            print(f"[StarNanoBanana] {error_detail}")
+            return (self._create_error_image("MODEL INIT FAILED", error_detail), final_prompt)
+
+        contents = []
+        input_images = [img for img in [image1, image2, image3, image4, image5] if img is not None]
+        for img_tensor in input_images:
+            contents.append(self._tensor_to_pil(img_tensor))
 
         # Add an explicit instruction for image generation to the prompt
         full_prompt = f"Generate an image based on the following prompt: {final_prompt}"
@@ -257,7 +365,8 @@ class StarNanoBanana:
                 result_tensor = self._pil_to_tensor(generated_pil)
                 return (result_tensor, final_prompt)
             else:
-                error_message = "No image was generated by the API."
+                error_message = "PROMPT DECLINED"
+                error_detail = None
                 
                 # Check if response has candidates and handle finish reasons
                 if hasattr(response, 'candidates') and response.candidates:
@@ -265,32 +374,50 @@ class StarNanoBanana:
                     finish_reason = getattr(candidate, 'finish_reason', None)
                     
                     if finish_reason == 8:  # SAFETY
-                        error_message += " The model refused the prompt due to safety policies."
+                        error_detail = "The model refused the prompt due to safety policies."
+                        print(f"[StarNanoBanana] Safety filter triggered: {error_detail}")
                     elif finish_reason == 3:  # MAX_TOKENS
-                        error_message += " The response was truncated due to length limits."
+                        error_detail = "The response was truncated due to length limits."
+                        print(f"[StarNanoBanana] {error_detail}")
                     elif finish_reason == 4:  # RECITATION
-                        error_message += " The model detected repetitive content."
+                        error_detail = "The model detected repetitive content."
+                        print(f"[StarNanoBanana] {error_detail}")
                     elif finish_reason == 5:  # LANGUAGE
-                        error_message += " The model detected inappropriate language."
+                        error_detail = "The model detected inappropriate language."
+                        print(f"[StarNanoBanana] Language filter triggered: {error_detail}")
                     else:
-                        error_message += f" Finish reason: {finish_reason}."
+                        error_detail = f"No image generated. Finish reason: {finish_reason}."
+                        print(f"[StarNanoBanana] {error_detail}")
                     
-                    # Try to get text response if available
+                    # Try to get text response if available and append to detail
                     if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts') and candidate.content.parts:
                         try:
                             text_parts = [part.text for part in candidate.content.parts if hasattr(part, 'text')]
                             if text_parts:
-                                error_message += f"\nAPI Text Response: {' '.join(text_parts)}"
+                                api_response = ' '.join(text_parts)
+                                print(f"[StarNanoBanana] API Text Response: {api_response}")
+                                if error_detail:
+                                    error_detail += f" API response: {api_response}"
+                                else:
+                                    error_detail = f"API response: {api_response}"
                         except Exception:
                             pass  # Ignore if we can't get text
                 else:
-                    error_message += " The model may have refused the prompt."
+                    error_detail = "No image was generated by the API. The model may have refused the prompt."
+                    print(f"[StarNanoBanana] {error_detail}")
                 
-                raise ValueError(error_message)
+                # Return error image for any case where no image was generated
+                error_tensor = self._create_error_image(error_message, error_detail)
+                return (error_tensor, final_prompt)
 
         except Exception as e:
-            print(f"Gemini API error details: {str(e)}")
-            raise ValueError(f"An error occurred with the Gemini API: {str(e)}")
+            # Log the error details to console
+            error_detail = str(e)
+            print(f"[StarNanoBanana] Error caught: {error_detail}")
+            
+            # Return error image for ALL errors to prevent workflow interruption
+            error_tensor = self._create_error_image("PROMPT DECLINED", error_detail)
+            return (error_tensor, final_prompt)
 
 
 NODE_CLASS_MAPPINGS = {

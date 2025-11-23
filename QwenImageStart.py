@@ -170,6 +170,9 @@ class QwenImageStartSettings:
                 "model_override": ("MODEL", {
                     "tooltip": "Optional model input. When connected, bypasses the Diffusion_Model selector and uses this model directly."
                 }),
+                "LoRA_Stack": ("LORA_STACK", {
+                    "tooltip": "Optional stack of LoRAs to apply to the model and internal conditioning."
+                }),
             }
         }
     
@@ -283,7 +286,8 @@ class QwenImageStartSettings:
         Batch_Size,
         use_nearest_image_ratio=False,
         image=None,
-        model_override=None
+        model_override=None,
+        LoRA_Stack=None
     ):
         # Default prompts when input is empty
         if not Positive_Prompt.strip():
@@ -359,26 +363,64 @@ class QwenImageStartSettings:
         conditioning_pos = None
         conditioning_neg = None
         
-        if clip is not None:
+        # Create a copy of clip for conditioning so we can apply LoRAs independently
+        clip_for_cond = clip.clone() if clip is not None else None
+        
+        # Apply LoRAs to the conditioning CLIP if provided
+        if LoRA_Stack is not None and len(LoRA_Stack) > 0 and clip_for_cond is not None:
+            for lora_item in LoRA_Stack:
+                lora_name = lora_item["name"]
+                clip_strength = lora_item["clip_strength"]
+                lora = lora_item["lora"]
+                
+                # Apply LoRA to conditioning CLIP
+                if clip_strength != 0:
+                    _, clip_for_cond = comfy.sd.load_lora_for_models(
+                        None,
+                        clip_for_cond,
+                        lora,
+                        0,
+                        clip_strength
+                    )
+        
+        if clip_for_cond is not None:
             # Positive conditioning
             if Positive_Prompt.strip():
-                tokens = clip.tokenize(Positive_Prompt)
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize(Positive_Prompt)
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_pos = [[cond, output]]
             
             # Negative conditioning - create zero-out condition if empty
             if Negative_Prompt.strip():
-                tokens = clip.tokenize(Negative_Prompt)
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize(Negative_Prompt)
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_neg = [[cond, output]]
             else:
                 # Create empty/zero conditioning for negative
-                tokens = clip.tokenize("")
-                output = clip.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
+                tokens = clip_for_cond.tokenize("")
+                output = clip_for_cond.encode_from_tokens(tokens, return_pooled=True, return_dict=True)
                 cond = output.pop("cond")
                 conditioning_neg = [[cond, output]]
+        
+        # Apply LoRAs from stack to model and clip if provided
+        if LoRA_Stack is not None and len(LoRA_Stack) > 0 and model is not None:
+            for lora_item in LoRA_Stack:
+                lora_name = lora_item["name"]
+                model_strength = lora_item["model_strength"]
+                clip_strength = lora_item["clip_strength"]
+                lora = lora_item["lora"]
+                
+                # Apply LoRA to model and clip
+                if model_strength != 0:
+                    model, clip = comfy.sd.load_lora_for_models(
+                        model,
+                        clip,
+                        lora,
+                        model_strength,
+                        clip_strength if clip is not None else 0
+                    )
         
         # VAE Loading
         vae = None

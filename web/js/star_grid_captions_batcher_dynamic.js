@@ -1,50 +1,72 @@
 // Dynamic input handler for Star Grid Captions Batcher
-import { app } from "../../../scripts/app.js";
+import { app } from "../../../../scripts/app.js";
 
 function updateInputs(node) {
+    console.log("[StarGridCaptionsBatcherDynamic] updateInputs called", node?.title || node?.type);
     if (!node || !Array.isArray(node.inputs)) return;
     if (node._updatingInputs) return;
     node._updatingInputs = true;
     try {
-        // Gather all caption N inputs (with space)
-        let captionInputs = node.inputs.filter(inp => /^caption \d+$/.test(inp.name));
-        // If no caption inputs, add 'caption 1'
-        if (captionInputs.length === 0) {
-            node.addInput("caption 1", "STRING");
-            captionInputs = node.inputs.filter(inp => /^caption \d+$/.test(inp.name));
-        }
-        // Sort inputs by number
-        captionInputs.sort((a, b) => parseInt(a.name.split(' ')[1]) - parseInt(b.name.split(' ')[1]));
-        // If the last caption input is connected, add a new one
-        const last = captionInputs[captionInputs.length - 1];
-        if (last && last.link !== null) {
-            const idx = captionInputs.length + 1;
-            // Only add if it doesn't already exist
-            if (!node.inputs.some(inp => inp.name === `caption ${idx}`)) {
-                node.addInput(`caption ${idx}`, "STRING");
+        // Collect all numbered caption inputs: caption 1, caption 2, ...
+        let captionInputs = [];
+        for (let i = 0; i < node.inputs.length; i++) {
+            const inp = node.inputs[i];
+            if (inp && /^caption \d+$/.test(inp.name)) {
+                const num = parseInt(inp.name.split(" ")[1]);
+                if (!isNaN(num)) {
+                    captionInputs.push({ input: inp, num, index: i });
+                }
             }
         }
-        // Remove trailing unconnected caption N inputs (except the first)
-        for (let i = node.inputs.length - 1; i > 0; i--) {
-            const inp = node.inputs[i];
-            if (/^caption \d+$/.test(inp.name) && inp.link === null) {
-                const idx = parseInt(inp.name.split("_")[1]);
-                if (idx > 1 && i === node.inputs.length - 1) {
-                    node.removeInput(i);
-                } else {
-                    break;
-                }
+
+        // Sort by number
+        captionInputs.sort((a, b) => a.num - b.num);
+
+        // Ensure at least one caption exists
+        if (captionInputs.length === 0) {
+            node.addInput("caption 1", "STRING");
+            return; // Re-run on next connection change
+        }
+
+        // If last caption is connected, add a new one
+        const last = captionInputs[captionInputs.length - 1];
+        if (last && last.input.link !== null) {
+            const nextIdx = last.num + 1;
+            if (!node.inputs.some(inp => inp && inp.name === `caption ${nextIdx}`)) {
+                node.addInput(`caption ${nextIdx}`, "STRING");
+            }
+        }
+
+        // Remove trailing unconnected captions, keeping at least caption 1
+        // Work backwards to avoid index issues
+        let toRemove = [];
+        for (let i = captionInputs.length - 1; i > 0; i--) {
+            const capData = captionInputs[i];
+            if (capData.input.link === null) {
+                toRemove.push(capData.index);
             } else {
                 break;
             }
         }
-        // Make first caption required
-        if (node.inputs[0]) node.inputs[0].optional = false;
-        // All other captions are optional
-        for (let i = 1; i < node.inputs.length; i++) {
-            node.inputs[i].optional = true;
+        
+        // Remove in reverse order to maintain indices
+        toRemove.sort((a, b) => b - a);
+        for (const idx of toRemove) {
+            node.removeInput(idx);
         }
-    } catch(e) {
+
+        // First caption required, others optional
+        for (const inp of node.inputs) {
+            if (!inp || !/^caption \d+$/.test(inp.name)) continue;
+            if (inp.name === "caption 1") {
+                inp.optional = false;
+            } else {
+                inp.optional = true;
+            }
+        }
+
+        if (node.graph) node.graph.change();
+    } catch (e) {
         console.error("[StarGridCaptionsBatcherDynamic] Error in updateInputs:", e);
     } finally {
         node._updatingInputs = false;
@@ -55,6 +77,7 @@ app.registerExtension({
     name: "StarGridCaptionsBatcherDynamic",
     beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (!nodeData || nodeData.name !== "StarGridCaptionsBatcher") return;
+        console.log("[StarGridCaptionsBatcherDynamic] beforeRegisterNodeDef for", nodeData.name);
         const origOnConnectionsChange = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function(type, index, connected, link_info) {
             if (origOnConnectionsChange) {
