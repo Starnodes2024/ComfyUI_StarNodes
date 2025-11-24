@@ -4,6 +4,29 @@ from collections import defaultdict
 from typing import List, Dict
 import time
 import json
+import concurrent.futures
+
+
+def _star_duplicate_hash_worker(path: str):
+    """Top-level worker for multiprocessing: returns (path, size, mtime, sha256)."""
+    try:
+        st = os.stat(path)
+        mtime_local = int(st.st_mtime)
+        size_local = int(st.st_size)
+    except Exception:
+        mtime_local = -1
+        size_local = -1
+
+    hash_sha256 = hashlib.sha256()
+    try:
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                hash_sha256.update(chunk)
+        hash_local = hash_sha256.hexdigest()
+    except Exception:
+        hash_local = None
+
+    return path, size_local, mtime_local, hash_local
 
 try:
     from folder_paths import models_dir, get_output_directory
@@ -45,6 +68,7 @@ class StarDuplicateModelFinder:
                 "validate_mtime": ("BOOLEAN", {"default": True}),
                 "prune_cache": ("BOOLEAN", {"default": True}),
                 "rebuild_cache": ("BOOLEAN", {"default": False}),
+                "workers": ("INT", {"default": 1, "min": 1, "max": 8}),
             }
         }
 
@@ -78,6 +102,7 @@ class StarDuplicateModelFinder:
         validate_mtime: bool = True,
         prune_cache: bool = True,
         rebuild_cache: bool = False,
+        workers: int = 1,
     ) -> tuple:
         models_path = models_dir if os.path.isdir(models_dir) else None
         output_path = get_output_directory()
@@ -174,51 +199,93 @@ class StarDuplicateModelFinder:
         # Compute hashes
         hash_to_files = defaultdict(list)
         start_time = time.time()
-        for idx, filepath in enumerate(files, start=1):
-            hash_val = None
-            if use_cache and not rebuild_cache:
+
+        # Multiprocessing path (primarily useful for initial scans or cache rebuilds)
+        use_multiprocessing = workers is not None and isinstance(workers, int) and workers > 1
+
+        if use_multiprocessing and (not use_cache or rebuild_cache):
+            max_workers = max(1, min(int(workers), 8))
+
+            def _hash_worker(path: str):
                 try:
-                    stat = os.stat(filepath)
-                    mtime = int(stat.st_mtime)
-                    size = int(stat.st_size)
-                    key = os.path.abspath(filepath)
-                    entry = cache_data.get("files", {}).get(key)
-                    if entry and isinstance(entry, dict):
-                        if int(entry.get("size", -1)) == size and (not validate_mtime or int(entry.get("mtime", -1)) == mtime):
-                            hash_val = entry.get("hash")
-                    if hash_val is None:
-                        hash_val = self._compute_hash(filepath)
-                        if hash_val:
+                    st = os.stat(path)
+                    mtime_local = int(st.st_mtime)
+                    size_local = int(st.st_size)
+                except Exception:
+                    mtime_local = -1
+                    size_local = -1
+                hash_local = self._compute_hash(path)
+                return path, size_local, mtime_local, hash_local
+
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                future_to_path = {executor.submit(_hash_worker, p): p for p in files}
+                for idx, future in enumerate(concurrent.futures.as_completed(future_to_path), start=1):
+                    try:
+                        filepath, size, mtime, hash_val = future.result()
+                    except Exception:
+                        continue
+
+                    if hash_val:
+                        hash_to_files[hash_val].append(filepath)
+                        if use_cache:
+                            key = os.path.abspath(filepath)
                             cache_data.setdefault("files", {})[key] = {"size": size, "mtime": mtime, "hash": hash_val}
-                except Exception:
+
+                    if show_progress and total_files > 0:
+                        elapsed = time.time() - start_time
+                        avg_per_file = elapsed / idx if idx > 0 else 0
+                        remaining = max(0.0, (total_files - idx) * avg_per_file)
+                        percent = (idx / total_files) * 100.0
+                        m, s = divmod(int(remaining), 60)
+                        h, m = divmod(m, 60)
+                        eta_str = f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
+                        print(f"Progress: File {idx} of {total_files}  {percent:.1f}% done. Time Left: {eta_str}", flush=True)
+        else:
+            for idx, filepath in enumerate(files, start=1):
+                hash_val = None
+                if use_cache and not rebuild_cache:
+                    try:
+                        stat = os.stat(filepath)
+                        mtime = int(stat.st_mtime)
+                        size = int(stat.st_size)
+                        key = os.path.abspath(filepath)
+                        entry = cache_data.get("files", {}).get(key)
+                        if entry and isinstance(entry, dict):
+                            if int(entry.get("size", -1)) == size and (not validate_mtime or int(entry.get("mtime", -1)) == mtime):
+                                hash_val = entry.get("hash")
+                        if hash_val is None:
+                            hash_val = self._compute_hash(filepath)
+                            if hash_val:
+                                cache_data.setdefault("files", {})[key] = {"size": size, "mtime": mtime, "hash": hash_val}
+                    except Exception:
+                        hash_val = self._compute_hash(filepath)
+                else:
+                    # Rebuild path (or no cache): always compute and update cache if enabled
+                    try:
+                        stat = os.stat(filepath)
+                        mtime = int(stat.st_mtime)
+                        size = int(stat.st_size)
+                    except Exception:
+                        stat = None
+                        mtime = -1
+                        size = -1
                     hash_val = self._compute_hash(filepath)
-            else:
-                # Rebuild path (or no cache): always compute and update cache if enabled
-                try:
-                    stat = os.stat(filepath)
-                    mtime = int(stat.st_mtime)
-                    size = int(stat.st_size)
-                except Exception:
-                    stat = None
-                    mtime = -1
-                    size = -1
-                hash_val = self._compute_hash(filepath)
-                if use_cache and hash_val:
-                    key = os.path.abspath(filepath)
-                    cache_data.setdefault("files", {})[key] = {"size": size, "mtime": mtime, "hash": hash_val}
-            if hash_val:
-                hash_to_files[hash_val].append(filepath)
-            # Progress output (print every 10 files or on last)
-            if show_progress and total_files > 0 and (idx == 1 or idx % 1 == 0 or idx == total_files):
-                elapsed = time.time() - start_time
-                avg_per_file = elapsed / idx if idx > 0 else 0
-                remaining = max(0.0, (total_files - idx) * avg_per_file)
-                percent = (idx / total_files) * 100.0
-                # Format ETA as mm:ss
-                m, s = divmod(int(remaining), 60)
-                h, m = divmod(m, 60)
-                eta_str = f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
-                print(f"Progress: File {idx} of {total_files}  {percent:.1f}% done. Time Left: {eta_str}", flush=True)
+                    if use_cache and hash_val:
+                        key = os.path.abspath(filepath)
+                        cache_data.setdefault("files", {})[key] = {"size": size, "mtime": mtime, "hash": hash_val}
+                if hash_val:
+                    hash_to_files[hash_val].append(filepath)
+                # Progress output (print every 10 files or on last)
+                if show_progress and total_files > 0 and (idx == 1 or idx % 1 == 0 or idx == total_files):
+                    elapsed = time.time() - start_time
+                    avg_per_file = elapsed / idx if idx > 0 else 0
+                    remaining = max(0.0, (total_files - idx) * avg_per_file)
+                    percent = (idx / total_files) * 100.0
+                    # Format ETA as mm:ss
+                    m, s = divmod(int(remaining), 60)
+                    h, m = divmod(m, 60)
+                    eta_str = f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
+                    print(f"Progress: File {idx} of {total_files}  {percent:.1f}% done. Time Left: {eta_str}", flush=True)
 
         # Find duplicates
         duplicates = {h: paths for h, paths in hash_to_files.items() if len(paths) > 1}

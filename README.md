@@ -2,7 +2,7 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.8.0
+**Current Version:** 1.8.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
