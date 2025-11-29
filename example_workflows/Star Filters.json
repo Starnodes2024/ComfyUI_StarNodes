@@ -1,0 +1,441 @@
+{
+  "id": "e39afce2-de0f-4aad-88f6-43e573aa02b9",
+  "revision": 0,
+  "last_node_id": 9,
+  "last_link_id": 8,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "StarHDREffects",
+      "pos": [
+        990,
+        110
+      ],
+      "size": [
+        210,
+        202
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarHDREffects"
+      },
+      "widgets_values": [
+        "Strong HDR",
+        1,
+        12,
+        1.8,
+        1.1,
+        1.1,
+        0.6
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        550,
+        110
+      ],
+      "size": [
+        418,
+        528
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "pasted/image (35).png",
+        "image"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "StarBlackWhite",
+      "pos": [
+        990,
+        374
+      ],
+      "size": [
+        210,
+        250
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarBlackWhite"
+      },
+      "widgets_values": [
+        "High Contrast",
+        0.5,
+        0.5,
+        0.2,
+        true,
+        false,
+        0.25,
+        0.8,
+        4
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        1474,
+        352
+      ],
+      "size": [
+        220,
+        246
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 8
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 8,
+      "type": "PreviewImage",
+      "pos": [
+        1716,
+        352
+      ],
+      "size": [
+        220,
+        246
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 7
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 9,
+      "type": "PreviewImage",
+      "pos": [
+        1474,
+        110
+      ],
+      "size": [
+        220,
+        246
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 6
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 7,
+      "type": "StarSimpleFilters",
+      "pos": [
+        1232,
+        352
+      ],
+      "size": [
+        216.060546875,
+        262
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "color_match_image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSimpleFilters"
+      },
+      "widgets_values": [
+        13.6,
+        0,
+        0,
+        0,
+        0,
+        100,
+        100,
+        "None"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 4,
+      "type": "PreviewImage",
+      "pos": [
+        1716,
+        110
+      ],
+      "size": [
+        220,
+        246
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "StarRadialBlur",
+      "pos": [
+        1232,
+        132
+      ],
+      "size": [
+        210,
+        154
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarRadialBlur"
+      },
+      "widgets_values": [
+        "Zoom",
+        0.2,
+        16,
+        0.5,
+        0.5
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      2,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      1,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      1,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      6,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      7,
+      7,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      8,
+      3,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflowRendererVersion": "LG",
+    "ds": {
+      "scale": 0.7132423913043552,
+      "offset": [
+        -266.2794545075752,
+        159.15586654416663
+      ]
+    },
+    "frontendVersion": "1.32.9"
+  },
+  "version": 0.4
+}

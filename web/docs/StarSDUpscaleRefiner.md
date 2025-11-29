@@ -40,14 +40,19 @@ All three LoRAs default to "None" and are only applied if you select a model:
 - **lora_3_strength**: Strength for third LoRA (default: 0.1)
 
 ### Upscaling Settings
+- **upsample_image**: Toggle to enable/disable pre-upscale
+  - Default: `True`
+  - When **enabled**: the input image is optionally upscaled with the selected upscale model and then resized to the target longest side.
+  - When **disabled**: the node skips pre-upscale and keeps the original input resolution for VAE encode, tiled diffusion, and decode. The final output image matches the input size.
+
 - **upscale_model_name**: Upscale model to use
   - Example: `4xNomosUniDAT_otf.pth`
-  - Applies AI-based upscaling before refinement
+  - Applies AI-based upscaling before refinement (only when **upsample_image = True**)
 
 - **output_longest_side**: Target size for the longest side in pixels
   - Default: 2048
   - Range: 512 to 16384 (step: 64)
-  - The image is scaled so its longest side matches this value
+  - The image is scaled so its longest side matches this value (only when **upsample_image = True**)
   - Aspect ratio is preserved
   - Uses high-quality bicubic interpolation (hardcoded for best results)
 
@@ -137,6 +142,8 @@ These settings control how the image is processed in tiles for memory efficiency
 
 ## Outputs
 - **refined_image**: The upscaled and refined output image
+- **refined_latent**: The final latent used for the last VAE decode
+  - Can be reused in other nodes for further processing without re-encoding
 
 ## Built-in Optimizations
 
@@ -166,17 +173,18 @@ The node executes the following steps internally:
 
 1. **Load checkpoint** and VAE
 2. **Apply LoRAs** (only if selected, not "None")
-3. **Upscale image** with selected upscale model
-4. **Scale to target size** based on longest side (bicubic interpolation)
-5. **Encode to latent** using tiled VAE encoding
+3. **Optionally upscale image** with selected upscale model (only if *Upsample Image* is enabled)
+4. **Optionally scale to target size** based on longest side (only if *Upsample Image* is enabled)
+5. **Encode to latent** using tiled VAE encoding (at either the upscaled or original resolution)
 6. **Apply FreeU** optimization to model
 7. **Encode prompts** with CLIP
 8. **Apply ControlNet** for tile coherence
 9. **Apply PAG** optimization to model
 10. **Apply Automatic CFG** optimization to model
 11. **Apply Tiled Diffusion** for memory-efficient processing
-12. **Sample** with specified settings
+12. **Sample** with specified settings (producing the final latent)
 13. **Decode to image** using tiled VAE decoding
+14. **Output image and latent** so the latent can be reused in later nodes
 
 ## Usage Tips
 
@@ -265,4 +273,4 @@ The node executes the following steps internally:
 ⭐StarNodes/Upscale
 
 ## Version
-1.0.0
+1.9.0

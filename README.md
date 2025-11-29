@@ -2,11 +2,30 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.8.1
+**Current Version:** 1.9.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.9.0
+
+### Image Filters & Effects
+- ⭐ **Star HighPass Filter** (`StarHighPassFilter`) — High-pass based sharpening filter to enhance fine details and edge contrast.
+- ⭐ **Star Black And White** (`StarBlackAndWhite`) — Flexible black-and-white conversion with tonal control for cinematic monochrome looks.
+- ⭐ **Star Radial Blur** (`StarRadialBlur`) — Radial blur effect for focus/zoom style motion and creative depth effects.
+- ⭐ **Star Simple Filters** (`StarSimpleFilters`) — Comprehensive image adjustment suite (sharpen, blur, saturation, contrast, brightness, temperature, color matching).
+
+### Workflow & Ratio Utilities
+- ⭐ **Star PSD Saver Adv. Layers** (`StarPSDSaverAdvLayers`) — Advanced PSD exporter with enhanced layer handling for complex Photoshop workflows.
+- ⭐ **Star Advanced Ratio/Latent** (`StarAdvancedRatioLatent`) — Combined advanced aspect ratio and latent megapixel helper for precise, resolution-safe size selection.
+
+### LoRA Utilities
+- ⭐ **Star Dynamic LoRA** (`StarDynamicLoRA`) — Dynamic LoRA loader that lets you configure multiple LoRAs with flexible weights and options in a single node.
+- ⭐ **Star Dynamic LoRA (Model Only)** (`StarDynamicLoRAModelOnly`) — Variant of Star Dynamic LoRA that only applies LoRAs to the model (no CLIP changes), ideal for more controlled style mixing.
+
+### Sampling Utilities
+- ⭐ **Star FlowMatch Option** (`StarFlowMatchOption`) — Additional FlowMatch-related sampling options for compatible samplers.
 
 ## New in 1.8.0
 

@@ -1,0 +1,567 @@
+{
+  "id": "ad0d92ea-24a4-4e0a-9fd5-a5565fefb5e2",
+  "revision": 0,
+  "last_node_id": 11,
+  "last_link_id": 8,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        440,
+        484
+      ],
+      "size": [
+        308,
+        106
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_4b_fp8_e4m3fn.safetensors",
+        "stable_diffusion",
+        "cpu"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "StarFlowMatchOption",
+      "pos": [
+        792,
+        44
+      ],
+      "size": [
+        236.087890625,
+        394
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "options",
+          "type": "SIGMAS",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarFlowMatchOption"
+      },
+      "widgets_values": [
+        9,
+        256,
+        0.5,
+        "disable",
+        8192,
+        1.15,
+        1000,
+        3,
+        0,
+        "disable",
+        "exponential",
+        "disable",
+        "disable",
+        "disable",
+        "disable"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        440,
+        352
+      ],
+      "size": [
+        308,
+        88
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "z-image-turbo-fp8-e4m3fn.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [
+        440,
+        638
+      ],
+      "size": [
+        308,
+        58
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "StarSampler",
+      "pos": [
+        1056,
+        44
+      ],
+      "size": [
+        210,
+        394
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 4
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 2
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 8
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 5
+        },
+        {
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "detail_schedule",
+          "shape": 7,
+          "type": "DETAIL_SCHEDULE",
+          "link": null
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            6
+          ]
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "links": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSampler"
+      },
+      "widgets_values": [
+        118062364435184,
+        "randomize",
+        20,
+        7,
+        "euler",
+        "beta",
+        1,
+        true,
+        1.15,
+        0.5
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 7,
+      "type": "SaveImage",
+      "pos": [
+        1298,
+        44
+      ],
+      "size": [
+        396,
+        396
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 6
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 7
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "StarSaveFolderString",
+      "pos": [
+        1056,
+        484
+      ],
+      "size": [
+        212.08203125,
+        290
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": [
+            7
+          ]
+        },
+        {
+          "name": "dir_only",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSaveFolderString"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "",
+        "",
+        "Off",
+        "Image",
+        false,
+        "_"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 11,
+      "type": "StarAdvanvesRatioLatent",
+      "pos": [
+        814,
+        -286
+      ],
+      "size": [
+        234.23203125,
+        266
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            8
+          ]
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarAdvanvesRatioLatent"
+      },
+      "widgets_values": [
+        "1:1",
+        "21:9",
+        "Qwen Image (≈ 1328x1328)",
+        1920,
+        1080,
+        16,
+        false,
+        1
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 10,
+      "type": "Note",
+      "pos": [
+        792,
+        484
+      ],
+      "size": [
+        242,
+        220
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "The Flowmatch option is the best scheduler for Z-Image models. Its giving sharp noise free outputs.\nThis Node is overiding the sampler-settings.\nSee details in the node help."
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 4,
+      "type": "CLIPTextEncode",
+      "pos": [
+        440,
+        44
+      ],
+      "size": [
+        308,
+        242
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "high contrast unreal engine octane render unreal engine of A cute purple fluffy otter with two friends in the beautifull rainforest. The otter is standing on a sign \"Z-Image\", the otter on the left is holding a sign \"ENHANCED\" and the otter on the right is holding a sign \"NOISE FREE\". the otter in the middle is holding a golden star. The otter on the right is wearing head phones. the otter on the left is wearing a shiny armor and helmet. At the top of the image is a big shiny silver title text \"STARNODES\""
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      4,
+      0,
+      "CLIP"
+    ],
+    [
+      2,
+      4,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      3,
+      5,
+      0,
+      6,
+      6,
+      "SIGMAS"
+    ],
+    [
+      4,
+      1,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      3,
+      0,
+      6,
+      3,
+      "VAE"
+    ],
+    [
+      6,
+      6,
+      4,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      7,
+      9,
+      0,
+      7,
+      1,
+      "STRING"
+    ],
+    [
+      8,
+      11,
+      0,
+      6,
+      2,
+      "LATENT"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflowRendererVersion": "LG",
+    "ds": {
+      "scale": 0.5358695652173958,
+      "offset": [
+        372.514749099145,
+        399.91485113003387
+      ]
+    },
+    "frontendVersion": "1.32.9"
+  },
+  "version": 0.4
+}
