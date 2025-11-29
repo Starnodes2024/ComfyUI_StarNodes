@@ -27,6 +27,9 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 ### Sampling Utilities
 - ⭐ **Star FlowMatch Option** (`StarFlowMatchOption`) — Additional FlowMatch-related sampling options for compatible samplers.
 
+### Helpers & Tools
+- ⭐ **Star FP8 Converter** (`StarFP8Converter`) — Converts existing `.safetensors` checkpoints to FP8 (e4m3fn) and saves them in the standard ComfyUI output models folder.
+
 ## New in 1.8.0
 
 ### Upscaling & Refinement
