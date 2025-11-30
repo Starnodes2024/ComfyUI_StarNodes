@@ -10,6 +10,18 @@ const BLEND_MODES = [
     "subtract", "divide", "hue", "saturation", "color", "luminosity"
 ];
 
+const PLACEMENTS = [
+    "center",
+    "top_left",
+    "top_middle",
+    "top_right",
+    "middle_left",
+    "middle_right",
+    "bottom_left",
+    "bottom_middle",
+    "bottom_right",
+];
+
 function updateInputs(node) {
     if (!node || !Array.isArray(node.inputs)) return;
     if (node._updatingInputs) return;
@@ -66,27 +78,34 @@ function updateInputs(node) {
             return;
         }
 
-        // If last layer in the last pair is connected, add a new pair
+        // If last layer in the last pair is connected, add a new empty pair for the next index
         const lastPair = pairs[pairs.length - 1];
         if (lastPair && lastPair.layer.link !== null) {
             const nextIdx = lastPair.num + 1;
             if (!layerInputs[nextIdx] && !maskInputs[nextIdx]) {
                 node.addInput(`layer${nextIdx}`, "IMAGE");
                 node.addInput(`mask${nextIdx}`, "MASK");
-                
-                // Add blend_mode and opacity widgets for layer > 1
-                if (nextIdx > 1) {
-                    if (!node.widgets) node.widgets = [];
-                    const hasBlend = node.widgets.some(w => w && w.name === `blend_mode${nextIdx}`);
-                    const hasOpacity = node.widgets.some(w => w && w.name === `opacity${nextIdx}`);
-                    
-                    if (!hasBlend) {
-                        node.addWidget("combo", `blend_mode${nextIdx}`, "normal", () => {}, { values: BLEND_MODES });
-                    }
-                    if (!hasOpacity) {
-                        node.addWidget("number", `opacity${nextIdx}`, 100.0, () => {}, { min: 0, max: 100, step: 1 });
-                    }
-                }
+            }
+        }
+
+        // Ensure blend_modeN / opacityN / placementN widgets exist for every existing layer index > 1
+        if (!node.widgets) node.widgets = [];
+        for (const idx of sortedIndices) {
+            const num = Number(idx);
+            if (!num || num <= 1) continue;
+
+            const hasBlend = node.widgets.some(w => w && w.name === `blend_mode${num}`);
+            const hasOpacity = node.widgets.some(w => w && w.name === `opacity${num}`);
+            const hasPlacement = node.widgets.some(w => w && w.name === `placement${num}`);
+
+            if (!hasBlend) {
+                node.addWidget("combo", `blend_mode${num}`, "normal", () => {}, { values: BLEND_MODES });
+            }
+            if (!hasOpacity) {
+                node.addWidget("number", `opacity${num}`, 100.0, () => {}, { min: 0, max: 100, step: 1 });
+            }
+            if (!hasPlacement) {
+                node.addWidget("combo", `placement${num}`, "center", () => {}, { values: PLACEMENTS });
             }
         }
 

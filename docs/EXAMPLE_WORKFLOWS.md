@@ -1,7 +1,7 @@
 # ⭐ StarNodes Example Workflows Guide
 
 ## Overview
-This document provides recommended example workflows for StarNodes v1.9.0, organized by use case and complexity level.
+This document provides recommended example workflows for StarNodes v1.9.1, organized by use case and complexity level.
 
 ---
 
@@ -704,5 +704,5 @@ For questions, issues, or sharing workflows:
 
 ---
 
-**Version:** 1.9.0  
+**Version:** 1.9.1  
 **Last Updated:** November 2025

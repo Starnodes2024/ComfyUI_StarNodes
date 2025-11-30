@@ -94,6 +94,18 @@ class FlexibleLayerInputs(dict):
             return (BLEND_MODES, {"default": "normal"})
         elif key.startswith("opacity"):
             return ("FLOAT", {"default": 100.0, "min": 0.0, "max": 100.0, "step": 1.0})
+        elif key.startswith("placement"):
+            return ([
+                "center",
+                "top_left",
+                "top_middle",
+                "top_right",
+                "middle_left",
+                "middle_right",
+                "bottom_left",
+                "bottom_middle",
+                "bottom_right",
+            ], {"default": "center"})
         return ("STRING",)
 
     def __contains__(self, key):
@@ -245,6 +257,37 @@ class StarPSDSaverAdvLayers:
         result = np.clip(result, 0, 255).astype(np.uint8)
         return Image.fromarray(result)
 
+    def _compute_offsets(self, canvas_w, canvas_h, img_w, img_h, placement):
+        """Compute x/y offsets for placing a smaller image on the canvas based on placement.
+
+        Ensures the image always stays fully inside the canvas.
+        """
+        # Default center
+        x = (canvas_w - img_w) // 2
+        y = (canvas_h - img_h) // 2
+
+        if placement == "top_left":
+            x, y = 0, 0
+        elif placement == "top_middle":
+            x, y = (canvas_w - img_w) // 2, 0
+        elif placement == "top_right":
+            x, y = canvas_w - img_w, 0
+        elif placement == "middle_left":
+            x, y = 0, (canvas_h - img_h) // 2
+        elif placement == "middle_right":
+            x, y = canvas_w - img_w, (canvas_h - img_h) // 2
+        elif placement == "bottom_left":
+            x, y = 0, canvas_h - img_h
+        elif placement == "bottom_middle":
+            x, y = (canvas_w - img_w) // 2, canvas_h - img_h
+        elif placement == "bottom_right":
+            x, y = canvas_w - img_w, canvas_h - img_h
+
+        # Clamp to keep inside canvas
+        x = max(0, min(x, canvas_w - img_w))
+        y = max(0, min(y, canvas_h - img_h))
+        return x, y
+
     def save_psd_adv(self, filename_prefix, output_dir, save_psd=True, **kwargs):
         """Save multiple image layers as a PSD file with blend modes and opacity.
 
@@ -315,7 +358,7 @@ class StarPSDSaverAdvLayers:
                 "image": pil_img,
                 "mask": mask_pil,
                 "blend_mode": blend_mode if blend_mode else "normal",
-                "opacity": float(opacity) if opacity is not None else 100.0,
+                "opacity": float(opacity) if isinstance(opacity, (int, float)) or (isinstance(opacity, str) and opacity.replace('.', '', 1).isdigit()) else 100.0,
                 "name": f"Layer {layer_num}"
             })
         
@@ -339,38 +382,51 @@ class StarPSDSaverAdvLayers:
             blend_mode = data["blend_mode"]
             opacity = data["opacity"]
             layer_name = data["name"]
+            # Per-layer placement override: placementN, fallback to center
+            layer_placement = "center"
+            try:
+                layer_idx = int(layer_name.replace("Layer ", ""))
+                per_layer_key = f"placement{layer_idx}"
+                if per_layer_key in kwargs and kwargs[per_layer_key]:
+                    layer_placement = kwargs[per_layer_key]
+            except Exception:
+                pass
             
             # Ensure RGB mode
             if pil_img.mode != 'RGB':
                 pil_img = pil_img.convert('RGB')
             
-            # Center smaller images
-            if pil_img.size != (max_width, max_height):
-                new_img = Image.new('RGB', (max_width, max_height), (0, 0, 0))
-                x_offset = (max_width - pil_img.width) // 2
-                y_offset = (max_height - pil_img.height) // 2
-                new_img.paste(pil_img, (x_offset, y_offset))
-                pil_img = new_img
-                
-                if mask_pil:
-                    new_mask = Image.new('L', (max_width, max_height), 0)
-                    new_mask.paste(mask_pil, (x_offset, y_offset))
-                    mask_pil = new_mask
-            
-            # Update flattened composite (first layer is base, others blend on top)
+            # For the first layer, use it directly as the base of the flattened image
+            # without any padding/placement logic. This guarantees the base is never black.
             if i == 0:
-                if mask_pil:
-                    # Apply mask to first layer
-                    flattened_arr = np.array(flattened).astype(np.float32)
-                    layer_arr = np.array(pil_img).astype(np.float32)
-                    mask_arr = np.array(mask_pil).astype(np.float32) / 255.0
-                    if len(mask_arr.shape) == 2:
-                        mask_arr = np.stack([mask_arr] * 3, axis=-1)
-                    result = flattened_arr * (1 - mask_arr) + layer_arr * mask_arr
-                    flattened = Image.fromarray(np.clip(result, 0, 255).astype(np.uint8))
-                else:
-                    flattened = pil_img.copy()
+                flattened = pil_img.copy()
             else:
+                # Pad smaller images according to chosen placement on the max canvas
+                if pil_img.size != (max_width, max_height):
+                    orig_w, orig_h = pil_img.width, pil_img.height
+                    new_img = Image.new('RGB', (max_width, max_height), (0, 0, 0))
+                    x_offset, y_offset = self._compute_offsets(
+                        max_width, max_height,
+                        orig_w, orig_h,
+                        (layer_placement or "center"),
+                    )
+                    new_img.paste(pil_img, (x_offset, y_offset))
+                    pil_img = new_img
+
+                    if mask_pil:
+                        # Resize existing mask onto the padded canvas
+                        new_mask = Image.new('L', (max_width, max_height), 0)
+                        new_mask.paste(mask_pil, (x_offset, y_offset))
+                        mask_pil = new_mask
+                    else:
+                        # No user mask: create a mask that is white where the image is,
+                        # and black elsewhere so the padded background is transparent in the PSD.
+                        new_mask = Image.new('L', (max_width, max_height), 0)
+                        box = (x_offset, y_offset, x_offset + orig_w, y_offset + orig_h)
+                        new_mask.paste(255, box)
+                        mask_pil = new_mask
+
+                # Update flattened composite for layers above the base
                 flattened = self.apply_blend_mode_with_mask(flattened, pil_img, mask_pil, blend_mode, opacity)
             
             # Create PSD layer (only if saving PSD)

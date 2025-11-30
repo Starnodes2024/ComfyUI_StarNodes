@@ -1,0 +1,1803 @@
+{
+  "id": "5d6da167-197a-44ac-8788-1d320f725d09",
+  "revision": 0,
+  "last_node_id": 50,
+  "last_link_id": 83,
+  "nodes": [
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [
+        -110,
+        -594
+      ],
+      "size": [
+        286,
+        58
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3,
+            59
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "VAEEncode",
+      "pos": [
+        -110,
+        -484
+      ],
+      "size": [
+        286,
+        46
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 80
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            28
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "VAEEncode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "SaveImage",
+      "pos": [
+        1210,
+        0
+      ],
+      "size": [
+        352,
+        396
+      ],
+      "flags": {},
+      "order": 28,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 60
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 14
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "StarEasyTextStorage",
+      "pos": [
+        242,
+        -902
+      ],
+      "size": [
+        396,
+        198
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.1",
+        "Node name for S&R": "StarEasyTextStorage"
+      },
+      "widgets_values": [
+        "Load Text",
+        "My Text",
+        "LLM Z-Image Prompt",
+        ""
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 37,
+      "type": "StarSaveFolderString",
+      "pos": [
+        1914,
+        -22
+      ],
+      "size": [
+        212.08203125,
+        290
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": [
+            65
+          ]
+        },
+        {
+          "name": "dir_only",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSaveFolderString"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Img2Img",
+        "composition",
+        "Off",
+        "Image",
+        false,
+        "_"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 25,
+      "type": "SaveImage",
+      "pos": [
+        1716,
+        -1122
+      ],
+      "size": [
+        836,
+        902
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 31
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 32
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "StarSaveFolderString",
+      "pos": [
+        1298,
+        -1100
+      ],
+      "size": [
+        212.08203125,
+        290
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": [
+            32
+          ]
+        },
+        {
+          "name": "dir_only",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSaveFolderString"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Img2Img",
+        "upscaled",
+        "Off",
+        "Image",
+        false,
+        "_"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 33,
+      "type": "StarPSDSaverAdvLayers",
+      "pos": [
+        1650,
+        -22
+      ],
+      "size": [
+        238.6001953125,
+        350
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "layer1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 53
+        },
+        {
+          "name": "mask1",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "layer2",
+          "type": "IMAGE",
+          "link": 72
+        },
+        {
+          "name": "mask2",
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "layer3",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "mask3",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "flattened_image",
+          "type": "IMAGE",
+          "links": [
+            64
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarPSDSaverAdvLayers"
+      },
+      "widgets_values": [
+        "multilayer_adv",
+        "PSD_Layers",
+        false,
+        "normal",
+        100,
+        "bottom_left",
+        "normal",
+        100,
+        "center"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 36,
+      "type": "SaveImage",
+      "pos": [
+        2156,
+        -22
+      ],
+      "size": [
+        396,
+        440
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 64
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 65
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "CLIPTextEncode",
+      "pos": [
+        726,
+        -682
+      ],
+      "size": [
+        440,
+        88
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 12
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 68
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            57
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 38,
+      "type": "StarTextInput",
+      "pos": [
+        726,
+        -550
+      ],
+      "size": [
+        252.8873046875,
+        150
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text1",
+          "type": "STRING",
+          "link": 67
+        },
+        {
+          "name": "text2",
+          "type": "STRING",
+          "link": 69
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            68
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarTextInput"
+      },
+      "widgets_values": [
+        " ",
+        2,
+        "",
+        ""
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 10,
+      "type": "OllamaConnectivityV2",
+      "pos": [
+        242,
+        -1100
+      ],
+      "size": [
+        374,
+        154
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "connection",
+          "type": "OLLAMA_CONNECTIVITY",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-ollama",
+        "ver": "2.1.0",
+        "Node name for S&R": "OllamaConnectivityV2"
+      },
+      "widgets_values": [
+        "http://127.0.0.1:11434",
+        "gemma3:4b",
+        0,
+        "minutes",
+        null
+      ]
+    },
+    {
+      "id": 11,
+      "type": "OllamaOptionsV2",
+      "pos": [
+        242,
+        -1122
+      ],
+      "size": [
+        226.103515625,
+        754
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "options",
+          "type": "OLLAMA_OPTIONS",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-ollama",
+        "ver": "2.1.0",
+        "Node name for S&R": "OllamaOptionsV2"
+      },
+      "widgets_values": [
+        false,
+        0,
+        false,
+        0.1,
+        false,
+        5,
+        false,
+        2048,
+        false,
+        64,
+        false,
+        1.1,
+        false,
+        0.8,
+        true,
+        1277347751,
+        "randomize",
+        false,
+        "",
+        false,
+        1,
+        false,
+        -1,
+        false,
+        40,
+        false,
+        0.9,
+        false,
+        0,
+        false
+      ]
+    },
+    {
+      "id": 9,
+      "type": "ShowText|pysssss",
+      "pos": [
+        242,
+        -22
+      ],
+      "size": [
+        396,
+        418
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 63
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": [
+            67
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "1.2.5",
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "High detailt painting in ANIME HENTAI  style of  Long sharp vampyre fangs A dramatic, high-detailed manga-style painting depicting a woman with a wide-open mouth, revealing teeth, in a dark, shadowy environment. The woman is positioned in a three-quarter profile, her head tilted upwards, with intense focus on her expression. Her skin is a deep, rich brown, highlighted with subtle, warm lighting. She wears a large, ornate headdress constructed of metallic spikes and shimmering fabrics, predominantly silver and gold, with intricate patterns. The headdress is positioned centrally on her head. Her eyes are narrowed, conveying a sense of fierce intensity. The background is a deep, dark purple, with subtle hints of smoke and indistinct shapes, creating a sense of mystery and foreboding. The overall style is reminiscent of a classic manga illustration, with strong lines, detailed shading, and a focus on dramatic lighting. The composition emphasizes the woman's face and headdress, creating a visually arresting image. \"recreate that image in ANIME MANGA high detailed painting\""
+      ]
+    },
+    {
+      "id": 40,
+      "type": "Note",
+      "pos": [
+        220,
+        -1386
+      ],
+      "size": [
+        440,
+        154
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Use Ollma for the image prompt and refine the output prompt.\nYou need Ollama nodes and Ollama (www.ollama.com) running. \nRecommended model: Gemma3 4B\nhttps://ollama.com/library/gemma3:4b"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 42,
+      "type": "Note",
+      "pos": [
+        704,
+        -1386
+      ],
+      "size": [
+        462,
+        154
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Choose you sampler settings.\nRecommendet settings for Z-Image Turbo:\n9 Steps\nDenoise: 0.7+   \nSampler: Euler\nScheduler: FlowMatch"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 44,
+      "type": "Note",
+      "pos": [
+        1628,
+        506
+      ],
+      "size": [
+        462,
+        154
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "If you want you can save a composition of the \nin- and output image.\nBypass the nodes if you dont need that.\nYou can also optional save both to a PSD-File."
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 15,
+      "type": "StarSaveFolderString",
+      "pos": [
+        968,
+        22
+      ],
+      "size": [
+        212.08203125,
+        290
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": [
+            14
+          ]
+        },
+        {
+          "name": "dir_only",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSaveFolderString"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Img2Img",
+        "",
+        "Off",
+        "Image",
+        false,
+        "_"
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 43,
+      "type": "Note",
+      "pos": [
+        1232,
+        -1650
+      ],
+      "size": [
+        616,
+        418
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "You can use Upscaler And Refiner to improve image quality and size.\nWorks best with SD1.5 and SDXL Checkpoints\n\nYou need the Controlnet control_v11f1e_sd15_tile.pth (For SD1.5)\nGet it from:\nhttps://huggingface.co/lllyasviel/ControlNet-v1-1/blob/main/control_v11f1e_sd15_tile.pth\n\nTTPLANET_Controlnet_Tile_realistic_v1_fp16.safetensors (For SDXL)\nGet it from:\nhttps://huggingface.co/TTPlanet/TTPLanet_SDXL_Controlnet_Tile_Realistic/blob/main/TTPLANET_Controlnet_Tile_realistic_v1_fp16.safetensors\n\n4x_NMKD-Siax_200k.pth\nGet it from:https://openmodeldb.info/models/4x-NMKD-Siax-CX\n\nPlace it in models/upscale_models"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 7,
+      "type": "OllamaGenerateV2",
+      "pos": [
+        242,
+        -660
+      ],
+      "size": [
+        396,
+        330
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "connectivity",
+          "shape": 7,
+          "type": "OLLAMA_CONNECTIVITY",
+          "link": 7
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "OLLAMA_OPTIONS",
+          "link": 8
+        },
+        {
+          "name": "images",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 81
+        },
+        {
+          "name": "context",
+          "shape": 7,
+          "type": "OLLAMA_CONTEXT",
+          "link": null
+        },
+        {
+          "name": "meta",
+          "shape": 7,
+          "type": "OLLAMA_META",
+          "link": null
+        },
+        {
+          "name": "system",
+          "type": "STRING",
+          "widget": {
+            "name": "system"
+          },
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "type": "STRING",
+          "links": [
+            66
+          ]
+        },
+        {
+          "name": "thinking",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "context",
+          "type": "OLLAMA_CONTEXT",
+          "links": null
+        },
+        {
+          "name": "meta",
+          "type": "OLLAMA_META",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-ollama",
+        "ver": "2.1.0",
+        "Node name for S&R": "OllamaGenerateV2"
+      },
+      "widgets_values": [
+        "You are an AI artist.",
+        "recreate that image in ANIME MANGA high detailed painting. ",
+        false,
+        false,
+        "text"
+      ]
+    },
+    {
+      "id": 47,
+      "type": "ResizeAndPadImage",
+      "pos": [
+        1914,
+        308
+      ],
+      "size": [
+        210,
+        130
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 79
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            72
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "ResizeAndPadImage"
+      },
+      "widgets_values": [
+        768,
+        768,
+        "black",
+        "nearest-exact"
+      ]
+    },
+    {
+      "id": 41,
+      "type": "StringConstantMultiline",
+      "pos": [
+        -154,
+        22
+      ],
+      "size": [
+        330,
+        198
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 4,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            69
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "1.1.9",
+        "Node name for S&R": "StringConstantMultiline"
+      },
+      "widgets_values": [
+        "You beautiful prompt",
+        true
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 39,
+      "type": "Note",
+      "pos": [
+        -154,
+        -154
+      ],
+      "size": [
+        330,
+        110
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "You can use your own prompt if you dont want to use Ollama. \nBypass Ollama nodes if not needed."
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 34,
+      "type": "StarSampler",
+      "pos": [
+        726,
+        -1144
+      ],
+      "size": [
+        440,
+        396
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 82
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 57
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 58
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 59
+        },
+        {
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "detail_schedule",
+          "shape": 7,
+          "type": "DETAIL_SCHEDULE",
+          "link": null
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            60,
+            61
+          ]
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "links": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSampler"
+      },
+      "widgets_values": [
+        223907535821726,
+        "randomize",
+        12,
+        1,
+        "euler",
+        "FlowMatch Euler DiscScheduler",
+        0.7,
+        true,
+        1.15,
+        0.5
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 23,
+      "type": "StarSDUpscaleRefiner",
+      "pos": [
+        1276,
+        -748
+      ],
+      "size": [
+        400,
+        522
+      ],
+      "flags": {},
+      "order": 29,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "IMAGE",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            31,
+            53
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarSDUpscaleRefiner"
+      },
+      "widgets_values": [
+        "SDXL\\SDXL_Pony_godiva_v10.safetensors",
+        "None",
+        0.25,
+        "None",
+        0.1,
+        "None",
+        0.1,
+        "high detail, anime, hentai, manga",
+        "(worst quality, low quality, normal quality:1.5)",
+        165887818127434,
+        "randomize",
+        15,
+        0.2,
+        "TTPLANET_Controlnet_Tile_realistic_v2_fp16.safetensors",
+        true,
+        "4x_NMKD-Siax_200k.pth",
+        2240
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 5,
+      "type": "LoadImage",
+      "pos": [
+        748,
+        22
+      ],
+      "size": [
+        210,
+        314
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            79,
+            80,
+            81
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "pasted/image (46).png",
+        "image"
+      ]
+    },
+    {
+      "id": 45,
+      "type": "Note",
+      "pos": [
+        726,
+        484
+      ],
+      "size": [
+        308,
+        88
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Upload your input image here.\n"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 35,
+      "type": "StarTextInput",
+      "pos": [
+        242,
+        -286
+      ],
+      "size": [
+        396,
+        198
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text1",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "text2",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "text3",
+          "type": "STRING",
+          "link": 66
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            63
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarTextInput"
+      },
+      "widgets_values": [
+        " ",
+        3,
+        "High detailt painting in ANIME HENTAI  style of ",
+        "Long sharp vampyre fangs",
+        ""
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        -110,
+        -748
+      ],
+      "size": [
+        286,
+        110
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_4b_fp8_e4m3fn.safetensors",
+        "lumina2",
+        "cpu"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "StarLatentResize",
+      "pos": [
+        -110,
+        -396
+      ],
+      "size": [
+        286,
+        176
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            58
+          ]
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarLatentResize"
+      },
+      "widgets_values": [
+        "Keep Input Ratio",
+        "2 Megapixel (≈ 1408x1408)",
+        1920,
+        1080
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        -110,
+        -1144
+      ],
+      "size": [
+        286,
+        88
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            83
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "z-image-turbo-fp8-e4m3fn.safetensors",
+        "fp8_e4m3fn"
+      ]
+    },
+    {
+      "id": 50,
+      "type": "StarDynamicLoraModelOnly",
+      "pos": [
+        -110,
+        -1012
+      ],
+      "size": [
+        286,
+        132
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 83
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            82
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.0",
+        "Node name for S&R": "StarDynamicLoraModelOnly"
+      },
+      "widgets_values": [
+        "z-image-turbo\\Flat_AnimeStyle_Agino_ZImage.safetensors",
+        1,
+        null,
+        null
+      ],
+      "color": "#051b34",
+      "bgcolor": "#3d124d"
+    },
+    {
+      "id": 46,
+      "type": "Note",
+      "pos": [
+        -132,
+        -1408
+      ],
+      "size": [
+        330,
+        176
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Choose your models and your desired output size. Also you can add a lora. For example for anime style: https://civitai.com/models/1952560/anime-flat-style?modelVersionId=2450734"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    }
+  ],
+  "links": [
+    [
+      3,
+      3,
+      0,
+      6,
+      1,
+      "VAE"
+    ],
+    [
+      5,
+      8,
+      0,
+      7,
+      5,
+      "STRING"
+    ],
+    [
+      7,
+      10,
+      0,
+      7,
+      0,
+      "OLLAMA_CONNECTIVITY"
+    ],
+    [
+      8,
+      11,
+      0,
+      7,
+      1,
+      "OLLAMA_OPTIONS"
+    ],
+    [
+      12,
+      2,
+      0,
+      14,
+      0,
+      "CLIP"
+    ],
+    [
+      14,
+      15,
+      0,
+      16,
+      1,
+      "STRING"
+    ],
+    [
+      28,
+      6,
+      0,
+      22,
+      0,
+      "LATENT"
+    ],
+    [
+      31,
+      23,
+      0,
+      25,
+      0,
+      "IMAGE"
+    ],
+    [
+      32,
+      26,
+      0,
+      25,
+      1,
+      "STRING"
+    ],
+    [
+      53,
+      23,
+      0,
+      33,
+      0,
+      "IMAGE"
+    ],
+    [
+      57,
+      14,
+      0,
+      34,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      58,
+      22,
+      0,
+      34,
+      2,
+      "LATENT"
+    ],
+    [
+      59,
+      3,
+      0,
+      34,
+      3,
+      "VAE"
+    ],
+    [
+      60,
+      34,
+      4,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      61,
+      34,
+      4,
+      23,
+      0,
+      "IMAGE"
+    ],
+    [
+      63,
+      35,
+      0,
+      9,
+      0,
+      "STRING"
+    ],
+    [
+      64,
+      33,
+      0,
+      36,
+      0,
+      "IMAGE"
+    ],
+    [
+      65,
+      37,
+      0,
+      36,
+      1,
+      "STRING"
+    ],
+    [
+      66,
+      7,
+      0,
+      35,
+      2,
+      "STRING"
+    ],
+    [
+      67,
+      9,
+      0,
+      38,
+      0,
+      "STRING"
+    ],
+    [
+      68,
+      38,
+      0,
+      14,
+      1,
+      "STRING"
+    ],
+    [
+      69,
+      41,
+      0,
+      38,
+      1,
+      "STRING"
+    ],
+    [
+      72,
+      47,
+      0,
+      33,
+      2,
+      "IMAGE"
+    ],
+    [
+      79,
+      5,
+      0,
+      47,
+      0,
+      "IMAGE"
+    ],
+    [
+      80,
+      5,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      81,
+      5,
+      0,
+      7,
+      2,
+      "IMAGE"
+    ],
+    [
+      82,
+      50,
+      0,
+      34,
+      0,
+      "MODEL"
+    ],
+    [
+      83,
+      1,
+      0,
+      50,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Upscaler And Refiner",
+      "bounding": [
+        1232,
+        -1210,
+        1342,
+        1012
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Composition",
+      "bounding": [
+        1628,
+        -88,
+        946,
+        528
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "Input / Output",
+      "bounding": [
+        726,
+        -66,
+        858,
+        484
+      ],
+      "color": "#88A",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "Z-Image-Generator",
+      "bounding": [
+        704,
+        -1210,
+        484,
+        836
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "Ollama Prompter",
+      "bounding": [
+        220,
+        -1210,
+        440,
+        1628
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "Models And Latent",
+      "bounding": [
+        -132,
+        -1210,
+        330,
+        1012
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "workflowRendererVersion": "LG",
+    "ds": {
+      "scale": 0.24998710700373405,
+      "offset": [
+        1403.759162933914,
+        1903.6398525048203
+      ]
+    },
+    "frontendVersion": "1.32.9"
+  },
+  "version": 0.4
+}

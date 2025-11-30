@@ -2,11 +2,16 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.0
+**Current Version:** 1.9.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.9.1
+
+### Image & Latent Utilities
+- ⭐ **Star Latent Resize** (`StarLatentResize`) — Resizes existing latents to a target resolution using an advanced ratio/megapixel selector, with a custom mode for exact width/height while keeping model-friendly dimensions.
 
 ## New in 1.9.0
 

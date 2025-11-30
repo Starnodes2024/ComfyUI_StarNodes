@@ -44,6 +44,11 @@ It extends the original **Star PSD Saver (Dynamic)** with:
   Opacity/strength for each layer above the base layer.  
   Range: `0`–`100` (%), default: `100`.
 
+- **placement2, placement3, ...**  
+  Optional per-layer placement overrides for layers above the base layer. If set, they override
+  the global `placement` setting for that specific layer.  
+  Uses the same options as the global placement field.
+
 > **Note:** `blend_mode1` and `opacity1` are not exposed; the first layer acts as the base.
 
 ## Outputs

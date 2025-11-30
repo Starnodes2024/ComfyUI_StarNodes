@@ -14,9 +14,8 @@ class StarEasyTextStorage:
         # Path to the storage file within the nodes folder
         self.nodes_storage_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "startext.json")
         
-        # Path to the storage file in the main ComfyUI folder
-        comfyui_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
-        self.main_storage_file = os.path.join(comfyui_dir, "startext.json")
+        # Use the same storage file for all operations so everything is kept in text_io/startext.json
+        self.main_storage_file = self.nodes_storage_file
         
         self._ensure_storage_exists()
     
