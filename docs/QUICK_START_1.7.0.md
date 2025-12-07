@@ -12,13 +12,14 @@ pip install -r requirements.txt
 ```
 
 ### 2. Configure Google Gemini (Optional)
-For **Star Nano Banana** node:
+For **Star Nano Banana** and **Star Gemini Refiner** nodes:
 1. Get API key from https://makersuite.google.com/app/apikey
-2. Edit `googleapi.ini`:
+2. Edit `googleapi.ini` in the comfyui_starnodes folder:
 ```ini
-[GOOGLE]
-api_key = YOUR_API_KEY_HERE
+[API_KEY]
+key = YOUR_API_KEY_HERE
 ```
+Or use external file pointer or environment variable (see googleapi.ini for details)
 
 ### 3. Restart ComfyUI
 All nodes will appear under **⭐StarNodes** categories!
@@ -275,8 +276,8 @@ pip install color-matcher
 ```
 
 ### "Google API key not found"
-1. Create/edit `googleapi.ini` in starnodes folder
-2. Add your API key under `[GOOGLE]` section
+1. Create/edit `googleapi.ini` in comfyui_starnodes folder
+2. Add your API key under `[API_KEY]` section with `key = YOUR_API_KEY_HERE`
 
 ### "Qwen model not loading"
 - Ensure you have Qwen-compatible models

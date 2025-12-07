@@ -23,7 +23,7 @@ A ComfyUI custom node that integrates Google's Gemini 2.5 Flash model for image 
    - Choose one of the following methods to set your Google Gemini API key:
    
    **Method 1: Direct key in googleapi.ini (recommended for local use)**
-   - Edit the `googleapi.ini` file in the custom nodes directory
+   - Edit the `googleapi.ini` file in the comfyui_starnodes root directory
    - Uncomment and set your key:
    ```ini
    [API_KEY]
@@ -31,17 +31,20 @@ A ComfyUI custom node that integrates Google's Gemini 2.5 Flash model for image 
    ```
    
    **Method 2: Point to an external file (recommended for shared setups)**
-   - Edit the `googleapi.ini` file in the custom nodes directory
-   - Ensure it points to your external file:
+   - Edit the `googleapi.ini` file in the comfyui_starnodes root directory
+   - Uncomment and set the path to your external file:
    ```ini
    [API_PATH]
-   path = D:\AI\ComfyUINEW\googleapi.ini
+   path = D:\your_path\googleapi.ini
    ```
    - Create the external file with:
    ```ini
    [API_KEY]
    key = your_actual_api_key_here
    ```
+   
+   **Method 3: Environment variable (recommended for CI/CD)**
+   - Set the `GOOGLE_API_KEY` environment variable in your system
 
 3. **Get API Key**:
    - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)

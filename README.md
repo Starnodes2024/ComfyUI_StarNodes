@@ -2,11 +2,20 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.1
+**Current Version:** 1.9.2
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.9.2
+
+### Workflow Control & Preview
+- ⭐ **Star Stop And Go** (`StarStopAndGo`) — Interactive workflow control node that lets you pause, preview, and decide whether to continue or stop your workflow. Works with any data type and supports user-select, timed pause, and bypass modes.
+
+### Model Tools & Conversion
+- ⭐ **Star Model Packer** (`StarModelPacker`) — Combines split safetensors model files into a single file and converts them to a chosen floating-point precision (FP8, FP16, or FP32).
+- ⭐ **Star FP8 Converter** (`StarFP8Converter`) — Converts existing `.safetensors` checkpoints to FP8 (`float8_e4m3fn`) and writes them into the standard ComfyUI output models folder.
 
 ## New in 1.9.1
 
@@ -31,9 +40,6 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ### Sampling Utilities
 - ⭐ **Star FlowMatch Option** (`StarFlowMatchOption`) — Additional FlowMatch-related sampling options for compatible samplers.
-
-### Helpers & Tools
-- ⭐ **Star FP8 Converter** (`StarFP8Converter`) — Converts existing `.safetensors` checkpoints to FP8 (e4m3fn) and saves them in the standard ComfyUI output models folder.
 
 ## New in 1.8.0
 
@@ -250,10 +256,13 @@ All dependencies are listed in `requirements.txt` and will be installed automati
 - **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
 
 ### Google Gemini API Key
-To use the **Star Nano Banana** node:
+To use the **Star Nano Banana** and **Star Gemini Refiner** nodes:
 1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create or edit `googleapi.ini` in the starnodes folder
-3. Add your key: `[GOOGLE]` / `api_key = YOUR_API_KEY_HERE`
+2. Create or edit `googleapi.ini` in the comfyui_starnodes folder
+3. Add your key using one of these methods:
+   - **Method 1 (Direct)**: Uncomment and set `[API_KEY]` section with `key = YOUR_API_KEY_HERE`
+   - **Method 2 (External file)**: Uncomment `[API_PATH]` section and point to external ini file
+   - **Method 3 (Environment)**: Set `GOOGLE_API_KEY` environment variable
 
 ### InfiniteYou Setup
 For InfiniteYou Insightface is a requirement. If you are having trouble installing it (windows) here is how to fix that problem:

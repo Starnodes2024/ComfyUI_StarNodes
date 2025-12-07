@@ -15,7 +15,14 @@ This node uses Google's Gemini models to refine and enhance image generation pro
 ## Setup
 
 This node requires a Google Gemini API key. It shares the configuration with the `StarNanoBanana` node.
-Ensure your `googleapi.ini` file is set up correctly in the node directory or the fallback path.
+
+**API Key Configuration**:
+1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Edit `googleapi.ini` in the comfyui_starnodes root directory
+3. Choose one of these methods:
+   - **Method 1 (Direct)**: Uncomment `[API_KEY]` section and set `key = YOUR_API_KEY_HERE`
+   - **Method 2 (External file)**: Uncomment `[API_PATH]` section and point to external ini file
+   - **Method 3 (Environment)**: Set `GOOGLE_API_KEY` environment variable
 
 ## Usage
 

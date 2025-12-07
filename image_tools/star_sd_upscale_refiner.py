@@ -53,7 +53,24 @@ def _fourier_filter(x, threshold, scale):
 
 
 def _apply_freeu_v2(model, b1, b2, s1, s2):
-    model_channels = model.model.model_config.unet_config["model_channels"]
+    # Some models (e.g. non-UNet / flow models) may not expose model_channels
+    # in the standard SD unet_config. In those cases we simply skip FreeU.
+    try:
+        model_config = getattr(model.model, "model_config", None)
+        if model_config is None:
+            return model
+
+        unet_config = getattr(model_config, "unet_config", None)
+        if unet_config is None:
+            # model_config might be a dict-like
+            unet_config = getattr(model_config, "get", lambda *_args, **_kwargs: None)("unet_config")
+        if not unet_config or "model_channels" not in unet_config:
+            return model
+
+        model_channels = unet_config["model_channels"]
+    except Exception:
+        return model
+
     scale_dict = {model_channels * 4: (b1, s1), model_channels * 2: (b2, s2)}
     on_cpu_devices = {}
 
@@ -1132,11 +1149,401 @@ class StarSDUpscaleRefiner:
         return (image, out_latent)
 
 
+class StarSDUpscaleRefinerAdvanced:
+    @classmethod
+    def INPUT_TYPES(cls):
+        loras = ["None"] + folder_paths.get_filename_list("loras")
+        available_upscalers = folder_paths.get_filename_list("upscale_models")
+        controlnets = ["None"] + folder_paths.get_filename_list("controlnet")
+
+        sampler_list = getattr(comfy_samplers.KSampler, "SAMPLERS", [])
+        scheduler_list = getattr(comfy_samplers.KSampler, "SCHEDULERS", [])
+
+        if not sampler_list:
+            sampler_list = ["dpmpp_3m_sde_gpu"]
+        if not scheduler_list:
+            scheduler_list = ["karras"]
+
+        return {
+            "required": {
+                "model": ("MODEL", {}),
+                "clip": ("CLIP", {}),
+                "vae": ("VAE", {}),
+
+                "lora_1_name": (loras, {
+                    "default": "None",
+                }),
+                "lora_1_strength": ("FLOAT", {
+                    "default": 0.25,
+                    "min": -10.0,
+                    "max": 10.0,
+                    "step": 0.01,
+                }),
+                "lora_2_name": (loras, {
+                    "default": "None",
+                }),
+                "lora_2_strength": ("FLOAT", {
+                    "default": 0.1,
+                    "min": -10.0,
+                    "max": 10.0,
+                    "step": 0.01,
+                }),
+                "lora_3_name": (loras, {
+                    "default": "None",
+                }),
+                "lora_3_strength": ("FLOAT", {
+                    "default": 0.1,
+                    "min": -10.0,
+                    "max": 10.0,
+                    "step": 0.01,
+                }),
+
+                "positive_prompt": ("STRING", {
+                    "default": "masterpiece, best quality, highres",
+                    "multiline": True,
+                }),
+                "negative_prompt": ("STRING", {
+                    "default": "(worst quality, low quality, normal quality:1.5)",
+                    "multiline": True,
+                }),
+                "use_negative": (["No", "Yes"], {
+                    "default": "No",
+                }),
+                "seed": ("INT", {
+                    "default": 5398475983,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                }),
+                "refine_steps": ("INT", {
+                    "default": 25,
+                    "min": 1,
+                    "max": 500,
+                }),
+                "refine_denoise": ("FLOAT", {
+                    "default": 0.30,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
+                }),
+                "tile_size": ("INT", {
+                    "default": 1024,
+                    "min": 64,
+                    "step": 64,
+                    "max": 16384,
+                }),
+                "sampler_name": (sampler_list, {
+                    "default": "dpmpp_3m_sde_gpu" if "dpmpp_3m_sde_gpu" in sampler_list else sampler_list[0],
+                }),
+                "scheduler_name": (scheduler_list, {
+                    "default": "karras" if "karras" in scheduler_list else scheduler_list[0],
+                }),
+            },
+            "optional": {
+                "IMAGE": ("IMAGE",),
+                "controlnet_name": (controlnets, {"default": "control_v11f1e_sd15_tile.pth"}),
+                "UPSCALE_IMAGE": ("BOOLEAN", {"default": True}),
+                "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "4x_NMKD-Siax_200k.pth"}),
+                "OUTPUT_LONGEST_SIDE": (
+                    "INT",
+                    {
+                        "default": 3200,
+                        "min": 64,
+                        "step": 64,
+                        "max": 99968,
+                    },
+                ),
+                # Optional FlowMatch/StarSampler-style sigma schedule override
+                # (e.g. from ⭐ Star FlowMatch Option)
+                "options": ("SIGMAS", {}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE", "LATENT")
+    RETURN_NAMES = ("image", "latent")
+    FUNCTION = "process"
+    CATEGORY = "⭐StarNodes/Upscale"
+
+    def _apply_lora_if_needed(self, model, clip, lora_name, strength):
+        if lora_name is None or lora_name == "None":
+            return model, clip
+
+        loader = LoraLoader()
+        model, clip = loader.load_lora(model, clip, lora_name, strength, strength)
+        return model, clip
+
+    def process(
+        self,
+        model,
+        clip,
+        vae,
+        lora_1_name,
+        lora_1_strength,
+        lora_2_name,
+        lora_2_strength,
+        lora_3_name,
+        lora_3_strength,
+        positive_prompt,
+        negative_prompt,
+        use_negative,
+        seed,
+        refine_steps,
+        refine_denoise,
+        tile_size,
+        sampler_name,
+        scheduler_name,
+        IMAGE=None,
+        controlnet_name="None",
+        UPSCALE_IMAGE=True,
+        UPSCALE_MODEL="Default",
+        OUTPUT_LONGEST_SIDE=3200,
+        options=None,
+    ):
+        model, clip = self._apply_lora_if_needed(model, clip, lora_1_name, lora_1_strength)
+        model, clip = self._apply_lora_if_needed(model, clip, lora_2_name, lora_2_strength)
+        model, clip = self._apply_lora_if_needed(model, clip, lora_3_name, lora_3_strength)
+
+        clip_encoder = CLIPTextEncode()
+        positive_cond = clip_encoder.encode(clip, positive_prompt)[0]
+        negative_cond = clip_encoder.encode(clip, negative_prompt)[0]
+
+        upscaled_image = None
+        if IMAGE is not None:
+            image = IMAGE
+
+            if UPSCALE_IMAGE:
+                upscale_model = None
+                if UPSCALE_MODEL != "Default":
+                    upscale_model = UpscaleModelLoader().load_model(UPSCALE_MODEL)[0]
+
+                if upscale_model is not None:
+                    image = ImageUpscaleWithModel().upscale(upscale_model, image)[0]
+
+                assert isinstance(image, torch.Tensor)
+                assert isinstance(OUTPUT_LONGEST_SIDE, int)
+
+                OUTPUT_LONGEST_SIDE = round(OUTPUT_LONGEST_SIDE / 64) * 64
+                OUTPUT_LONGEST_SIDE = max(64, OUTPUT_LONGEST_SIDE)
+
+                interpolation_mode = InterpolationMode.BICUBIC
+
+                _, h, w, _ = image.shape
+                if h >= w:
+                    new_h = OUTPUT_LONGEST_SIDE
+                    new_w = round(w * new_h / h)
+                    new_w = round(new_w / 64) * 64
+                    new_w = max(64, new_w)
+                else:
+                    new_w = OUTPUT_LONGEST_SIDE
+                    new_h = round(h * new_w / w)
+                    new_h = round(new_h / 64) * 64
+                    new_h = max(64, new_h)
+
+                image = image.permute(0, 3, 1, 2)
+                image = F.resize(
+                    image,
+                    (new_h, new_w),
+                    interpolation=interpolation_mode,
+                    antialias=True,
+                )
+                image = image.permute(0, 2, 3, 1)
+
+                upscaled_image = image
+
+        controlnet = None
+        if controlnet_name is not None and controlnet_name != "None":
+            cn_loader = ControlNetLoader()
+            controlnet = cn_loader.load_controlnet(controlnet_name)[0]
+
+        if controlnet is not None and (upscaled_image is not None or IMAGE is not None):
+            controlnet_image = upscaled_image if upscaled_image is not None else IMAGE
+
+            cn_apply = ControlNetApplyAdvanced()
+            strength = 0.5
+            start_percent = 0.0
+            end_percent = 1.0
+
+            positive_cond, negative_cond = cn_apply.apply_controlnet(
+                positive_cond,
+                negative_cond,
+                controlnet,
+                controlnet_image,
+                vae,
+                strength,
+                start_percent,
+                end_percent,
+            )
+
+        model = _apply_freeu_v2(model, 1.05, 1.08, 0.95, 0.8)
+        model = _apply_pag(model, 1.0)
+        model = _apply_auto_cfg(model)
+        model = _apply_tiled_diffusion(model, int(tile_size), int(tile_size), 128, 4)
+
+        latent = None
+        pixels_for_latent = None
+        if upscaled_image is not None:
+            pixels_for_latent = upscaled_image
+        elif IMAGE is not None:
+            pixels_for_latent = IMAGE
+
+        if pixels_for_latent is not None:
+            tile_size_enc = int(tile_size)
+            overlap = 64
+            temporal_size = 64
+            temporal_overlap = 8
+            t = vae.encode_tiled(
+                pixels_for_latent[:, :, :, :3],
+                tile_x=tile_size_enc,
+                tile_y=tile_size_enc,
+                overlap=overlap,
+                tile_t=temporal_size,
+                overlap_t=temporal_overlap,
+            )
+            latent = {"samples": t}
+
+        if latent is None:
+            return (upscaled_image if upscaled_image is not None else IMAGE, None)
+
+        if any(x is None for x in (KSamplerSelect, SamplerCustom, AlignYourStepsScheduler)):
+            return (upscaled_image if upscaled_image is not None else IMAGE, latent)
+
+        # Build sigma schedule: use external options (e.g. Star FlowMatch Option)
+        # if provided, otherwise fall back to AlignYourStepsScheduler.
+        if options is not None:
+            sigmas = options
+            # Honor refine_denoise by shortening the sigma schedule proportionally,
+            # similar in spirit to how ComfyUI schedulers treat denoise.
+            try:
+                if hasattr(sigmas, "shape") and len(sigmas.shape) > 0 and sigmas.shape[0] > 1:
+                    total_steps = sigmas.shape[0] - 1
+                    denoise = float(refine_denoise)
+                    denoise = max(0.0, min(1.0, denoise))
+                    effective_steps = max(1, int(round(total_steps * denoise)))
+                    start_index = max(0, sigmas.shape[0] - 1 - effective_steps)
+                    sigmas = sigmas[start_index:]
+            except Exception:
+                # If anything goes wrong, fall back to the original sigmas tensor
+                pass
+        else:
+            scheduler = AlignYourStepsScheduler()
+            get_sigmas = scheduler.get_sigmas
+            s_arg_names = inspect.getfullargspec(get_sigmas).args[1:]
+            s_kwargs = {}
+            for name in s_arg_names:
+                if name in ("model_type", "model"):
+                    s_kwargs[name] = "SD1"
+                elif name in ("steps",):
+                    s_kwargs[name] = int(refine_steps)
+                elif name in ("denoise", "denoise_strength"):
+                    s_kwargs[name] = float(refine_denoise)
+                elif name in ("scheduler", "scheduler_name"):
+                    s_kwargs[name] = scheduler_name
+            (sigmas,) = get_sigmas(**s_kwargs)
+
+        sampler_selector = KSamplerSelect()
+        get_sampler = sampler_selector.get_sampler
+        g_arg_names = inspect.getfullargspec(get_sampler).args[1:]
+        g_kwargs = {}
+        for name in g_arg_names:
+            if name in ("sampler", "sampler_name"):
+                g_kwargs[name] = sampler_name
+        (sampler_obj,) = get_sampler(**g_kwargs)
+
+        sampler_custom = SamplerCustom()
+
+        if use_negative == "No":
+            # Build an "empty" negative CONDITIONING matching ComfyUI's structure
+            # positive_cond is typically a list like [[tensor, dict], ...]
+            if isinstance(positive_cond, list) and len(positive_cond) > 0:
+                first = positive_cond[0]
+                if isinstance(first, (list, tuple)) and len(first) >= 2:
+                    empty_tensor = torch.zeros_like(first[0])
+                    meta = first[1].copy()
+                    negative_cond = [[empty_tensor, meta]]
+
+        arg_names = inspect.getfullargspec(sampler_custom.sample).args[1:]
+        kwargs = {}
+        for name in arg_names:
+            if name in ("model",):
+                kwargs[name] = model
+            elif name in ("positive", "pos_cond", "pos"):
+                kwargs[name] = positive_cond
+            elif name in ("negative", "neg_cond", "neg"):
+                kwargs[name] = negative_cond
+            elif name in ("latent", "latent_image", "latent_in"):
+                kwargs[name] = latent
+            elif name in ("sampler", "sampler_name", "sampler_obj"):
+                kwargs[name] = sampler_obj
+            elif name in ("sigmas",):
+                kwargs[name] = sigmas
+            elif name in ("add_noise",):
+                kwargs[name] = True
+            elif name in ("noise_seed", "seed"):
+                kwargs[name] = int(seed)
+            elif name in ("noise_type",):
+                kwargs[name] = "fixed"
+            elif name in ("cfg", "cfg_scale", "cfg_value"):
+                kwargs[name] = float(8.0)
+
+        out = sampler_custom.sample(**kwargs)
+        if isinstance(out, tuple) and len(out) >= 1:
+            out_latent = out[0]
+        else:
+            out_latent = out
+
+        try:
+            if not isinstance(out_latent, dict):
+                candidate = out_latent[0]
+                if isinstance(candidate, dict) and "samples" in candidate:
+                    out_latent = candidate
+        except Exception:
+            pass
+
+        image = None
+        if VAEDecodeTiled is not None:
+            vdt = VAEDecodeTiled()
+            func_name = getattr(VAEDecodeTiled, "FUNCTION", "decode")
+            decode_fn = getattr(vdt, func_name, None)
+            if decode_fn is None:
+                images = vae.decode(out_latent["samples"])
+            else:
+                d_arg_names = inspect.getfullargspec(decode_fn).args[1:]
+                dkwargs = {}
+                for name in d_arg_names:
+                    if name in ("samples", "latent", "latent_image"):
+                        dkwargs[name] = out_latent
+                    elif name in ("vae",):
+                        dkwargs[name] = vae
+                    elif name in ("tile_size", "tile_width"):
+                        dkwargs[name] = int(tile_size)
+                    elif name in ("overlap", "tile_overlap"):
+                        dkwargs[name] = int(64)
+                    elif name in ("fastest_tile_size", "fast_tile_size"):
+                        dkwargs[name] = int(64)
+                    elif name in ("fast_decode", "tile_batch_size"):
+                        dkwargs[name] = int(8)
+
+                images = decode_fn(**dkwargs)
+
+            if isinstance(images, tuple) and len(images) >= 1:
+                image = images[0]
+            else:
+                image = images
+        else:
+            images = vae.decode(out_latent["samples"])
+            if len(images.shape) == 5:
+                images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+            image = images
+
+        return (image, out_latent)
+
+
 NODE_CLASS_MAPPINGS = {
     "StarSDUpscaleRefiner": StarSDUpscaleRefiner,
+    "StarSDUpscaleRefinerAdvanced": StarSDUpscaleRefinerAdvanced,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "StarSDUpscaleRefiner": "⭐ Star SD Upscale Refiner",
+    "StarSDUpscaleRefinerAdvanced": "⭐ Star SD Upscale Refiner Advanced",
 }
 

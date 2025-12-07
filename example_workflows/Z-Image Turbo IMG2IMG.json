@@ -145,7 +145,7 @@
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "1.9.1",
+        "ver": "1.9.2",
         "Node name for S&R": "StarEasyTextStorage"
       },
       "widgets_values": [

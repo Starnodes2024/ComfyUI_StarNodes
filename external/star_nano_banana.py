@@ -26,12 +26,13 @@ class StarNanoBanana:
         """Load API key using a pointer ini or a fixed fallback path.
 
         Resolution order:
-        1) Node-local ini as pointer: node_dir/googleapi.ini with section [API_PATH] and key 'path' -> points to external ini containing [API_KEY] key.
-        2) Node-local ini direct key: node_dir/googleapi.ini with section [API_KEY] key='...'.
-        3) Fixed fallback external path: D:\AI\ComfyUINEW\googleapi.ini with section [API_KEY] key='...'.
+        1) Root-level ini as pointer: comfyui_starnodes/googleapi.ini with section [API_PATH] and key 'path' -> points to external ini containing [API_KEY] key.
+        2) Root-level ini direct key: comfyui_starnodes/googleapi.ini with section [API_KEY] key='...'.
+        3) Environment variable: GOOGLE_API_KEY
         """
-        node_ini = os.path.join(os.path.dirname(__file__), "googleapi.ini")
-        external_default = r"D:\\AI\\ComfyUINEW\\googleapi.ini"
+        # Get the root directory of comfyui_starnodes (two levels up from external/)
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        node_ini = os.path.join(root_dir, "googleapi.ini")
 
         def _read_key_from_ini(ini_path: str) -> Optional[str]:
             cfg = configparser.ConfigParser()
@@ -41,7 +42,7 @@ class StarNanoBanana:
             except Exception:
                 return None
 
-        # 1) Pointer ini in node directory
+        # 1) Pointer ini in root directory
         if os.path.exists(node_ini):
             cfg = configparser.ConfigParser()
             try:
@@ -62,11 +63,10 @@ class StarNanoBanana:
             except Exception:
                 pass
 
-        # 3) Fixed fallback external path
-        if os.path.exists(external_default):
-            key_val = _read_key_from_ini(external_default)
-            if key_val:
-                return key_val
+        # 3) Environment variable fallback
+        env_key = os.environ.get("GOOGLE_API_KEY")
+        if env_key:
+            return env_key
 
         return None
 

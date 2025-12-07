@@ -1,5 +1,28 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 1.9.2 (2025-12-07)
+
+### ✨ New Nodes
+
+- **Star Stop And Go** – Interactive workflow control node that lets you pause, review, and decide whether to continue or stop your ComfyUI workflow execution. Works with any data type and supports user-select, pause, and bypass modes.
+- **Star Model Packer** – Combines split safetensors model files into a single file and converts them to the selected floating-point precision (FP8, FP16, or FP32).
+- **Star FP8 Converter** – Converts existing `.safetensors` checkpoints to FP8 (`float8_e4m3fn`) and saves the converted file in the standard ComfyUI output models folder.
+
+### 🛠 Improvements
+
+- Updated internal versioning to 1.9.2 across the project (pyproject, module version, docs, and example workflows).
+- Documentation clean-up and consistency fixes.
+
+---
+
+## Version 1.9.1 (2025-12-01)
+
+### ✨ New Nodes
+
+- **Star Latent Resize** – Resizes existing latents to a target resolution using an advanced ratio/megapixel selector, with a custom mode for exact width/height while keeping model-friendly dimensions.
+
+---
+
 ## Version 1.9.0 (2025-11-29)
 
 ### ✨ New & Featured Nodes
