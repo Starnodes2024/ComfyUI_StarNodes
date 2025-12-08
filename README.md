@@ -2,11 +2,16 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.2
+**Current Version:** 1.9.3
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.9.3
+
+### Metadata & Workflow Sharing
+- ⭐ **Star Meta Injector** (`StarMetaInjector`) — Transfers all PNG metadata (including ComfyUI workflow data) from a source image to a target image and saves it directly. Perfect for sharing workflows with custom preview images.
 
 ## New in 1.9.2
 
@@ -136,6 +141,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
 
 ### ⭐StarNodes/IO
+- ⭐ Star Meta Injector: Transfers PNG metadata (workflow, prompts, parameters) from source to target image and saves directly
 - ⭐ Star Save Folder String: Flexible path builder for organized file saving with preset folders, date-based organization, and custom naming
 - ⭐ Star Duplicate Model Finder: Scans ComfyUI models directory for duplicate files using SHA256 hashing with detailed reports
 - ⭐ Star Random Image Loader: Load random images from folders with optional subfolders and seed control
