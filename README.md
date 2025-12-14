@@ -2,11 +2,17 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.3
+**Current Version:** 1.9.4
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 1.9.4
+
+### Video & Animation
+- ⭐ **Star Image Loop** (`StarImageLoop`) — Creates seamless looping video frames from images like panoramic images. Supports multiple dynamic image inputs that are joined horizontally to create longer slidess. Perfect for social media content from AI-generated or photographed panoramas.
+- ⭐ **Star Video Loop** (`StarVideoLoop`) — Creates seamless looping video frames from video inputs. Videos are scrolled horizontally to create a slidingeffect with moving content. Supports multiple dynamic video inputs.
 
 ## New in 1.9.3
 
@@ -139,6 +145,10 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content
 - ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites for use in prompts or text generation
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
+
+### ⭐StarNodes/Video
+- ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
+- ⭐ Star Video Loop: Creates seamless looping video frames from video inputs with dynamic multi-video input support
 
 ### ⭐StarNodes/IO
 - ⭐ Star Meta Injector: Transfers PNG metadata (workflow, prompts, parameters) from source to target image and saves directly
