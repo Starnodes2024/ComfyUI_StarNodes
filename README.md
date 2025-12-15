@@ -11,8 +11,8 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 ## New in 1.9.4
 
 ### Video & Animation
-- ⭐ **Star Image Loop** (`StarImageLoop`) — Creates seamless looping video frames from images like panoramic images. Supports multiple dynamic image inputs that are joined horizontally to create longer slidess. Perfect for social media content from AI-generated or photographed panoramas.
-- ⭐ **Star Video Loop** (`StarVideoLoop`) — Creates seamless looping video frames from video inputs. Videos are scrolled horizontally to create a slidingeffect with moving content. Supports multiple dynamic video inputs.
+- ⭐ **Star Image Loop** (`StarImageLoop`) — Creates seamless looping video frames from panoramic images. Supports multiple dynamic image inputs joined horizontally or vertically. Scroll directions: Left/Right/Up/Down. Perfect for social media content.
+- ⭐ **Star Video Loop** (`StarVideoLoop`) — Creates seamless looping video frames from video inputs with sliding panorama effect. Supports multiple dynamic video inputs, scroll directions (Left/Right/Up/Down), "Join Only" mode for merging without scrolling, and "From Video 1" options to preserve original dimensions.
 
 ## New in 1.9.3
 
@@ -147,8 +147,8 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
 
 ### ⭐StarNodes/Video
-- ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
-- ⭐ Star Video Loop: Creates seamless looping video frames from video inputs with dynamic multi-video input support
+- ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images. Supports dynamic multi-image inputs, horizontal/vertical scrolling (Left/Right/Up/Down directions)
+- ⭐ Star Video Loop: Creates seamless looping video frames from video inputs. Supports dynamic multi-video inputs, horizontal/vertical scrolling, "Join Only" mode, and "From Video 1" resolution/ratio options
 
 ### ⭐StarNodes/IO
 - ⭐ Star Meta Injector: Transfers PNG metadata (workflow, prompts, parameters) from source to target image and saves directly

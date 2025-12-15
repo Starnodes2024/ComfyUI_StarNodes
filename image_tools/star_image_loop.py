@@ -41,7 +41,7 @@ class DynamicImageInputs(dict):
 class StarImageLoop:
     """
     Creates seamless looping frames from panoramic images.
-    Images are scrolled horizontally to create smooth, looping video frames.
+    Images are scrolled horizontally or vertically to create smooth, looping video frames.
     Connect the output to any Video Combine node to create the final video.
     """
     
@@ -75,7 +75,7 @@ class StarImageLoop:
                 "aspect_ratio": (list(cls.ASPECT_RATIOS.keys()), {"default": "1:1 (Square)"}),
                 "fps": ("INT", {"default": 24, "min": 1, "max": 60, "step": 1}),
                 "duration": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 300.0, "step": 0.5}),
-                "direction": (["Left to Right", "Right to Left"], {"default": "Left to Right"}),
+                "direction": (["Left to Right", "Right to Left", "Up (Bottom to Top)", "Down (Top to Bottom)"], {"default": "Left to Right"}),
             },
             "optional": DynamicImageInputs(base_optional),
         }
@@ -101,26 +101,34 @@ class StarImageLoop:
         np_image = np.array(pil_image).astype(np.float32) / 255.0
         return torch.from_numpy(np_image)
 
-    def create_seamless_panorama(self, pil_image: Image.Image, target_width: int):
+    def create_seamless_panorama(self, pil_image: Image.Image, target_size: int, vertical: bool = False):
         """
         Create a seamless tileable panorama by duplicating the image.
-        The image is tiled enough times to cover at least 2x the target width
+        The image is tiled enough times to cover at least 2x the target size
         to ensure smooth looping.
         """
         img_width, img_height = pil_image.size
         
-        # Calculate how many times we need to tile the image
-        # We need at least 2x target_width for seamless looping
-        tiles_needed = max(2, int(np.ceil((target_width * 2) / img_width)) + 1)
-        
-        # Create the tiled image
-        tiled_width = img_width * tiles_needed
-        tiled_image = Image.new('RGB', (tiled_width, img_height))
-        
-        for i in range(tiles_needed):
-            tiled_image.paste(pil_image, (i * img_width, 0))
-        
-        return tiled_image, img_width
+        if vertical:
+            # Vertical tiling
+            tiles_needed = max(2, int(np.ceil((target_size * 2) / img_height)) + 1)
+            tiled_height = img_height * tiles_needed
+            tiled_image = Image.new('RGB', (img_width, tiled_height))
+            
+            for i in range(tiles_needed):
+                tiled_image.paste(pil_image, (0, i * img_height))
+            
+            return tiled_image, img_height
+        else:
+            # Horizontal tiling
+            tiles_needed = max(2, int(np.ceil((target_size * 2) / img_width)) + 1)
+            tiled_width = img_width * tiles_needed
+            tiled_image = Image.new('RGB', (tiled_width, img_height))
+            
+            for i in range(tiles_needed):
+                tiled_image.paste(pil_image, (i * img_width, 0))
+            
+            return tiled_image, img_width
 
     def join_images_horizontally(self, images: list, target_height: int) -> Image.Image:
         """
@@ -156,6 +164,42 @@ class StarImageLoop:
             x_offset += img.width
         
         logger.info(f"Joined {len(images)} images into panorama: {total_width}x{target_height}")
+        return combined
+
+    def join_images_vertically(self, images: list, target_width: int) -> Image.Image:
+        """
+        Join multiple PIL images vertically, scaling them to match target_width.
+        """
+        if not images:
+            raise ValueError("No images provided")
+        
+        if len(images) == 1:
+            # Single image - just resize to target width
+            img = images[0]
+            scale = target_width / img.width
+            new_height = int(img.height * scale)
+            return img.resize((target_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Scale all images to target width and calculate total height
+        scaled_images = []
+        total_height = 0
+        
+        for img in images:
+            scale = target_width / img.width
+            new_height = int(img.height * scale)
+            scaled_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
+            scaled_images.append(scaled_img)
+            total_height += new_height
+        
+        # Create combined image
+        combined = Image.new('RGB', (target_width, total_height))
+        y_offset = 0
+        
+        for img in scaled_images:
+            combined.paste(img, (0, y_offset))
+            y_offset += img.height
+        
+        logger.info(f"Joined {len(images)} images vertically: {target_width}x{total_height}")
         return combined
 
     def create_frames(self, resolution: str, aspect_ratio: str,
@@ -197,22 +241,38 @@ class StarImageLoop:
         
         logger.info(f"Creating frames: {output_width}x{output_height} @ {fps}fps, {duration}s")
         
-        # Join all images horizontally at output height (already scaled)
-        pil_image = self.join_images_horizontally(pil_images, output_height)
-        panorama_width = pil_image.size[0]
+        # Determine if vertical or horizontal scrolling
+        is_vertical = direction in ["Up (Bottom to Top)", "Down (Top to Bottom)"]
         
-        logger.info(f"Combined panorama size: {panorama_width}x{output_height}")
+        if is_vertical:
+            # Join all images vertically at output width
+            pil_image = self.join_images_vertically(pil_images, output_width)
+            panorama_height = pil_image.size[1]
+            logger.info(f"Combined panorama size: {output_width}x{panorama_height}")
+            
+            # Create seamless tiled panorama (vertical)
+            tiled_image, single_tile_height = self.create_seamless_panorama(pil_image, output_height, vertical=True)
+            tiled_height = tiled_image.size[1]
+            logger.info(f"Tiled panorama size: {output_width}x{tiled_height}")
+            
+            # Calculate scroll distance
+            scroll_distance = panorama_height
+        else:
+            # Join all images horizontally at output height
+            pil_image = self.join_images_horizontally(pil_images, output_height)
+            panorama_width = pil_image.size[0]
+            logger.info(f"Combined panorama size: {panorama_width}x{output_height}")
+            
+            # Create seamless tiled panorama (horizontal)
+            tiled_image, single_tile_width = self.create_seamless_panorama(pil_image, output_width, vertical=False)
+            tiled_width = tiled_image.size[0]
+            logger.info(f"Tiled panorama size: {tiled_width}x{output_height}")
+            
+            # Calculate scroll distance
+            scroll_distance = panorama_width
         
-        # Create seamless tiled panorama
-        tiled_image, single_tile_width = self.create_seamless_panorama(pil_image, output_width)
-        tiled_width = tiled_image.size[0]
-        logger.info(f"Tiled panorama size: {tiled_width}x{output_height}")
-        
-        # Calculate total frames and scroll distance
+        # Calculate total frames
         total_frames = int(fps * duration)
-        
-        # For seamless loop, we scroll exactly one panorama width over the duration
-        scroll_distance = panorama_width  # One complete panorama for perfect loop
         pixels_per_frame = scroll_distance / total_frames
         
         logger.info(f"Total frames: {total_frames}, scroll distance: {scroll_distance}px, pixels/frame: {pixels_per_frame:.2f}")
@@ -221,17 +281,25 @@ class StarImageLoop:
         frame_tensors = []
         
         for frame_idx in range(total_frames):
-            # Calculate scroll position
-            if direction == "Left to Right":
-                scroll_x = int(frame_idx * pixels_per_frame)
-            else:  # Right to Left
-                scroll_x = scroll_distance - int(frame_idx * pixels_per_frame)
+            if is_vertical:
+                # Vertical scrolling
+                if direction == "Up (Bottom to Top)":
+                    scroll_y = int(frame_idx * pixels_per_frame)
+                else:  # Down (Top to Bottom)
+                    scroll_y = scroll_distance - int(frame_idx * pixels_per_frame)
+                
+                scroll_y = scroll_y % panorama_height
+                frame = tiled_image.crop((0, scroll_y, output_width, scroll_y + output_height))
+            else:
+                # Horizontal scrolling
+                if direction == "Left to Right":
+                    scroll_x = int(frame_idx * pixels_per_frame)
+                else:  # Right to Left
+                    scroll_x = scroll_distance - int(frame_idx * pixels_per_frame)
+                
+                scroll_x = scroll_x % panorama_width
+                frame = tiled_image.crop((scroll_x, 0, scroll_x + output_width, output_height))
             
-            # Ensure scroll_x is within bounds
-            scroll_x = scroll_x % panorama_width
-            
-            # Crop the frame from the tiled image
-            frame = tiled_image.crop((scroll_x, 0, scroll_x + output_width, output_height))
             frame_tensors.append(self.pil_to_tensor(frame))
         
         logger.info(f"Generated {len(frame_tensors)} frames")
