@@ -6,6 +6,7 @@ import torch
 import comfy.samplers
 import comfy.sample
 import comfy.model_base
+import comfy.model_sampling
 from comfy.utils import ProgressBar
 
 # Try to import from nodes, but handle if not available
@@ -37,6 +38,20 @@ def parse_string_to_list(value):
     value = [v.strip() for v in value if v.strip()]
     value = [int(float(v)) if float(v).is_integer() else float(v) for v in value if v.replace(".", "").isdigit()]
     return value if value else [0]
+
+def conditioning_zero_out(conditioning):
+    c = []
+    for t in conditioning:
+        d = t[1].copy()
+        pooled_output = d.get("pooled_output", None)
+        if pooled_output is not None:
+            d["pooled_output"] = torch.zeros_like(pooled_output)
+        conditioning_lyrics = d.get("conditioning_lyrics", None)
+        if conditioning_lyrics is not None:
+            d["conditioning_lyrics"] = torch.zeros_like(conditioning_lyrics)
+        n = [torch.zeros_like(t[0]), d]
+        c.append(n)
+    return c
 
 class StarSampler:
     """
@@ -138,10 +153,11 @@ class StarSampler:
         return result
 
     def is_flux_model(self, model):
-        """Check if the model is a Flux/AuraFlow model."""
+        """Check if the model uses Flux-style guidance conditioning."""
         try:
-            return model.model.model_type == comfy.model_base.ModelType.FLOW
-        except:
+            model_sampling = model.get_model_object("model_sampling")
+            return isinstance(model_sampling, comfy.model_sampling.ModelSamplingFlux)
+        except Exception:
             return False
 
     def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, 
@@ -150,7 +166,7 @@ class StarSampler:
         # Detect model type
         is_flux = self.is_flux_model(model)
         
-        logging.info(f"StarSampler: Model type={'Flux/AuraFlow' if is_flux else 'SD/SDXL/SD3.5'}, steps={steps}, cfg={cfg}")
+        logging.info(f"StarSampler: Model type={'Flux' if is_flux else 'SD/SDXL/Flow(non-Flux)'}, steps={steps}, cfg={cfg}")
         
         # For Flux models, use guidance in conditioning instead of CFG
         if is_flux:
@@ -162,19 +178,11 @@ class StarSampler:
             except ImportError:
                 raise ImportError("Required ComfyUI modules not found. Make sure ComfyUI is properly installed.")
             
-            # Get dimensions
             width = latent["samples"].shape[3] * 8
             height = latent["samples"].shape[2] * 8
             
-            # Apply model sampling patches
-            model_sampling = ModelSamplingFlux() if not is_flux else ModelSamplingAuraFlow()
+            work_model = model
             
-            if is_flux:
-                work_model = model_sampling.patch_aura(model, base_shift)[0]
-            else:
-                work_model = model_sampling.patch(model, max_shift, base_shift, width, height)[0]
-            
-            # Setup guidance (use cfg as guidance for Flux)
             cond = conditioning_set_values(positive, {"guidance": cfg})
             
             # If no detail schedule, use fast path
@@ -245,13 +253,12 @@ class StarSampler:
                 finally:
                     # Restore original forward method
                     work_model.model.diffusion_model.forward = original_forward
-        
         else:
             # SD/SDXL/SD3.5 path - uses negative conditioning
             if negative is None:
-                # Create empty negative conditioning if not provided
-                logging.warning("StarSampler: No negative conditioning provided for SD model. Using empty negative.")
-                negative = [[torch.zeros_like(positive[0][0]), positive[0][1].copy()]]
+                # Create a safe "zero-out" negative conditioning if not provided
+                logging.warning("StarSampler: No negative conditioning provided. Using zeroed negative conditioning.")
+                negative = conditioning_zero_out(positive)
             
             if detail_schedule is not None:
                 # Use detail schedule
