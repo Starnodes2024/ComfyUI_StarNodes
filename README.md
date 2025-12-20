@@ -2,17 +2,32 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.4
+**Current Version:** 1.9.5
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
+## New in 1.9.5
+
+### IO & Metadata
+- ⭐ **Star Save Image+** (`StarSaveImagePlus`) — Save images with built-in folder/filename settings and store 5 extra metadata strings (`StarMetaData 1-5`) into the PNG.
+- ⭐ **Star Load Image+** (`StarLoadImagePlus`) — Load images and read out the 5 extra metadata strings (`StarMetaData 1-5`) as separate outputs.
+
+### Appearance
+- ⭐ **New Node Appearance Options** — Right click a node to change its background and title bar colors.
+- ⭐ **Settings Option** — In ComfyUI settings you can enable StarNodes style for every node: `Apply StarNodes Style to All Nodes`.
+- **Note:** At the moment this only works in **Nodes 1.0**.
+
+### Workflows
+- **Info:** Old workflows might need to be updated.
+- ⭐ There is already a new template workflow for **High Quality Z-Image-Turbo**.
+
 ## New in 1.9.4
 
 ### Video & Animation
-- ⭐ **Star Image Loop** (`StarImageLoop`) — Creates seamless looping video frames from panoramic images. Supports multiple dynamic image inputs joined horizontally or vertically. Scroll directions: Left/Right/Up/Down. Perfect for social media content.
-- ⭐ **Star Video Loop** (`StarVideoLoop`) — Creates seamless looping video frames from video inputs with sliding panorama effect. Supports multiple dynamic video inputs, scroll directions (Left/Right/Up/Down), "Join Only" mode for merging without scrolling, and "From Video 1" options to preserve original dimensions.
+- ⭐ **Star Image Loop** (`StarImageLoop`) — Creates seamless looping video frames from images like panoramic images. Supports multiple dynamic image inputs that are joined horizontally to create longer slidess. Perfect for social media content from AI-generated or photographed panoramas.
+- ⭐ **Star Video Loop** (`StarVideoLoop`) — Creates seamless looping video frames from video inputs. Videos are scrolled horizontally to create a slidingeffect with moving content. Supports multiple dynamic video inputs.
 
 ## New in 1.9.3
 
@@ -147,8 +162,8 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
 
 ### ⭐StarNodes/Video
-- ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images. Supports dynamic multi-image inputs, horizontal/vertical scrolling (Left/Right/Up/Down directions)
-- ⭐ Star Video Loop: Creates seamless looping video frames from video inputs. Supports dynamic multi-video inputs, horizontal/vertical scrolling, "Join Only" mode, and "From Video 1" resolution/ratio options
+- ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
+- ⭐ Star Video Loop: Creates seamless looping video frames from video inputs with dynamic multi-video input support
 
 ### ⭐StarNodes/IO
 - ⭐ Star Meta Injector: Transfers PNG metadata (workflow, prompts, parameters) from source to target image and saves directly
@@ -159,6 +174,8 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Save Panorama JPEG: Save JPEGs with embedded XMP panorama metadata for 360° viewers
 - ⭐ Star Frame From Video: Pick first/last/specific frame from an image batch (e.g., video)
 - ⭐ Star Icon Exporter: Export multi-size PNGs and ICO with shaping, stroke, and shadow options
+- ⭐ Star Save Image+: Save images like ComfyUI Save Image, but with 5 extra text inputs stored as StarMetaData 1-5 in the PNG metadata
+- ⭐ Star Load Image+: Load images like ComfyUI Load Image, but with 5 extra text outputs read from StarMetaData 1-5 in the image metadata
 
 ### ⭐StarNodes/InfiniteYou
 - ⭐ Star InfiniteYou Apply: Apply face identity from a reference image to generated images

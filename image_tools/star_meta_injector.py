@@ -47,11 +47,15 @@ class StarMetaInjector:
                 "source_image_path": ("STRING", {
                     "default": "",
                     "multiline": False,
-                    "tooltip": "Path to source PNG file with metadata to copy (e.g., 'output/ComfyUI_00001_.png')"
+                    "tooltip": "Path to source PNG/WEBP file with metadata to copy (e.g., 'output/ComfyUI_00001_.png')"
                 }),
                 "filename_prefix": ("STRING", {
                     "default": "ComfyUI",
                     "tooltip": "Prefix for the output filename"
+                }),
+                "save_as": (["png", "webp"], {
+                    "default": "png",
+                    "tooltip": "Output format. PNG preserves standard ComfyUI PNG metadata. WEBP stores metadata in EXIF tags."
                 }),
             }
         }
@@ -94,6 +98,27 @@ class StarMetaInjector:
                                 except:
                                     continue
                             metadata[key] = value
+
+                # ComfyUI stores metadata in custom PNG chunks under the "comf" key
+                # in the form: b"<name>\0<json>" (latin-1).
+                comf_chunks = self._extract_png_comf_chunks(file_path)
+                if comf_chunks:
+                    metadata.update(comf_chunks)
+
+                # WebP metadata (ComfyUI-style) is stored in EXIF tags as strings "key:<json>"
+                try:
+                    exif_data = img.getexif()
+                    if exif_data is not None:
+                        for _, exif_value in exif_data.items():
+                            if isinstance(exif_value, str):
+                                if exif_value.startswith("prompt:"):
+                                    metadata["prompt"] = exif_value[len("prompt:"):]
+                                elif ":" in exif_value:
+                                    k, v = exif_value.split(":", 1)
+                                    if k and v:
+                                        metadata[k] = v
+                except Exception:
+                    pass
                 
                 print(f"⭐ Star Meta Injector: Extracted {len(metadata)} metadata fields from source")
                 
@@ -106,8 +131,46 @@ class StarMetaInjector:
         except Exception as e:
             print(f"⭐ Star Meta Injector: Error extracting metadata: {str(e)}")
             return {}
+
+    def _extract_png_comf_chunks(self, file_path):
+        if not file_path.lower().endswith('.png'):
+            return {}
+
+        try:
+            with open(file_path, 'rb') as f:
+                sig = f.read(8)
+                if sig != b"\x89PNG\r\n\x1a\n":
+                    return {}
+
+                out = {}
+                while True:
+                    length_bytes = f.read(4)
+                    if len(length_bytes) != 4:
+                        break
+                    length = int.from_bytes(length_bytes, 'big')
+                    chunk_type = f.read(4)
+                    if len(chunk_type) != 4:
+                        break
+                    data = f.read(length)
+                    f.read(4)  # crc
+
+                    if chunk_type == b"comf" and data and b"\x00" in data:
+                        name_bytes, payload_bytes = data.split(b"\x00", 1)
+                        try:
+                            name = name_bytes.decode('latin-1', 'strict')
+                            payload = payload_bytes.decode('latin-1', 'strict')
+                            out[name] = payload
+                        except Exception:
+                            pass
+
+                    if chunk_type == b"IEND":
+                        break
+
+                return out
+        except Exception:
+            return {}
     
-    def inject_and_save(self, target_image, source_image_path, filename_prefix="ComfyUI"):
+    def inject_and_save(self, target_image, source_image_path, filename_prefix="ComfyUI", save_as="png"):
         """
         Inject metadata from source to target image and save it.
         
@@ -138,18 +201,54 @@ class StarMetaInjector:
             if not isinstance(value, str):
                 value = str(value)
             png_info.add_text(key, value)
+
+        # Create WebP EXIF metadata (ComfyUI-style: prompt in 0x0110, extra fields in 0x010F downward)
+        webp_exif = None
+        if save_as == "webp":
+            try:
+                webp_exif = target_pil.getexif()
+                if "prompt" in metadata and isinstance(metadata.get("prompt"), str):
+                    webp_exif[0x0110] = "prompt:{}".format(metadata.get("prompt"))
+
+                inital_exif_tag = 0x010F
+                for key, value in metadata.items():
+                    if key == "prompt":
+                        continue
+                    if not isinstance(value, str):
+                        value = str(value)
+                    webp_exif[inital_exif_tag] = "{}:{}".format(key, value)
+                    inital_exif_tag -= 1
+            except Exception as e:
+                print(f"⭐ Star Meta Injector: Error creating WEBP EXIF metadata: {str(e)}")
+                webp_exif = None
         
         # Generate unique filename
         counter = 1
         while True:
-            filename = f"{filename_prefix}_{counter:05d}_.png"
+            ext = "png" if save_as == "png" else "webp"
+            filename = f"{filename_prefix}_{counter:05d}_.{ext}"
             save_path = os.path.join(self.output_dir, filename)
             if not os.path.exists(save_path):
                 break
             counter += 1
         
         # Save with metadata
-        target_pil.save(save_path, pnginfo=png_info, compress_level=4)
+        if save_as == "webp":
+            target_pil.save(save_path, exif=webp_exif, lossless=True, quality=100, method=6)
+        else:
+            # Also embed ComfyUI-style chunks for prompt/workflow compatibility where possible
+            try:
+                if "prompt" in metadata and isinstance(metadata.get("prompt"), str):
+                    png_info.add(b"comf", "prompt".encode("latin-1", "strict") + b"\0" + metadata.get("prompt").encode("latin-1", "strict"), after_idat=True)
+                for key, value in metadata.items():
+                    if key == "prompt":
+                        continue
+                    if not isinstance(value, str):
+                        value = str(value)
+                    png_info.add(b"comf", key.encode("latin-1", "strict") + b"\0" + value.encode("latin-1", "strict"), after_idat=True)
+            except Exception:
+                pass
+            target_pil.save(save_path, pnginfo=png_info, compress_level=4)
         
         print(f"⭐ Star Meta Injector: Saved image with {len(metadata)} metadata fields to: {save_path}")
         

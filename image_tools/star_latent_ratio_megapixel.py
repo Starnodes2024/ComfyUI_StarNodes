@@ -48,7 +48,7 @@ class StarAdvanvesRatioLatent:
             "100 Megapixel (≈ 10000x10000)",
         ]
 
-        latent_channels_options = [4, 16]
+        latent_channels_options = ["4 (SD/SDXL)", "16 (FLUX/QWEN/ZIT)", "128 (FLUX2)"]
 
         return {
             "required": {
@@ -57,7 +57,7 @@ class StarAdvanvesRatioLatent:
                 "resolution": (resolution_options, {"default": "4 Megapixel (≈ 2000x2000)"}),
                 "custom_width": ("INT", {"default": 1920, "min": 16, "max": 99968, "step": 16}),
                 "custom_height": ("INT", {"default": 1080, "min": 16, "max": 99968, "step": 16}),
-                "latent_channels": (latent_channels_options, {"default": 16}),
+                "latent_channels": (latent_channels_options, {"default": "16 (FLUX/QWEN/ZIT)"}),
                 "ratio_from_image": ("BOOLEAN", {"default": False, "display_name": "Ratio From Image"}),
                 "batch_size": ("INT", {"default": 1, "min": 1, "max": 4096}),
             },
@@ -106,11 +106,13 @@ class StarAdvanvesRatioLatent:
         resolution: str,
         custom_width: int,
         custom_height: int,
-        latent_channels: int,
+        latent_channels: str,
         ratio_from_image: bool = False,
         image=None,
         batch_size: int = 1,
     ):
+        channels = int(latent_channels.split(" ")[0])
+
         # Determine aspect ratio
         ar_w, ar_h = 16, 9  # default
 
@@ -163,10 +165,14 @@ class StarAdvanvesRatioLatent:
             width = max(16, width)
             height = max(16, height)
 
-            width_latent = max(2, width // 8)
-            height_latent = max(2, height // 8)
+            if channels == 128:
+                width_latent = max(2, width // 16)
+                height_latent = max(2, height // 16)
+            else:
+                width_latent = max(2, width // 8)
+                height_latent = max(2, height // 8)
 
-            latent = torch.zeros([batch_size, int(latent_channels), int(height_latent), int(width_latent)])
+            latent = torch.zeros([batch_size, channels, int(height_latent), int(width_latent)])
             return ({"samples": latent}, int(width), int(height))
 
         # Clean label so logic is robust to extra info in parentheses, e.g. "SD (512x512)"
@@ -213,11 +219,14 @@ class StarAdvanvesRatioLatent:
         width = max(16, width)
         height = max(16, height)
 
-        # Latent resolution: standard factor 8 downscale from image
-        width_latent = max(2, width // 8)
-        height_latent = max(2, height // 8)
+        if channels == 128:
+            width_latent = max(2, width // 16)
+            height_latent = max(2, height // 16)
+        else:
+            width_latent = max(2, width // 8)
+            height_latent = max(2, height // 8)
 
-        latent = torch.zeros([batch_size, int(latent_channels), int(height_latent), int(width_latent)])
+        latent = torch.zeros([batch_size, channels, int(height_latent), int(width_latent)])
         return ({"samples": latent}, int(width), int(height))
 
 

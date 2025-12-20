@@ -2,7 +2,7 @@
 
 Creates seamless looping video frames from panoramic images. Perfect for creating social media content from AI-generated or photographed panoramas. Connect the output to any Video Combine node to save the final video.
 
-**Supports multiple image inputs!** Connect additional images to join them into a longer panorama (horizontally or vertically depending on direction).
+**Supports multiple image inputs!** Connect additional images to join them horizontally into a longer panorama.
 
 - __Category__: `⭐StarNodes/Video`
 - __Class__: `StarImageLoop`
@@ -26,31 +26,27 @@ Creates seamless looping video frames from panoramic images. Perfect for creatin
 - __fps__ (INT, required, default: 24): Frames per second (1-60). Passed through to output for Video Combine nodes.
 - __duration__ (FLOAT, required, default: 10.0): Video duration in seconds (1-300).
 - __direction__ (CHOICE, required, default: "Left to Right"): Scroll direction.
-  - `Left to Right` - Pan from left to right (images joined horizontally)
-  - `Right to Left` - Pan from right to left (images joined horizontally)
-  - `Up (Bottom to Top)` - Pan from bottom to top (images joined vertically)
-  - `Down (Top to Bottom)` - Pan from top to bottom (images joined vertically)
+  - `Left to Right` - Pan from left to right
+  - `Right to Left` - Pan from right to left
 
 ### Optional (Dynamic)
 - __image 1__ (IMAGE): First panorama image. Always visible.
-- __image 2, image 3, ...__ (IMAGE): Additional images that appear dynamically when you connect more inputs. Images are joined in order based on direction.
+- __image 2, image 3, ...__ (IMAGE): Additional images that appear dynamically when you connect more inputs. Images are joined horizontally in order (image 1 → image 2 → image 3 → ...).
 
 ## Outputs
 - __images__ (IMAGE): Batch of video frames `[N, H, W, C]` ready for a Video Combine node.
 - __fps__ (INT): The fps value, passed through for use with Video Combine nodes.
 
 ## Behavior
-- **Horizontal directions** (Left/Right): Images are joined horizontally, scaled to match output height.
-- **Vertical directions** (Up/Down): Images are joined vertically, scaled to match output width.
-- The combined panorama is tiled to create a seamless loop.
+- **Multiple images** are joined horizontally in order, scaled to match the output height.
+- The combined panorama is tiled horizontally to create a seamless loop.
 - Frames are generated at the specified fps and duration (e.g., 24fps × 10s = 240 frames).
 - All dimensions are ensured to be even numbers for video encoding compatibility.
 
 ## Usage Tips
-- For horizontal scrolling, use wide panoramic images (e.g., 2:1 ratio).
-- For vertical scrolling, use tall images (e.g., 1:2 ratio).
+- For best results, use panoramic images with a 2:1 aspect ratio (e.g., 4096x2048).
 - **Combine multiple images** to create longer panoramas - great for stitching AI-generated scenes together!
-- The seamless loop works because the panorama scrolls exactly one combined dimension per video duration.
+- The seamless loop works because the panorama scrolls exactly one combined image width per video duration.
 - Use 9:16 ratio for TikTok/Reels, 1:1 for Instagram feed, 16:9 for YouTube.
 - Higher FPS (30-60) creates smoother motion but more frames.
 - Longer durations create slower, more relaxing pans.

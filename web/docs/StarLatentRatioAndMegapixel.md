@@ -31,8 +31,9 @@ The **Star Advanved Ratio/Latent** node creates a latent tensor based on a chose
 - **custom_width**: Target width in pixels when **resolution** is `custom`. Must be divisible by 16 (the node will snap to the nearest multiple of 16).
 - **custom_height**: Target height in pixels when **resolution** is `custom`. Must be divisible by 16 (the node will snap to the nearest multiple of 16).
 - **latent_channels**: Channel count of the latent tensor. Options:
-  - `4`
-  - `16` *(default)*
+  - `4 (SD/SDXL)` - For standard SD 1.5/SDXL models (uses 8x downsampling)
+  - `16 (FLUX/QWEN/ZIT)` *(default)* - For Flux 1.x, SD3.5, Qwen, and ZIT models (uses 8x downsampling)
+  - `128 (FLUX2)` - For Flux 2 models (uses 16x downsampling)
 - **ratio_from_image**: Boolean toggle *(Ratio From Image)*. When enabled and an image is connected, the node will approximate the nearest preset ratio from the input image.
  - **batch_size**: Number of latent samples to create in one go. Works like the core latent nodes:
    - `1` *(default)*
@@ -53,7 +54,9 @@ The **Star Advanved Ratio/Latent** node creates a latent tensor based on a chose
 2. The node computes a target pixel area from **megapixels**, scaled from a **1024×1024** base area (not strict camera megapixels).
 3. Using the target area and chosen aspect ratio, it computes ideal floating-point width and height.
 4. Both width and height are snapped to the nearest multiple of **16**, with a minimum of 16.
-5. The latent tensor resolution is derived from these dimensions using a standard 8× downscale (width/8, height/8) and the chosen **latent_channels**.
+5. The latent tensor resolution is derived from these dimensions:
+   - For **4 or 16 channels**: Uses 8× downsampling (width/8, height/8)
+   - For **128 channels** (Flux 2): Uses 16× downsampling (width/16, height/16)
 
 ## Notes
 - All output dimensions are forced to be **divisible by 16** to stay friendly with most diffusion model pipelines.

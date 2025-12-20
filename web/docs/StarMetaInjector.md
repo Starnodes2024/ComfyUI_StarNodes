@@ -25,8 +25,9 @@ If you connect this node to a standard Save Image node, ComfyUI will overwrite t
 ## Inputs
 
 - __target_image__ (IMAGE, required): The image that will receive the metadata and be saved
-- __source_image_path__ (STRING, required): Path to source PNG file with metadata to copy (e.g., `output/ComfyUI_00001_.png`)
+- __source_image_path__ (STRING, required): Path to source PNG/WEBP file with metadata to copy (e.g., `output/ComfyUI_00001_.png`)
 - __filename_prefix__ (STRING, optional, default: "ComfyUI"): Prefix for the output filename
+- __save_as__ (STRING, optional, default: `png`): Output format (`png` or `webp`)
 
 ## Outputs
 
@@ -51,7 +52,15 @@ The node copies all PNG text chunks from the source file, including:
 ### Supported Formats
 - **Source**: PNG files with embedded metadata
 - **Target**: Any ComfyUI IMAGE tensor
-- **Output**: PNG with embedded metadata
+- **Output**: PNG or WEBP with embedded metadata
+
+#### Notes on WEBP
+
+ComfyUI stores WEBP metadata using EXIF tags in the form `key:<json>`.
+
+This node will:
+- Save `prompt` as `prompt:<json>` in EXIF
+- Save other metadata keys as `<key>:<value>` in EXIF
 
 ## Example Workflow
 

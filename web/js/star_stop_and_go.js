@@ -7,6 +7,35 @@ const workflowState = {
     waiting: {},  // Track nodes waiting for user input
 };
 
+function captureInitialAppearance(node) {
+    if (!node) return;
+
+    if (!node._starnodesInitialAppearance) {
+        node._starnodesInitialAppearance = {
+            bgcolor: node.bgcolor,
+            color: node.color,
+            title: node.title,
+        };
+        return;
+    }
+
+    const initial = node._starnodesInitialAppearance;
+    if ((initial.bgcolor == null || initial.bgcolor === "") && node.bgcolor != null) {
+        initial.bgcolor = node.bgcolor;
+    }
+    if ((initial.color == null || initial.color === "") && node.color != null) {
+        initial.color = node.color;
+    }
+}
+
+function restoreInitialAppearance(node) {
+    const initial = node?._starnodesInitialAppearance;
+    if (!node || !initial) return;
+
+    node.bgcolor = initial.bgcolor ?? node.constructor.nodeData?.bgcolor;
+    node.color = initial.color ?? node.constructor.nodeData?.color;
+}
+
 app.registerExtension({
     name: "StarNodes.StarStopAndGo",
     
@@ -21,6 +50,8 @@ app.registerExtension({
                 }
                 
                 const node = this;
+
+                setTimeout(() => captureInitialAppearance(node), 0);
                 
                 // Add Stop button
                 const stopButton = node.addWidget(
@@ -29,6 +60,8 @@ app.registerExtension({
                     null,
                     async () => {
                         const nodeId = String(node.id);
+
+                        captureInitialAppearance(node);
                         
                         // Send decision to backend
                         try {
@@ -63,6 +96,8 @@ app.registerExtension({
                     null,
                     async () => {
                         const nodeId = String(node.id);
+
+                        captureInitialAppearance(node);
                         
                         // Send decision to backend
                         try {
@@ -86,7 +121,7 @@ app.registerExtension({
                         
                         // Reset appearance after a moment
                         setTimeout(() => {
-                            node.bgcolor = node.constructor.nodeData?.bgcolor;
+                            restoreInitialAppearance(node);
                             node.title = "⭐ Star Stop And Go";
                         }, 1500);
                     },
