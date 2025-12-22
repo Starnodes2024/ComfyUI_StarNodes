@@ -2,7 +2,11 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.5
+## StarNodes Theme System
+
+You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
+
+**Current Version:** 1.9.6
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 

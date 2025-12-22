@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_starnodes"
-description = "NODES: StarNode Startsettings for Flux and SD, Samplers for Flux and SD, Save layers as PSD, Wildcards and more helper nodes"
-version = "1.9.5"
+description = "NODES: StarNodes - A Big collection of Custom Nodes for ComfyUI with improvements, image tools and lots of helper nodes"
+version = "1.9.6"
 license = {file = "LICENSE"}
 
 [project.urls]

@@ -9,12 +9,20 @@ The **Star Advanved Ratio/Latent** node creates a latent tensor based on a chose
 - **ratio**: Aspect ratio preset for the output. Options:
   - **custom**: Uses a neutral 1:1 ratio (or image ratio when *Ratio From Image* is enabled)
   - **1:1**
+  - **1:2**
   - **3:4**
+  - **2:3**
   - **5:7**
   - **9:16**
+  - **9:21**
+  - **10:16**
   - **4:3**
+  - **16:10**
+  - **3:2**
+  - **2:1**
   - **7:5**
   - **16:9** *(default)*
+  - **21:9**
 - **custom_ratio**: Text input for custom aspect ratios when **ratio** is set to `custom`.
   - Format examples: `21:9`, `4:3`, `8:6`
   - Both `:` and `x` separators are accepted (e.g. `21x9`)
@@ -49,7 +57,7 @@ The **Star Advanved Ratio/Latent** node creates a latent tensor based on a chose
 
 ## Behavior
 1. The node determines an aspect ratio:
-   - If **ratio_from_image** is enabled and an image is provided, the node reads the image aspect ratio and selects the closest preset ratio (1:1, 3:4, 5:7, 9:16, 4:3, 7:5, 16:9).
+   - If **ratio_from_image** is enabled and an image is provided, the node reads the image aspect ratio and selects the closest preset ratio (1:1, 1:2, 3:4, 2:3, 5:7, 9:16, 9:21, 10:16, 4:3, 16:10, 3:2, 2:1, 7:5, 16:9, 21:9).
    - Otherwise, it uses the chosen **ratio**. For **custom**, a neutral 1:1 ratio is used.
 2. The node computes a target pixel area from **megapixels**, scaled from a **1024×1024** base area (not strict camera megapixels).
 3. Using the target area and chosen aspect ratio, it computes ideal floating-point width and height.
