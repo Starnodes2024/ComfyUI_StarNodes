@@ -39,6 +39,7 @@
 | **max_shift** | FLOAT | 1.15 | Max shift parameter for Flux models (ignored for SD) |
 | **base_shift** | FLOAT | 0.5 | Base shift parameter for Flux/AuraFlow models |
 | **detail_schedule** | DETAIL_SCHEDULE | None | Optional detail daemon schedule for enhanced quality |
+| **options** | * | None | Optional sampler options input. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (QWEN/ZIT) to enable a two-pass detail refinement. |
 
 ## Outputs
 
@@ -108,6 +109,17 @@ The Detail Daemon feature enhances image quality by adjusting the sampling proce
 - End: 0.7-0.9
 - Bias: 0.5
 - Exponent: 1.5-2.0
+
+### Advanced Usage with Distilled Optimizer (QWEN/ZIT)
+
+The Distilled Optimizer performs a two-pass sampling strategy that can improve detail with low step counts.
+
+1. Add `⭐ Distilled Optimizer (QWEN/ZIT)`.
+2. Connect its `options` output to `⭐ StarSampler (Unified) -> options`.
+3. Use the **Enable** toggle to enable/disable the optimizer.
+4. Optionally override advanced settings in the ZIT node (start/refine samplers, per-pass steps and denoise, patch parameters, and noise multiplier).
+
+If the optimizer cannot be applied for the current model, StarSampler will ignore it and sample normally.
 
 ## Model-Specific Behavior
 

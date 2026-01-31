@@ -2,11 +2,19 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.5
+**Current Version:** 1.9.7
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New New in 1.9.7
+
+### Text & Data
+- ⭐ **Star Prompt Picker** (`StarPromptPicker`) — Pick prompts from a text file (one prompt per line) or from a folder of single-prompt `.txt` files. Supports Random and One By One modes with saved progress.
+
+### Sampling Utilities
+- ⭐ **Distilled Optimizer (QWEN/ZIT)** (`StarDistilledOptimizerZIT`) — Two-pass distilled refinement options for ⭐ StarSampler (Unified). Works with Z-Image-Turbo and with Qwen-Image when using a Turbo/LightX LoRA.
 
 ## New in 1.9.5
 

@@ -82,7 +82,7 @@ class StarSampler:
                 "max_shift": ("FLOAT", {"default": 1.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Max shift for Flux models (ignored for SD models)"}),
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
-                "options": ("SIGMAS", {"tooltip": "Optional sigma schedule (e.g. from ⭐ Star FlowMatch Option). When connected, overrides the internal scheduler sigmas for Flux/Aura models."}),
+                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
             }
         }
 
@@ -162,7 +162,76 @@ class StarSampler:
 
     def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, 
                 decode_image=True, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None):
-        
+
+        if isinstance(options, dict) and options.get("starnodes_type") == "ZIT" and (
+            bool(options.get("enabled", False)) or int(options.get("details", 0)) > 0
+        ):
+            try:
+                start_sampler = options.get("start_sampler", sampler_name)
+                refine_sampler = options.get("refine_sampler", "res_multistep")
+
+                start_steps = int(options.get("start_steps", 6))
+                refine_steps = int(options.get("refine_steps", 3))
+                start_steps = max(1, start_steps)
+                refine_steps = max(0, refine_steps)
+
+                start_denoise = float(options.get("start_denoise", 1.0))
+                refine_denoise = float(options.get("refine_denoise", 0.6))
+                start_denoise = max(0.0, min(1.0, start_denoise))
+                refine_denoise = max(0.0, min(1.0, refine_denoise))
+
+                shift = float(options.get("patch_shift", 2.55))
+                multiplier = float(options.get("patch_multiplier", 1.0))
+                noise_multiplier = float(options.get("noise_multiplier", 1.0))
+                noise_multiplier = max(0.0, noise_multiplier)
+
+                def _patch_model_sampling_zimage(src_model, shift_val, mult_val):
+                    m = src_model.clone()
+                    sampling_base = comfy.model_sampling.ModelSamplingDiscreteFlow
+                    sampling_type = comfy.model_sampling.CONST
+
+                    class ModelSamplingAdvanced(sampling_base, sampling_type):
+                        pass
+
+                    model_sampling = ModelSamplingAdvanced(src_model.model.model_config)
+                    model_sampling.set_parameters(shift=shift_val, multiplier=mult_val)
+                    m.add_object_patch("model_sampling", model_sampling)
+                    return m
+
+                work_model = _patch_model_sampling_zimage(model, shift, multiplier)
+
+                if negative is None:
+                    negative = conditioning_zero_out(positive)
+
+                generator = torch.manual_seed(seed)
+                noise = torch.randn(latent["samples"].shape, dtype=torch.float32, layout=torch.strided, generator=generator, device="cpu")
+                noise = noise.to(device=latent["samples"].device)
+                if noise_multiplier != 1.0:
+                    noise = noise * noise_multiplier
+                noise_latent = latent.copy()
+                noise_latent["samples"] = noise
+
+                latent_1 = common_ksampler(work_model, seed, start_steps, cfg, start_sampler, scheduler, positive, negative, noise_latent, denoise=start_denoise)[0]
+
+                if refine_steps > 0 and refine_denoise > 0.0:
+                    sampler_2 = refine_sampler
+                    if sampler_2 not in comfy.samplers.KSampler.SAMPLERS:
+                        sampler_2 = "res_multistep" if "res_multistep" in comfy.samplers.KSampler.SAMPLERS else sampler_name
+                    out_latent = common_ksampler(model, seed, refine_steps, cfg, sampler_2, scheduler, positive, negative, latent_1, denoise=refine_denoise)[0]
+                else:
+                    out_latent = latent_1
+
+                image = None
+                if decode_image:
+                    images = vae.decode(out_latent["samples"])
+                    if len(images.shape) == 5:
+                        images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+                    image = images
+
+                return (model, positive, negative, out_latent, image, vae, seed)
+            except Exception as e:
+                logging.warning(f"StarSampler: ZIT options ignored due to error: {e}")
+
         # Detect model type
         is_flux = self.is_flux_model(model)
         
@@ -198,7 +267,7 @@ class StarSampler:
                 
                 # Get sampler and sigmas (allow external sigmas override)
                 sampler_obj = comfy.samplers.sampler_object(sampler_name)
-                if options is not None:
+                if options is not None and not isinstance(options, dict):
                     sigmas = options
                 else:
                     sigmas = basic_scheduler.get_sigmas(work_model, scheduler, steps, denoise)[0]

@@ -163,11 +163,9 @@ class StarSaveImagePlus:
 
 
 NODE_CLASS_MAPPINGS = {
-    "StarSaveImagePlus": StarSaveImagePlus,
     "⭐ Star Save Image+": StarSaveImagePlus,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarSaveImagePlus": "⭐ Star Save Image+",
     "⭐ Star Save Image+": "⭐ Star Save Image+",
 }
