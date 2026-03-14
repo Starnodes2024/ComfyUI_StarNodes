@@ -2,13 +2,26 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.7
+**Current Version:** 1.9.8
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New New in 1.9.7
+## New in 1.9.8
+
+### Text & Data
+- ⭐ **Star Text Filter** — Added two new filter options:
+  - `keep_from_start_to_end`: Keeps only the text from start word to end word (inclusive)
+  - `remove_from_start_to_end`: Removes text from start word to end word (inclusive), keeps the rest
+
+### IO & Image Loading
+- ⭐ **Star Load Image+** — Added clipboard paste functionality:
+  - Right-click context menu option "📋 Paste Clipboard Image"
+  - Widget button "⭐ 📋 Paste Image" for quick clipboard pasting
+  - Paste images directly into the node without manual file uploads
+
+## New in 1.9.7
 
 ### Text & Data
 - ⭐ **Star Prompt Picker** (`StarPromptPicker`) — Pick prompts from a text file (one prompt per line) or from a folder of single-prompt `.txt` files. Supports Random and One By One modes with saved progress.

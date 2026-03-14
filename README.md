@@ -6,13 +6,26 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 1.9.7
+**Current Version:** 1.9.8
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New New in 1.9.7
+## New in 1.9.8
+
+### Text & Data
+- ⭐ **Star Text Filter** — Added two new filter options:
+  - `keep_from_start_to_end`: Keeps only the text from start word to end word (inclusive)
+  - `remove_from_start_to_end`: Removes text from start word to end word (inclusive), keeps the rest
+
+### IO & Image Loading
+- ⭐ **Star Load Image+** — Added clipboard paste functionality:
+  - Right-click context menu option "📋 Paste Clipboard Image"
+  - Widget button "⭐ 📋 Paste Image" for quick clipboard pasting
+  - Paste images directly into the node without manual file uploads
+
+## New in 1.9.7
 
 ### Text & Data
 - ⭐ **Star Prompt Picker** (`StarPromptPicker`) — Pick prompts from a text file (one prompt per line) or from a folder of single-prompt `.txt` files. Supports Random and One By One modes with saved progress.
@@ -211,6 +224,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Starnodes Aspect Ratio: Calculates aspect ratio from an image or provides standard aspect ratios with customizable megapixel settings
 - ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
 - ⭐ Starnodes Aspect Video Ratio: Select a video aspect ratio from a dropdown, input width, and receive width/height as int/string plus formatted size (e.g., 750x422). Calculates height automatically from width and selected ratio.
+- ⭐ Star Everything to INT/STR: Converts any incoming value (including tuples) into a safe INT and STRING output. Returns 0 if INT conversion is not possible.
 - ⭐ Star Random Lora Loader: Randomly selects a LoRA from your library with subfolder/name filters and optional direct application to MODEL/CLIP or string output
 
 ### ⭐StarNodes/Color

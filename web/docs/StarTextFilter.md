@@ -9,6 +9,8 @@ The Star Text Filter node provides various text processing capabilities to clean
   - `remove_between_words`: Removes all text between the specified start and end words
   - `remove_before_start_word`: Removes all text before the first occurrence of the start word
   - `remove_after_end_word`: Removes all text after the last occurrence of the end word
+  - `keep_from_start_to_end`: Keeps only the text from start word to end word (inclusive)
+  - `remove_from_start_to_end`: Removes text from start word to end word (inclusive), keeps the rest
   - `remove_empty_lines`: Removes all empty lines from the text
   - `remove_whitespace`: Removes all whitespace characters from the text
   - `strip_lines`: Removes leading and trailing whitespace from each line

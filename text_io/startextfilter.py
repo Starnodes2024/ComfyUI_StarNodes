@@ -9,7 +9,7 @@ class StarTextFilter:
         return {
             "required": {
                 "text": ("STRING", {"multiline": True}),
-                "filter_type": (["remove_between_words", "remove_before_start_word", "remove_after_end_word", "remove_empty_lines", "remove_whitespace", "strip_lines"], ),
+                "filter_type": (["remove_between_words", "remove_before_start_word", "remove_after_end_word", "keep_from_start_to_end", "remove_from_start_to_end", "remove_empty_lines", "remove_whitespace", "strip_lines"], ),
                 "start_word": ("STRING", {"default": "INPUT"}),
                 "end_word": ("STRING", {"default": "INPUT"}),
             }
@@ -49,6 +49,38 @@ class StarTextFilter:
                 result = text[:match.end()]
             else:
                 # If end_word not found, return original text
+                result = text
+        elif filter_type == "keep_from_start_to_end":
+            import re
+            # Find start_word and end_word, keep only text between them (inclusive)
+            start_match = re.search(re.escape(start_word), text)
+            if start_match:
+                # Search for end_word after start_word
+                end_match = re.search(re.escape(end_word), text[start_match.start():])
+                if end_match:
+                    # Return text from start_word to end of end_word
+                    result = text[start_match.start():start_match.start() + end_match.end()]
+                else:
+                    # If end_word not found, return from start_word to end
+                    result = text[start_match.start():]
+            else:
+                # If start_word not found, return original text
+                result = text
+        elif filter_type == "remove_from_start_to_end":
+            import re
+            # Find start_word and end_word, remove text between them (inclusive)
+            start_match = re.search(re.escape(start_word), text)
+            if start_match:
+                # Search for end_word after start_word
+                end_match = re.search(re.escape(end_word), text[start_match.start():])
+                if end_match:
+                    # Remove text from start_word to end of end_word
+                    result = text[:start_match.start()] + text[start_match.start() + end_match.end():]
+                else:
+                    # If end_word not found, return original text
+                    result = text
+            else:
+                # If start_word not found, return original text
                 result = text
         else:
             result = text
