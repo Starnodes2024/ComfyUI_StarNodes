@@ -63,6 +63,8 @@ class StarMiniMaxPrompter:
     @classmethod
     def INPUT_TYPES(cls):
         models = [
+            "MiniMax-M2.7",
+            "MiniMax-M2.7-highspeed",
             "MiniMax-M2.5",
             "MiniMax-M2.5-highspeed",
         ]
@@ -78,7 +80,7 @@ class StarMiniMaxPrompter:
             "required": {
                 "text_input": ("STRING", {"default": "", "multiline": True}),
                 "system_prompt": ("STRING", {"default": default_system, "multiline": True}),
-                "model": (models, {"default": "MiniMax-M2.5"}),
+                "model": (models, {"default": "MiniMax-M2.7"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.01, "max": 1.0, "step": 0.01}),
                 "max_tokens": ("INT", {"default": 2048, "min": 1, "max": 204800, "step": 1}),
             }

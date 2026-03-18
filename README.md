@@ -186,7 +186,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content
 - ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites for use in prompts or text generation
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
-- ⭐ Star MiniMax Prompter (`StarMiniMaxPrompter`): Text generation and prompt refinement using [MiniMax](https://www.minimaxi.com) MiniMax-M2.5 models (204K context) via OpenAI-compatible API
+- ⭐ Star MiniMax Prompter (`StarMiniMaxPrompter`): Text generation and prompt refinement using [MiniMax](https://www.minimaxi.com) MiniMax-M2.7 models via OpenAI-compatible API
 
 ### ⭐StarNodes/Video
 - ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
