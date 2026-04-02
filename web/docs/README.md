@@ -2,13 +2,13 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.8
+**Current Version:** 1.9.9
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## New in 1.9.8
+## New in 1.9.9
 
 ### Dependencies
 - 🔧 **InfiniteYou Dependencies Now Optional** — `insightface`, `onnxruntime`, `huggingface_hub`, and `facexlib` are now commented out in requirements.txt. Only install these if you need the InfiniteYou face swap nodes. This resolves numpy binary incompatibility issues for users who don't need face swap functionality.
