@@ -10,16 +10,11 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ## New in 1.9.8
 
-### Text & Data
-- ⭐ **Star Text Filter** — Added two new filter options:
-  - `keep_from_start_to_end`: Keeps only the text from start word to end word (inclusive)
-  - `remove_from_start_to_end`: Removes text from start word to end word (inclusive), keeps the rest
+### Dependencies
+- 🔧 **InfiniteYou Dependencies Now Optional** — `insightface`, `onnxruntime`, `huggingface_hub`, and `facexlib` are now commented out in requirements.txt. Only install these if you need the InfiniteYou face swap nodes. This resolves numpy binary incompatibility issues for users who don't need face swap functionality.
 
-### IO & Image Loading
-- ⭐ **Star Load Image+** — Added clipboard paste functionality:
-  - Right-click context menu option "📋 Paste Clipboard Image"
-  - Widget button "⭐ 📋 Paste Image" for quick clipboard pasting
-  - Paste images directly into the node without manual file uploads
+### Helpers & Tools
+- ⭐ **Star Size Calculator by Side** (`Star_Size_Calculator_By_Side`) — Calculate new image dimensions by resizing the longest or shortest side while maintaining aspect ratio. Supports both image input and manual width/height. Outputs include width, height, long_side, and short_side (all as both string and int) for flexible workflow integration.
 
 ## New in 1.9.7
 

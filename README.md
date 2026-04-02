@@ -14,16 +14,11 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 
 ## New in 1.9.8
 
-### Text & Data
-- ⭐ **Star Text Filter** — Added two new filter options:
-  - `keep_from_start_to_end`: Keeps only the text from start word to end word (inclusive)
-  - `remove_from_start_to_end`: Removes text from start word to end word (inclusive), keeps the rest
+### Dependencies
+- 🔧 **InfiniteYou Dependencies Now Optional** — `insightface`, `onnxruntime`, `huggingface_hub`, and `facexlib` are now commented out in requirements.txt. Only install these if you need the InfiniteYou face swap nodes. This resolves numpy binary incompatibility issues for users who don't need face swap functionality.
 
-### IO & Image Loading
-- ⭐ **Star Load Image+** — Added clipboard paste functionality:
-  - Right-click context menu option "📋 Paste Clipboard Image"
-  - Widget button "⭐ 📋 Paste Image" for quick clipboard pasting
-  - Paste images directly into the node without manual file uploads
+### Helpers & Tools
+- ⭐ **Star Size Calculator by Side** (`Star_Size_Calculator_By_Side`) — Calculate new image dimensions by resizing the longest or shortest side while maintaining aspect ratio. Supports both image input and manual width/height. Outputs include width, height, long_side, and short_side (all as both string and int) for flexible workflow integration.
 
 ## New in 1.9.7
 
@@ -220,11 +215,11 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Delete Sampler Settings: Delete saved sampling settings
 
 ### ⭐StarNodes/Helpers And Tools
+- ⭐ Star Size Calculator by Side: Calculate new dimensions by resizing longest or shortest side while maintaining aspect ratio. Outputs width, height, long_side, and short_side (both string and int)
 - ⭐ Star Denoise Slider: Provides a simple slider interface to control the denoising strength for samplers
 - ⭐ Starnodes Aspect Ratio: Calculates aspect ratio from an image or provides standard aspect ratios with customizable megapixel settings
 - ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
 - ⭐ Starnodes Aspect Video Ratio: Select a video aspect ratio from a dropdown, input width, and receive width/height as int/string plus formatted size (e.g., 750x422). Calculates height automatically from width and selected ratio.
-- ⭐ Star Everything to INT/STR: Converts any incoming value (including tuples) into a safe INT and STRING output. Returns 0 if INT conversion is not possible.
 - ⭐ Star Random Lora Loader: Randomly selects a LoRA from your library with subfolder/name filters and optional direct application to MODEL/CLIP or string output
 
 ### ⭐StarNodes/Color
@@ -310,10 +305,15 @@ The Star Wildcards node allows you to combine up to 7 different prompts, each wi
 All dependencies are listed in `requirements.txt` and will be installed automatically:
 - **google-generativeai>=0.8.3** - Required for Star Nano Banana (Gemini) node
 - **color-matcher** - Required for Star Simple Filters color matching features
-- **insightface** - Required for InfiniteYou face swap nodes
-- **onnxruntime** / **onnxruntime-gpu** - Required for face detection and processing
 - **psd-tools>=1.10.0** - Required for PSD export nodes
 - **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
+
+### Optional Dependencies (InfiniteYou Face Swap)
+These dependencies are now **optional** and commented out in `requirements.txt`. Only install if you need InfiniteYou face swap functionality:
+- **insightface** - Required for InfiniteYou face swap nodes
+- **onnxruntime** / **onnxruntime-gpu** - Required for face detection and processing
+- **huggingface_hub** - Required for model downloads
+- **facexlib==0.3.0** - Required for face processing
 
 ### Google Gemini API Key
 To use the **Star Nano Banana** and **Star Gemini Refiner** nodes:
