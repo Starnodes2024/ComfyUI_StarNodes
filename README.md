@@ -17,6 +17,9 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 ### Dependencies
 - 🔧 **InfiniteYou Dependencies Now Optional** — `insightface`, `onnxruntime`, `huggingface_hub`, and `facexlib` are now commented out in requirements.txt. Only install these if you need the InfiniteYou face swap nodes. This resolves numpy binary incompatibility issues for users who don't need face swap functionality.
 
+### Conditioning
+- ⭐ **Star Flux2 Conditioner** (`StarFlux2Conditioner`) — Advanced conditioning node for Flux2 models that encodes text prompts and optionally processes up to 5 reference images. Automatically resizes images to 1MP and encodes them as guiding latents for enhanced image-to-image workflows.
+
 ### Helpers & Tools
 - ⭐ **Star Size Calculator by Side** (`Star_Size_Calculator_By_Side`) — Calculate new image dimensions by resizing the longest or shortest side while maintaining aspect ratio. Supports both image input and manual width/height. Outputs include width, height, long_side, and short_side (all as both string and int) for flexible workflow integration.
 
