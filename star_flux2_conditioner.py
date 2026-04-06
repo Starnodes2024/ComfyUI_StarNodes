@@ -21,10 +21,11 @@ class StarFlux2Conditioner:
             }
         }
 
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("POS", "NEG")
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "IMAGE")
+    RETURN_NAMES = ("POS", "NEG", "GRID_IMAGE")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes/Conditioning"
+    OUTPUT_IS_LIST = (False, False, False)
 
     def scale_image_to_megapixels(self, image, target_megapixels=1.0):
         """
@@ -145,6 +146,7 @@ class StarFlux2Conditioner:
         
         # 4. Process reference images based on join_references setting
         ref_latents = []
+        grid_output = None
         
         # Process image_1 if provided
         if image_1 is not None:
@@ -158,6 +160,8 @@ class StarFlux2Conditioner:
                 # Create grid from additional images
                 grid_image = self.create_image_grid(additional_images)
                 if grid_image is not None:
+                    # Store the grid for output
+                    grid_output = grid_image
                     # Resize grid to 1MP and encode
                     scaled_grid = self.scale_image_to_megapixels(grid_image, 1.0)
                     latent = vae.encode(scaled_grid[:,:,:,:3])
@@ -177,7 +181,12 @@ class StarFlux2Conditioner:
                 append=True
             )
 
-        return (pos_conditioning, neg_conditioning)
+        # 6. Return conditioning and grid image (if created)
+        if grid_output is None:
+            # Create empty white image if no grid was created
+            grid_output = torch.ones((1, 64, 64, 3), dtype=torch.float32)
+        
+        return (pos_conditioning, neg_conditioning, grid_output)
 
 NODE_CLASS_MAPPINGS = {
     "StarFlux2Conditioner": StarFlux2Conditioner

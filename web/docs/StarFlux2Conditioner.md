@@ -32,8 +32,9 @@ This node is particularly useful for Flux2 edit models and other architectures t
 
 ## Outputs
 
-- **POS (CONDITIONING)**: Positive conditioning with encoded prompt and optional guiding latents
+- **POS (CONDITIONING)**: Positive conditioning with text embeddings and optional reference latents
 - **NEG (CONDITIONING)**: Negative conditioning (empty prompt by default)
+- **GRID_IMAGE (IMAGE)**: The created 2x2 grid image (when join_references is enabled and images 2-5 are provided). Returns a small white placeholder image if no grid was created
 
 ## How It Works
 
@@ -81,6 +82,12 @@ Use multiple reference images (up to 5) to provide diverse visual guidance:
 
 ### Edit and Refinement
 Perfect for Flux2 edit models that support reference latents for tasks like style transfer, image variation, or guided editing.
+
+### Grid Image Preview
+The GRID_IMAGE output allows you to preview the 2x2 grid that was created from your reference images. This is useful for:
+- Verifying the grid layout before generation
+- Saving the grid for documentation
+- Using the grid in other parts of your workflow
 
 ## Technical Details
 

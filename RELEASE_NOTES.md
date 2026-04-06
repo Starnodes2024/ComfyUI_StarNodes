@@ -8,6 +8,7 @@ A powerful conditioning node for Flux2 models that supports text encoding and mu
 - Text prompt encoding with CLIP
 - Support for up to 5 reference images
 - **Join References** option (default: true) - combines images 2-5 into a 2x2 grid
+- **GRID_IMAGE output** - preview the created 2x2 grid image
 - Automatic image resizing to 1 megapixel
 - VAE encoding of reference images
 - Reference latents injection for Flux2 edit models
@@ -39,7 +40,10 @@ When enabled, images 2-5 are combined into a single 2x2 grid:
 
 ### Technical Details
 - Category: ⭐StarNodes/Conditioning
-- Outputs: POS (positive conditioning), NEG (negative conditioning)
+- Outputs: 
+  - POS (positive conditioning)
+  - NEG (negative conditioning)
+  - GRID_IMAGE (the created 2x2 grid, or white placeholder if no grid)
 - Reference latents injected using `reference_latents` key
 - Compatible with Flux2, SDXL, and other reference-aware models
 
