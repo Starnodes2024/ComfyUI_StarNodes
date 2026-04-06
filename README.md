@@ -184,6 +184,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ Star Easy-Text-Storage: Save, load, and manage text snippets for reuse across workflows. Perfect for storing prompts, system messages, and other text content
 - ⭐ Star Web Scraper (Headlines): Scrapes news headlines from websites for use in prompts or text generation
 - ⭐ Star Ollama Sysprompter (JC): Builds structured prompts for Ollama with multiple art styles loaded from styles.json
+- ⭐ Star MiniMax Prompter (`StarMiniMaxPrompter`): Text generation and prompt refinement using [MiniMax](https://www.minimaxi.com) MiniMax-M2.7 models via OpenAI-compatible API
 
 ### ⭐StarNodes/Video
 - ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
@@ -307,6 +308,7 @@ The Star Wildcards node allows you to combine up to 7 different prompts, each wi
 ### Core Dependencies
 All dependencies are listed in `requirements.txt` and will be installed automatically:
 - **google-generativeai>=0.8.3** - Required for Star Nano Banana (Gemini) node
+- **openai>=1.0.0** - Required for Star MiniMax Prompter node
 - **color-matcher** - Required for Star Simple Filters color matching features
 - **psd-tools>=1.10.0** - Required for PSD export nodes
 - **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
@@ -326,6 +328,15 @@ To use the **Star Nano Banana** and **Star Gemini Refiner** nodes:
    - **Method 1 (Direct)**: Uncomment and set `[API_KEY]` section with `key = YOUR_API_KEY_HERE`
    - **Method 2 (External file)**: Uncomment `[API_PATH]` section and point to external ini file
    - **Method 3 (Environment)**: Set `GOOGLE_API_KEY` environment variable
+
+### MiniMax API Key
+To use the **Star MiniMax Prompter** node:
+1. Get your API key from [MiniMax Platform](https://platform.minimaxi.com)
+2. Create or edit `minimaxapi.ini` in the comfyui_starnodes folder
+3. Add your key using one of these methods:
+   - **Method 1 (Direct)**: Uncomment and set `[API_KEY]` section with `key = YOUR_API_KEY_HERE`
+   - **Method 2 (External file)**: Uncomment `[API_PATH]` section and point to external ini file
+   - **Method 3 (Environment)**: Set `MINIMAX_API_KEY` environment variable
 
 ### InfiniteYou Setup
 For InfiniteYou Insightface is a requirement. If you are having trouble installing it (windows) here is how to fix that problem:
