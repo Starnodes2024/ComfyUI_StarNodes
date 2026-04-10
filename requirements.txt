@@ -2,18 +2,8 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 newspaper3k>=0.2.8
 lxml[html_clean]>=5.3.1
-torch>=2.0.0
 psd-tools>=1.10.0
-# Optional: Required only for InfiniteYou face swap nodes
-# If you get numpy binary incompatibility errors, you can skip these
-# insightface
-# onnxruntime
-# huggingface_hub
-# facexlib==0.3.0
-numpy>=1.24.0
 opencv-python>=4.8.0
-onnxruntime-gpu; sys_platform != 'darwin' and platform_machine == 'x86_64'
 webcolors>=1.13.0
-opencv-python
-google-generativeai>=0.8.3
 color-matcher
+soundfile>=0.12.0

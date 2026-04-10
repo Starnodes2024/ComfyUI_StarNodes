@@ -6,11 +6,50 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 1.9.9
+**Current Version:** 2.0.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.0.0 - Major Release
+
+**This is a major release with new integrated nodes and cleanup of deprecated features.**
+
+### 🆕 New Integrated Nodes:
+
+#### LTX Video Toolz (8 nodes)
+- ⭐ **Star LTX Video Settings** - Comprehensive video dimension and frame calculator for LTX video generation with divisibility constraints
+- ⭐ **Star VAE LTXV Save** - Advanced VAE encoder for LTX video with quality presets and latent saving
+- ⭐ **Star VAE LTXV Load** - VAE decoder for LTX video latents
+- ⭐ **Star LTX Image Cut** - Smart image cropping tool for LTX video with aspect ratio preservation
+- ⭐ **Star Multi Inputs to One** - Combine multiple dynamic inputs into a single output
+- ⭐ **Star LTXV Get Last Frame** - Extract the last frame from LTX video latents
+- ⭐ **Star LTXV Load Last Image** - Load and process the last generated image
+- ⭐ **Star Video Joiner** - Join multiple video files into a single seamless video
+
+#### Music Generation (1 node)
+- ⭐ **Star ACE Step Music Generator (Local API)** - Professional music generation using ACE Step 1.5 API with full control over duration, BPM, key/scale, lyrics in 50+ languages, and commercial-grade output in MP3/WAV/FLAC formats
+
+### ⚠️ Breaking Changes - Removed Features:
+- ❌ **InfiniteYou Face Swap Suite** (4 nodes) - Removed due to insightface dependency issues
+- ❌ **StarFaceLoader** - Deprecated and unused
+- ❌ **StarGeminiRefiner** - Removed to reduce external API dependencies
+- ❌ **StarFlowmatchOption** - Deprecated experimental feature
+- ❌ **StarNanoBanana** - Removed to reduce external API dependencies
+
+### What Changed:
+- **86 active nodes** (77 from cleanup + 9 new integrated nodes)
+- Added `soundfile>=0.12.0` dependency for music generation
+- Removed `google-generativeai` and `onnxruntime-gpu` dependencies
+- Cleaned up insightface-related commented dependencies
+- Fixed duplicate imports bug
+- Streamlined codebase for better maintainability
+- Integrated LTX Video Toolz and ACE Step Music nodes
+
+**Migration:** If you used any removed nodes, please check `CHANGELOG.md` for alternatives and migration notes.
+
+---
 
 ## New in 1.9.9
 
@@ -88,7 +127,6 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ⭐ **Star Dynamic LoRA (Model Only)** (`StarDynamicLoRAModelOnly`) — Variant of Star Dynamic LoRA that only applies LoRAs to the model (no CLIP changes), ideal for more controlled style mixing.
 
 ### Sampling Utilities
-- ⭐ **Star FlowMatch Option** (`StarFlowMatchOption`) — Additional FlowMatch-related sampling options for compatible samplers.
 - ⭐ **Distilled Optimizer (QWEN/ZIT)** (`StarDistilledOptimizerZIT`) — Two-pass distilled refinement options for ⭐ StarSampler (Unified). Works with Z-Image-Turbo and with Qwen-Image when using a Turbo/LightX LoRA.
 
 ## New in 1.8.0

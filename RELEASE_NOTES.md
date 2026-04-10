@@ -1,57 +1,72 @@
-# StarNodes v1.9.9 Release Notes
+# StarNodes v2.0.0 - Release Notes
 
-## New Node: ⭐ Star Flux2 Conditioner
+## 🎉 What's New
 
-A powerful conditioning node for Flux2 models that supports text encoding and multiple reference images.
+### New Nodes (9 total)
 
-### Features
-- Text prompt encoding with CLIP
-- Support for up to 5 reference images
-- **Join References** option (default: true) - combines images 2-5 into a 2x2 grid
-- **GRID_IMAGE output** - preview the created 2x2 grid image
-- Automatic image resizing to 1 megapixel
-- VAE encoding of reference images
-- Reference latents injection for Flux2 edit models
+#### Music Generation
+- **Star ACE Step Music Generator** - Professional music generation with ACE Step 1.5 API
 
-### Join References Mode
-When enabled, images 2-5 are combined into a single 2x2 grid:
-- Each cell is 1024x1024 pixels
-- Images are scaled to fit while preserving aspect ratio
-- White padding centers images in their cells
-- Empty cells filled with white
-- Final 2048x2048 grid resized to 1MP before encoding
+#### LTX Video Suite (8 nodes)
+- Star LTX Video Settings
+- Star VAE LTXV Save
+- Star VAE LTXV Load
+- Star LTX Image Cut
+- Star Multi Inputs to One
+- Star LTXV Get Last Frame
+- Star LTXV Load Last Image
+- Star Video Joiner
 
-### Files Included
-- `star_flux2_conditioner.py` - Main node implementation
-- `__init__.py` - Updated with node registration
-- `README.md` - Updated with new node documentation
-- `pyproject.toml` - Version updated to 1.9.9
-- `web/docs/StarFlux2Conditioner.md` - Detailed node documentation
+## 🗑️ Removed Nodes (9 total)
 
-### Usage
-1. Connect CLIP and VAE models
-2. Enter your text prompt
-3. Optionally connect 1-5 reference images
-4. Toggle "Join References" based on your needs:
-   - **True**: Combines images 2-5 into a grid (easier for models to process)
-   - **False**: Processes each image separately
-5. Use POS output for positive conditioning
-6. Use NEG output for negative conditioning
+### InfiniteYou Suite (4 nodes)
+- StarInfiniteYou
+- StarInfiniteYouFaceSwapMod
+- StarInfiniteYouPatch
+- StarInfiniteYouAdvancedPatchMaker
 
-### Technical Details
-- Category: ⭐StarNodes/Conditioning
-- Outputs: 
-  - POS (positive conditioning)
-  - NEG (negative conditioning)
-  - GRID_IMAGE (the created 2x2 grid, or white placeholder if no grid)
-- Reference latents injected using `reference_latents` key
-- Compatible with Flux2, SDXL, and other reference-aware models
+**Reason:** InsightFace dependency conflicts
 
-## Bug Fixes
-- Fixed tensor dimension mismatch errors in grid creation
-- Proper batch dimension handling
-- Consistent tensor sizes for model compatibility
+### Other Removals (5 nodes)
+- StarFaceLoader (deprecated)
+- StarGeminiRefiner (external API reduction)
+- StarFlowmatchOption (experimental/deprecated)
+- StarNanoBanana (external API reduction)
 
-## Version
-- Version: 1.9.9
-- All version files updated
+## 🔧 Improvements
+
+- Fixed duplicate import bugs
+- Cleaned up dependencies
+- Improved code organization
+- Better error handling
+- Updated documentation
+
+## 📦 Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+## 🚀 Quick Start
+
+1. Copy this folder to `ComfyUI/custom_nodes/comfyui_starnodes/`
+2. Install dependencies
+3. Restart ComfyUI
+4. Find nodes under "StarNodes" category
+
+## 📚 Documentation
+
+- **RELEASE_SUMMARY_2.0.0.md** - Complete release documentation
+- **NODES_LIST_V2.md** - All 86 nodes listed by category
+- **README.md** - Main project documentation
+- **CHANGELOG.md** - Version history
+
+## ⚠️ Breaking Changes
+
+If you used any removed nodes, please check RELEASE_SUMMARY_2.0.0.md for migration alternatives.
+
+---
+
+**Version:** 2.0.0  
+**Release Date:** April 10, 2026  
+**Total Nodes:** 86
