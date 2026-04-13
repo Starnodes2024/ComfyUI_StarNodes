@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_starnodes"
 description = "NODES: StarNodes - A Big collection of Custom Nodes for ComfyUI with improvements, image tools and lots of helper nodes"
-version = "2.0.0"
+version = "2.0.1"
 license = {file = "LICENSE"}
 
 [project.urls]

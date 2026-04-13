@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import node_helpers
-
+#bugfix 2.0.1
 class StarFlux2Conditioner:
     @classmethod
     def INPUT_TYPES(s):

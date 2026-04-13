@@ -12,7 +12,7 @@ You can now choose ready-to-use color themes for nodes in ComfyUI settings and a
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## 🎉 Version 2.0.0 - Major Release
+## 🎉 Version 2.0.1 - Major Release
 
 **This is a major release with new integrated nodes and cleanup of deprecated features.**
 
