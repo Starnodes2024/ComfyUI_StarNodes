@@ -23,13 +23,13 @@ class StarEasyTextStorage:
         """Create the storage files if they don't exist."""
         # Ensure nodes folder storage exists
         if not os.path.exists(self.nodes_storage_file):
-            with open(self.nodes_storage_file, 'w') as f:
-                json.dump({}, f, indent=2)
+            with open(self.nodes_storage_file, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
         
         # Ensure main ComfyUI folder storage exists
         if not os.path.exists(self.main_storage_file):
-            with open(self.main_storage_file, 'w') as f:
-                json.dump({}, f, indent=2)
+            with open(self.main_storage_file, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
     
     def _load_storage(self):
         """Load the text storage database from both locations."""
@@ -37,31 +37,31 @@ class StarEasyTextStorage:
         
         # Load from nodes folder first (legacy storage)
         try:
-            with open(self.nodes_storage_file, 'r') as f:
+            with open(self.nodes_storage_file, 'r', encoding='utf-8') as f:
                 nodes_storage = json.load(f)
                 combined_storage.update(nodes_storage)
         except (json.JSONDecodeError, FileNotFoundError):
             # If file is corrupted or doesn't exist, create a new one
-            with open(self.nodes_storage_file, 'w') as f:
-                json.dump({}, f, indent=2)
+            with open(self.nodes_storage_file, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
         
         # Then load from main ComfyUI folder (takes precedence)
         try:
-            with open(self.main_storage_file, 'r') as f:
+            with open(self.main_storage_file, 'r', encoding='utf-8') as f:
                 main_storage = json.load(f)
                 combined_storage.update(main_storage)  # This will overwrite any duplicates
         except (json.JSONDecodeError, FileNotFoundError):
             # If file is corrupted or doesn't exist, create a new one
-            with open(self.main_storage_file, 'w') as f:
-                json.dump({}, f, indent=2)
+            with open(self.main_storage_file, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
         
         return combined_storage
     
     def _save_storage(self, data):
         """Save data to the text storage database in the main ComfyUI folder."""
         # For saving, we only use the main ComfyUI folder
-        with open(self.main_storage_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        with open(self.main_storage_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
         # Increment the storage version to force a refresh of the node
         StarEasyTextStorage.storage_version += 1
     

@@ -14,7 +14,8 @@ class StarPSDSaver:
     BGCOLOR = "#3d124d"  # Background color
     COLOR = "#19124d"    # Title color
     CATEGORY = '⭐StarNodes/Image And Latent'
-    RETURN_TYPES = ()
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("flattened_image",)
     FUNCTION = "save_psd"
     OUTPUT_NODE = True
 
@@ -24,6 +25,7 @@ class StarPSDSaver:
             "required": {
                 "filename_prefix": ("STRING", {"default": "multilayer"}),
                 "output_dir": ("STRING", {"default": "PSD_Layers"}),
+                "save_psd": ("BOOLEAN", {"default": True, "tooltip": "Save the layered .psd file to disk. Disable to only output the flattened image."}),
             },
             "optional": {
                 "layer1": ("IMAGE",),
@@ -70,34 +72,49 @@ class StarPSDSaver:
         # Convert to PIL Image (L mode for grayscale)
         return Image.fromarray(mask_np, mode='L')
 
-    def save_psd(self, filename_prefix, output_dir, **kwargs):
-        """Save multiple image layers as a PSD file with masks."""
+    def pil_to_tensor(self, pil_image):
+        """Convert a PIL Image to a PyTorch tensor."""
+        if pil_image is None:
+            return None
+        if pil_image.mode == 'RGBA':
+            pil_image = pil_image.convert('RGB')
+        image_np = np.array(pil_image).astype(np.float32) / 255.0
+        return torch.from_numpy(image_np).unsqueeze(0)
+
+    def save_psd(self, filename_prefix, output_dir, save_psd=True, **kwargs):
+        """Save multiple image layers as a PSD file with masks, and output a flattened image.
+
+        If save_psd is False, no .psd file is written to disk and only the
+        flattened composite image is returned as an IMAGE tensor.
+        """
         
-        # Get ComfyUI's standard output directory as base
-        base_output_dir = folder_paths.get_output_directory()
-        
-        # Create full output path (user's subdirectory under ComfyUI output folder)
-        full_output_dir = os.path.join(base_output_dir, output_dir)
-        
-        print(f"[StarPSDSaver] Base output dir: {base_output_dir}")
-        print(f"[StarPSDSaver] User subdir: {output_dir}")
-        print(f"[StarPSDSaver] Full output path: {full_output_dir}")
-        
-        # Ensure output directory exists
-        os.makedirs(full_output_dir, exist_ok=True)
-        
-        # Generate a unique filename
-        counter = 1
-        while True:
-            if counter == 1:
-                filename = f"{filename_prefix}.psd"
-            else:
-                filename = f"{filename_prefix}_{counter}.psd"
-                
-            save_path = os.path.join(full_output_dir, filename)
-            if not os.path.exists(save_path):
-                break
-            counter += 1
+        save_path = None
+        if save_psd:
+            # Get ComfyUI's standard output directory as base
+            base_output_dir = folder_paths.get_output_directory()
+            
+            # Create full output path (user's subdirectory under ComfyUI output folder)
+            full_output_dir = os.path.join(base_output_dir, output_dir)
+            
+            print(f"[StarPSDSaver] Base output dir: {base_output_dir}")
+            print(f"[StarPSDSaver] User subdir: {output_dir}")
+            print(f"[StarPSDSaver] Full output path: {full_output_dir}")
+            
+            # Ensure output directory exists
+            os.makedirs(full_output_dir, exist_ok=True)
+            
+            # Generate a unique filename
+            counter = 1
+            while True:
+                if counter == 1:
+                    filename = f"{filename_prefix}.psd"
+                else:
+                    filename = f"{filename_prefix}_{counter}.psd"
+                    
+                save_path = os.path.join(full_output_dir, filename)
+                if not os.path.exists(save_path):
+                    break
+                counter += 1
         
         # Collect all connected layers and masks
         layers = []
@@ -142,10 +159,16 @@ class StarPSDSaver:
         
         if not layers:
             print("No layers provided to save as PSD.")
-            return ()
+            empty = torch.zeros(1, 64, 64, 3)
+            return (empty,)
         
-        # Create a new PSD file with the maximum dimensions
-        psd = PSDImage.new(mode='RGB', size=(max_width, max_height))
+        # Create a new PSD file with the maximum dimensions (only if saving)
+        psd = None
+        if save_psd:
+            psd = PSDImage.new(mode='RGB', size=(max_width, max_height))
+        
+        # Flattened composite (bottom layer first, then blended on top using masks)
+        flattened = Image.new('RGB', (max_width, max_height), (0, 0, 0))
         
         # Add layers from bottom to top (reverse order for PSD)
         for i, (pil_img, mask_pil) in enumerate(zip(layers, masks)):
@@ -170,7 +193,18 @@ class StarPSDSaver:
                     new_mask.paste(mask_pil, (x_offset, y_offset))
                     mask_pil = new_mask
             
+            # Update the flattened composite
+            if i == 0:
+                flattened = pil_img.copy()
+            elif mask_pil is not None:
+                mask_l = mask_pil.convert('L') if mask_pil.mode != 'L' else mask_pil
+                flattened = Image.composite(pil_img, flattened, mask_l)
+            else:
+                flattened = pil_img.copy()
+            
             # For layers with masks, we need to create a layer with transparency
+            if not save_psd or psd is None:
+                continue
             if mask_pil:
                 # Create a regular layer first
                 layer = PixelLayer.frompil(pil_img, psd, f"Layer {i+1}")
@@ -218,11 +252,13 @@ class StarPSDSaver:
                 layer = PixelLayer.frompil(pil_img, psd, f"Layer {i+1}")
                 psd.append(layer)
         
-        # Save the PSD file
-        psd.save(save_path)
-        print(f"PSD file saved to {save_path}")
+        # Save the PSD file only if requested
+        if save_psd and psd is not None and save_path is not None:
+            psd.save(save_path)
+            print(f"PSD file saved to {save_path}")
         
-        return ()
+        flattened_tensor = self.pil_to_tensor(flattened)
+        return (flattened_tensor,)
 
 NODE_CLASS_MAPPINGS = {
     "StarPSDSaver": StarPSDSaver

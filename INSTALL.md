@@ -1,373 +1,127 @@
-# StarNodes v2.0.0 - Installation Guide
+# StarNodes 2.1.0 - Installation Guide
 
-## 📋 Prerequisites
-
-- ComfyUI installed and working
+## Requirements
+- ComfyUI (latest version recommended)
 - Python 3.10 or higher
-- pip package manager
-- Git (for git installation method)
+- Git
 
----
-
-## 🚀 Installation Methods
+## Installation Methods
 
 ### Method 1: ComfyUI Manager (Recommended)
-
-**Easiest method for most users**
-
 1. Open ComfyUI
 2. Click on "Manager" button
-3. Click "Install Custom Nodes"
-4. Search for "StarNodes"
-5. Click "Install"
-6. Restart ComfyUI
-
-✅ **Advantages:**
-- Automatic dependency installation
-- Easy updates
-- No command line needed
-
----
-
-### Method 2: Git Clone (For Developers)
-
-**Best for staying up-to-date with latest changes**
-
-```bash
-# Navigate to ComfyUI custom_nodes directory
-cd ComfyUI/custom_nodes/
-
-# Clone the repository
-git clone https://github.com/Starnodes2024/ComfyUI_StarNodes.git comfyui_starnodes
-
-# Navigate into the directory
-cd comfyui_starnodes
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Restart ComfyUI
-```
-
-✅ **Advantages:**
-- Easy to update with `git pull`
-- Can switch between versions
-- Can contribute to development
-
----
-
-### Method 3: Manual Installation (Release Package)
-
-**For offline installations or specific version control**
-
-1. **Download Release Package**
-   - Download the `release2.0.0` folder
-   - Or download from GitHub releases page
-
-2. **Copy to ComfyUI**
-   ```bash
-   # Copy the folder to ComfyUI custom_nodes
-   cp -r release2.0.0 /path/to/ComfyUI/custom_nodes/comfyui_starnodes
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   cd /path/to/ComfyUI/custom_nodes/comfyui_starnodes
-   pip install -r requirements.txt
-   ```
-
-4. **Restart ComfyUI**
-
-✅ **Advantages:**
-- Works offline
-- Version locked
-- Clean installation
-
----
-
-## 📦 Dependencies
-
-StarNodes v2.0.0 requires the following Python packages:
-
-```
-requests>=2.31.0          # HTTP requests
-beautifulsoup4>=4.12.0    # HTML parsing
-newspaper3k>=0.2.8        # News scraping
-lxml[html_clean]>=5.3.1   # XML/HTML processing
-psd-tools>=1.10.0         # PSD file handling
-opencv-python>=4.8.0      # Image processing
-webcolors>=1.13.0         # Color utilities
-color-matcher             # Color matching
-soundfile>=0.12.0         # Audio file handling (NEW in v2.0.0)
-```
-
-### Installing Dependencies Manually
-
-If automatic installation fails:
-
-```bash
-pip install requests>=2.31.0
-pip install beautifulsoup4>=4.12.0
-pip install newspaper3k>=0.2.8
-pip install "lxml[html_clean]>=5.3.1"
-pip install psd-tools>=1.10.0
-pip install opencv-python>=4.8.0
-pip install webcolors>=1.13.0
-pip install color-matcher
-pip install soundfile>=0.12.0
-```
-
----
-
-## 🎵 Optional: ACE Step Music Generator Setup
-
-The **Star ACE Step Music Generator** requires a local ACE Step 1.5 API server.
-
-### Setup ACE Step API
-
-1. **Download ACE Step 1.5**
-   - Get from official ACE Step repository
-   - Follow their installation instructions
-
-2. **Start API Server**
-   ```bash
-   # Start the ACE Step API server
-   python ace_step_api.py --port 8000
-   ```
-
-3. **Configure in ComfyUI**
-   - The node will connect to `http://localhost:8000` by default
-   - You can change the endpoint in the node settings
-
-4. **Test Connection**
-   - Add the node to your workflow
-   - Try generating a short music clip
-   - Check the console for any errors
-
-⚠️ **Note:** Music generation is optional. All other nodes work without ACE Step.
-
----
-
-## 🎬 Optional: LTX Video Setup
-
-The **LTX Video Toolz** nodes require LTX Video models.
-
-### Setup LTX Video
-
-1. **Download LTX Video Model**
-   - Get from Hugging Face or official source
-   - Place in ComfyUI models directory
-
-2. **Download LTX VAE**
-   - Required for encoding/decoding
-   - Place in ComfyUI VAE directory
-
-3. **Configure Paths**
-   - ComfyUI will auto-detect models
-   - Select in node dropdowns
-
-⚠️ **Note:** LTX Video nodes are optional. All other nodes work without LTX models.
-
----
-
-## ✅ Verify Installation
-
-### Check Node Availability
-
-1. **Start ComfyUI**
-   ```bash
-   python main.py
-   ```
-
-2. **Open in Browser**
-   - Navigate to `http://localhost:8188`
-
-3. **Add Node**
-   - Right-click on canvas
-   - Search for "Star"
-   - You should see all 86 StarNodes
-
-4. **Check Console**
-   - Look for: `StarNodes: Successfully loaded`
-   - Check for any error messages
-
-### Test Basic Functionality
-
-1. **Add a Simple Node**
-   - Try `Star Text Input` or `Star Node`
-   - Connect to workflow
-   - Run generation
-
-2. **Check Wildcards**
-   - Wildcards should be copied to `ComfyUI/wildcards/`
-   - Check console for copy confirmation
-
-3. **Test Theme System**
-   - Right-click on a StarNode
-   - Look for theme options in menu
-   - Try applying a theme
-
----
-
-## 🔧 Troubleshooting
-
-### Issue: Nodes Not Appearing
-
-**Solution:**
-```bash
-# Reinstall dependencies
-cd ComfyUI/custom_nodes/comfyui_starnodes
-pip install -r requirements.txt --force-reinstall
-
-# Restart ComfyUI
-```
-
-### Issue: Import Errors
-
-**Solution:**
-```bash
-# Check Python version (must be 3.10+)
-python --version
-
-# Upgrade pip
-pip install --upgrade pip
-
-# Reinstall dependencies
-pip install -r requirements.txt
-```
-
-### Issue: Missing Wildcards
-
-**Solution:**
-- Wildcards are auto-copied on first load
-- Check `ComfyUI/wildcards/` directory
-- Manually copy from `comfyui_starnodes/wildcards/` if needed
-
-### Issue: Music Generation Not Working
-
-**Solution:**
-- Ensure ACE Step API is running
-- Check API endpoint in node settings
-- Verify network connectivity
-- Check console for error messages
-
-### Issue: LTX Video Errors
-
-**Solution:**
-- Verify LTX models are installed
-- Check model paths in ComfyUI
-- Ensure sufficient VRAM
-- Check console for specific errors
-
-### Issue: Theme System Not Working
-
-**Solution:**
-- Restart ComfyUI after installing
-- Check ComfyUI settings for theme options
-- Verify JavaScript files loaded (check browser console)
-
----
-
-## 🔄 Updating StarNodes
-
-### From ComfyUI Manager
-
-1. Open ComfyUI Manager
-2. Click "Update All" or find StarNodes
-3. Click "Update"
-4. Restart ComfyUI
-
-### From Git
-
-```bash
-cd ComfyUI/custom_nodes/comfyui_starnodes
-git pull origin main
-pip install -r requirements.txt --upgrade
-# Restart ComfyUI
-```
-
-### Manual Update
-
-1. Download new release
-2. Backup your current installation
-3. Replace files with new version
-4. Reinstall dependencies
+3. Search for "StarNodes"
+4. Click "Install"
 5. Restart ComfyUI
 
----
-
-## 🗑️ Uninstalling
-
-### Complete Removal
-
+### Method 2: Manual Installation via Git
 ```bash
-# Stop ComfyUI first
-
-# Remove StarNodes directory
-cd ComfyUI/custom_nodes/
-rm -rf comfyui_starnodes
-
-# Optional: Remove wildcards
-rm -rf ../wildcards/
-
-# Restart ComfyUI
+cd ComfyUI/custom_nodes
+git clone https://github.com/Starnodes2024/ComfyUI_StarNodes.git
+cd ComfyUI_StarNodes
+pip install -r requirements.txt
 ```
 
-### Keep Wildcards
+### Method 3: Manual Installation from Release Package
+1. Download the release2.1.0 folder
+2. Extract to `ComfyUI/custom_nodes/ComfyUI_StarNodes`
+3. Open terminal in the extracted folder
+4. Run: `pip install -r requirements.txt`
+5. Restart ComfyUI
 
+## Updating from Previous Version
+
+### Via ComfyUI Manager
+1. Open ComfyUI Manager
+2. Go to "Update" tab
+3. Find "StarNodes" and click "Update"
+4. Restart ComfyUI
+
+### Via Git
 ```bash
-# Only remove StarNodes, keep wildcards
-cd ComfyUI/custom_nodes/
-rm -rf comfyui_starnodes
-
-# Restart ComfyUI
+cd ComfyUI/custom_nodes/ComfyUI_StarNodes
+git pull
+pip install -r requirements.txt --upgrade
 ```
 
----
+## Verifying Installation
 
-## 📞 Getting Help
+After installation and restarting ComfyUI:
+1. Right-click in the ComfyUI canvas
+2. Navigate to "Add Node" → "⭐StarNodes"
+3. You should see all 88 StarNodes organized in categories:
+   - Image And Latent
+   - Text And Data
+   - Helpers And Tools
+   - Sampling
+   - External
+   - Grid
+   - Music
+   - Qwen
+   - LTX Video
 
-### Documentation
-- **README.md** - Main documentation
-- **NODES_LIST_V2.md** - All nodes reference
-- **RELEASE_SUMMARY_2.0.0.md** - Release details
-- **CHANGELOG_2.0.0.md** - What's changed
+## Dependencies
 
-### Support Channels
-- **GitHub Issues:** Report bugs and request features
-- **GitHub Discussions:** Ask questions and share workflows
-- **ComfyUI Discord:** Community support
+StarNodes automatically installs the following dependencies:
+- `soundfile>=0.12.0` (for music generation nodes)
+- Standard Python libraries (PIL, numpy, cv2, etc.)
 
-### Before Asking for Help
+### Optional Dependencies
+Some nodes may require additional dependencies:
+- **Music Generation Nodes**: Require ACE Step 1.5 API running locally
+- **Qwen Nodes**: Require Qwen models installed in ComfyUI
 
-1. Check this installation guide
-2. Read the error message carefully
-3. Check GitHub issues for similar problems
-4. Verify all dependencies are installed
-5. Try reinstalling StarNodes
+## Troubleshooting
 
-### Reporting Issues
+### Issue: Nodes not appearing
+**Solution:** 
+- Ensure you restarted ComfyUI after installation
+- Check the console for error messages
+- Verify the installation path is correct
 
-When reporting issues, include:
-- ComfyUI version
-- StarNodes version (2.0.0)
-- Python version
-- Operating system
-- Full error message
-- Steps to reproduce
-- Screenshots if relevant
+### Issue: Import errors
+**Solution:**
+```bash
+cd ComfyUI/custom_nodes/ComfyUI_StarNodes
+pip install -r requirements.txt --force-reinstall
+```
 
----
+### Issue: Music generation not working
+**Solution:**
+- Ensure ACE Step 1.5 API is running on `http://localhost:8001`
+- Check the API endpoint in the node settings
 
-## 🎉 You're Ready!
+### Issue: Wildcards not working
+**Solution:**
+- StarNodes automatically copies wildcards to ComfyUI's main directory
+- If issues persist, manually copy the `wildcards` folder to `ComfyUI/wildcards`
 
-StarNodes v2.0.0 is now installed and ready to use.
+## Uninstallation
 
-**Next Steps:**
-1. Explore the 86 available nodes
-2. Check example workflows
-3. Read node documentation
-4. Join the community
-5. Create amazing content!
+### Via ComfyUI Manager
+1. Open ComfyUI Manager
+2. Find "StarNodes" in the installed list
+3. Click "Uninstall"
+4. Restart ComfyUI
 
-**Happy Creating! 🌟**
+### Manual Uninstallation
+```bash
+cd ComfyUI/custom_nodes
+rm -rf ComfyUI_StarNodes  # Linux/Mac
+# or
+rmdir /s ComfyUI_StarNodes  # Windows
+```
+
+## Support
+
+- **GitHub Issues**: https://github.com/Starnodes2024/ComfyUI_StarNodes/issues
+- **Documentation**: See `web/docs` folder for individual node help files
+- **Changelog**: See `CHANGELOG.md` for version history
+
+## What's New in 2.1.0
+
+- **New Nodes**: Star Box Drawer, Star Image Shifter
+- **Enhancement**: Star Save Panorama JPG+ now outputs the 3D image
+- **Documentation**: Comprehensive help files for all new features
+
+For detailed changes, see `RELEASE_NOTES_2.1.0.md` and `CHANGELOG.md`.

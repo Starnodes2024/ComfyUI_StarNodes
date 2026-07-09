@@ -1,5 +1,45 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 2.1.0 (2026-07-09)
+
+### 🆕 New Nodes (2 total)
+
+#### Image Manipulation & Helpers
+- **Star Box Drawer** (`StarBoxDrawer`) - Draw rectangular boxes on images
+  - Supports filled and outlined rectangles
+  - 5 color options: white, red, blue, green, black
+  - Customizable position (x, y), size (width, height), and line width
+  - Perfect for masking, highlighting regions, and visual debugging
+  - Category: `⭐StarNodes/Helpers And Tools`
+
+- **Star Image Shifter** (`StarImageShifter`) - Shift images with seamless wrapping
+  - Horizontal and vertical shifting with wrap-around
+  - Supports shifts from -8192 to +8192 pixels in both axes
+  - Ideal for panoramas, tileable textures, and seamless patterns
+  - Adjust seam positions in 360° equirectangular images
+  - Category: `⭐StarNodes/Helpers And Tools`
+
+### ✨ Enhancements
+
+#### Star Save Panorama JPG+
+- **New Output:** Added `3d_image` (IMAGE) output connector
+  - Outputs the stereoscopic 3D image (SBS or Top/Bottom format) when `stereo_3d` is enabled
+  - Allows further processing of the generated 3D image in the workflow
+  - Returns blank placeholder (1x64x64x3) when `stereo_3d` is disabled or no depth_map is provided
+  - Both original and 3D images are now available for downstream nodes
+
+### 📚 Documentation
+- Added comprehensive help files in `web/docs`:
+  - `StarBoxDrawer.md` - Complete guide for the Box Drawer node
+  - `StarImageShifter.md` - Complete guide for the Image Shifter node
+  - Updated `StarSavePanoramaJPEGPlus.md` - Added documentation for new `3d_image` output
+
+### 📊 Statistics
+- **Total Active Nodes:** 88 (86 from v2.0.1 + 2 new)
+- **No Breaking Changes:** Fully compatible with v2.0.1 workflows
+
+---
+
 ## Version 2.0.0 (2026-04-10)
 
 ### 🎉 Major Release - New Integrated Nodes + Cleanup

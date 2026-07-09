@@ -40,6 +40,7 @@ from .text_io.StarShowLastFrame import NODE_CLASS_MAPPINGS as STARSHOWLASTFRAME_
 from .image_tools.StarAspectVideoRatio import NODE_CLASS_MAPPINGS as STARASPECTVIDEORATIO_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STARASPECTVIDEORATIO_NODE_DISPLAY_NAMES
 from .image_tools.star_random_image_loader import NODE_CLASS_MAPPINGS as STAR_RANDOM_IMAGE_LOADER_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_RANDOM_IMAGE_LOADER_NODE_DISPLAY_NAME_MAPPINGS
 from .text_io.star_save_panorama_jpeg import NODE_CLASS_MAPPINGS as STAR_SAVE_PANORAMA_JPEG_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_SAVE_PANORAMA_JPEG_NODE_DISPLAY_NAME_MAPPINGS
+from .text_io.star_save_panorama_jpeg_plus import NODE_CLASS_MAPPINGS as STAR_SAVE_PANORAMA_JPEG_PLUS_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_SAVE_PANORAMA_JPEG_PLUS_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_frame_from_video import NODE_CLASS_MAPPINGS as STAR_FRAME_FROM_VIDEO_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_FRAME_FROM_VIDEO_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_image_loader_1by1 import NODE_CLASS_MAPPINGS as STAR_IMAGE_LOADER_1BY1_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_IMAGE_LOADER_1BY1_NODE_DISPLAY_NAME_MAPPINGS
 from .text_io.star_icon_exporter import NODE_CLASS_MAPPINGS as STAR_ICON_EXPORTER_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_ICON_EXPORTER_NODE_DISPLAY_NAME_MAPPINGS
@@ -72,6 +73,8 @@ from .image_tools.star_image_loop import NODE_CLASS_MAPPINGS as STAR_IMAGE_LOOP_
 from .image_tools.star_video_loop import NODE_CLASS_MAPPINGS as STAR_VIDEO_LOOP_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_VIDEO_LOOP_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_save_image_plus import NODE_CLASS_MAPPINGS as STAR_SAVE_IMAGE_PLUS_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_SAVE_IMAGE_PLUS_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_load_image_plus import NODE_CLASS_MAPPINGS as STAR_LOAD_IMAGE_PLUS_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_LOAD_IMAGE_PLUS_NODE_DISPLAY_NAME_MAPPINGS
+from .image_tools.StarBoxDrawer import NODE_CLASS_MAPPINGS as STAR_BOX_DRAWER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_BOX_DRAWER_NODE_DISPLAY_NAME_MAPPINGS
+from .image_tools.StarImageShifter import NODE_CLASS_MAPPINGS as STAR_IMAGE_SHIFTER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_IMAGE_SHIFTER_NODE_DISPLAY_NAME_MAPPINGS
 from .text_io.star_prompt_picker import NODE_CLASS_MAPPINGS as STAR_PROMPT_PICKER_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_PROMPT_PICKER_NODE_DISPLAY_NAME_MAPPINGS
 from .star_flux2_conditioner import NODE_CLASS_MAPPINGS as STAR_FLUX2_CONDITIONER_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_FLUX2_CONDITIONER_NODE_DISPLAY_NAME_MAPPINGS
 from .ltx_video import NODE_CLASS_MAPPINGS as STAR_LTX_VIDEO_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_LTX_VIDEO_NODE_DISPLAY_NAME_MAPPINGS
@@ -136,6 +139,7 @@ NODE_CLASS_MAPPINGS = {
     **STAR_SPECIAL_FILTERS_NODE_MAPPINGS,
     **STAR_RANDOM_IMAGE_LOADER_NODE_CLASS_MAPPINGS,
     **STAR_SAVE_PANORAMA_JPEG_NODE_CLASS_MAPPINGS,
+    **STAR_SAVE_PANORAMA_JPEG_PLUS_NODE_CLASS_MAPPINGS,
     **STAR_FRAME_FROM_VIDEO_NODE_CLASS_MAPPINGS,
     **STAR_IMAGE_LOADER_1BY1_NODE_CLASS_MAPPINGS,
     **STAR_ICON_EXPORTER_NODE_CLASS_MAPPINGS,
@@ -168,6 +172,8 @@ NODE_CLASS_MAPPINGS = {
     **STAR_VIDEO_LOOP_NODE_MAPPINGS,
     **STAR_SAVE_IMAGE_PLUS_NODE_MAPPINGS,
     **STAR_LOAD_IMAGE_PLUS_NODE_MAPPINGS,
+    **STAR_BOX_DRAWER_NODE_MAPPINGS,
+    **STAR_IMAGE_SHIFTER_NODE_MAPPINGS,
     **STAR_PROMPT_PICKER_NODE_CLASS_MAPPINGS,
     **STAR_SIZE_CALCULATOR_BY_SIDE_NODE_CLASS_MAPPINGS,
     **STAR_FLUX2_CONDITIONER_NODE_CLASS_MAPPINGS,
@@ -222,6 +228,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_SPECIAL_FILTERS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_RANDOM_IMAGE_LOADER_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_SAVE_PANORAMA_JPEG_NODE_DISPLAY_NAME_MAPPINGS,
+    **STAR_SAVE_PANORAMA_JPEG_PLUS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_FRAME_FROM_VIDEO_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_IMAGE_LOADER_1BY1_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_ICON_EXPORTER_NODE_DISPLAY_NAME_MAPPINGS,
@@ -254,6 +261,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_VIDEO_LOOP_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_SAVE_IMAGE_PLUS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_LOAD_IMAGE_PLUS_NODE_DISPLAY_NAME_MAPPINGS,
+    **STAR_BOX_DRAWER_NODE_DISPLAY_NAME_MAPPINGS,
+    **STAR_IMAGE_SHIFTER_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_PROMPT_PICKER_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_SIZE_CALCULATOR_BY_SIDE_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_FLUX2_CONDITIONER_NODE_DISPLAY_NAME_MAPPINGS,
@@ -268,7 +277,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
 }
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"
@@ -362,6 +371,44 @@ try:
         except Exception as e:
             print(f"Error serving editprompts: {e}")
         return web.json_response({"error": "not found"}, status=404)
+
+    @PromptServer.instance.routes.post("/starnodes/save_as_jpg")
+    async def starnodes_save_as_jpg(request):
+        try:
+            from PIL import Image as _PIL_Image
+            data = await request.json()
+            filename = data.get("filename", "")
+            subfolder = data.get("subfolder", "")
+            img_type = data.get("type", "output")
+            quality = int(data.get("quality", 95))
+
+            if not filename:
+                return web.json_response({"error": "No filename provided"}, status=400)
+
+            if img_type == "input":
+                base_dir = folder_paths.get_input_directory()
+            elif img_type == "temp":
+                base_dir = folder_paths.get_temp_directory()
+            else:
+                base_dir = folder_paths.get_output_directory()
+
+            src_path = os.path.join(base_dir, subfolder, filename) if subfolder else os.path.join(base_dir, filename)
+
+            if not os.path.isfile(src_path):
+                return web.json_response({"error": f"File not found: {filename}"}, status=404)
+
+            base_name = os.path.splitext(filename)[0]
+            jpg_filename = base_name + ".jpg"
+            dst_path = os.path.join(base_dir, subfolder, jpg_filename) if subfolder else os.path.join(base_dir, jpg_filename)
+
+            with _PIL_Image.open(src_path) as img:
+                img.convert("RGB").save(dst_path, "JPEG", quality=quality)
+
+            return web.json_response({"success": True, "jpg_filename": jpg_filename})
+        except Exception as e:
+            print(f"[StarNodes] save_as_jpg error: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
 except Exception:
     # If server or aiohttp isn't available yet, silently skip
     pass

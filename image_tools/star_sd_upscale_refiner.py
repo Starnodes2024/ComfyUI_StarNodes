@@ -691,6 +691,11 @@ class _MultiDiffusion(_AbstractDiffusion):
         c_in = args["c"]
         cond_or_uncond = args["cond_or_uncond"]
 
+        # Non-4D latents (e.g. video/flow models like Krea2) cannot be tiled
+        # spatially – fall back to the standard model call and return early.
+        if x_in.ndim != 4:
+            return model_function(x_in, t_in, **c_in)
+
         N, C, H, W = x_in.shape
 
         self.refresh = False

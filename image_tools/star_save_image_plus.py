@@ -36,6 +36,9 @@ class StarSaveImagePlus:
                 "filename": ("STRING", {"default": "ComfyUI", "multiline": False}),
                 "add_timestamp": ("BOOLEAN", {"default": False}),
                 "separator": ("STRING", {"default": "_", "multiline": False}),
+                "save_jpg": ("BOOLEAN", {"default": False, "tooltip": "Also save a .jpg copy with the same name and folder (quality 95)."}),
+                "jpg_quality": ("INT", {"default": 95, "min": 1, "max": 100, "step": 1, "tooltip": "JPEG quality (1-100). Only used when Save additional .jpg is enabled."}),
+
             },
             "optional": {
                 "StarMetaData 1": ("STRING", {"forceInput": True}),
@@ -50,7 +53,9 @@ class StarSaveImagePlus:
             },
         }
 
-    RETURN_TYPES = ()
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("path",)
+    OUTPUT_TOOLTIPS = ("Save folder path (relative to the ComfyUI output directory, without filename).",)
     FUNCTION = "save_images"
     OUTPUT_NODE = True
     CATEGORY = "⭐StarNodes/IO"
@@ -82,6 +87,8 @@ class StarSaveImagePlus:
         filename="ComfyUI",
         add_timestamp=False,
         separator="_",
+        save_jpg=False,
+        jpg_quality=95,
         prompt=None,
         extra_pnginfo=None,
         **kwargs,
@@ -156,10 +163,14 @@ class StarSaveImagePlus:
             file = f"{filename_with_batch_num}_{counter:05}_.png"
             img.save(os.path.join(full_output_folder, file), pnginfo=png_info, compress_level=self.compress_level)
 
+            if save_jpg:
+                jpg_file = f"{filename_with_batch_num}_{counter:05}_.jpg"
+                img.convert("RGB").save(os.path.join(full_output_folder, jpg_file), "JPEG", quality=jpg_quality)
+
             results.append({"filename": file, "subfolder": subfolder, "type": self.type})
             counter += 1
 
-        return {"ui": {"images": results}}
+        return {"ui": {"images": results}, "result": (subfolder,)}
 
 
 NODE_CLASS_MAPPINGS = {

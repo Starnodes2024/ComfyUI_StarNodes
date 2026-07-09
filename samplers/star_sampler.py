@@ -364,16 +364,23 @@ class StarSampler:
                     target_module = model.model
                 
                 def wrapped_forward(x, sigma, **extra_args):
-                    # Get the maximum sigma value for this batch
+                    # Get the maximum sigma value for this batch and the overall start sigma
                     sigma_float = float(sigma.max().detach().cpu())
+                    sigma_start = float(original_sigmas[0].detach().cpu())
                     
-                    # Calculate progress based on log space
-                    log_sigma = torch.log(torch.tensor(sigma_float + 1e-10))
-                    log_sigma_max = torch.log(torch.tensor(1000.0))
-                    log_sigma_min = torch.log(torch.tensor(0.1))
+                    # Dynamische Progress-Berechnung für Krea-2 / Flow-Matching
+                    if sigma_start <= 2.0:  
+                        # Flow-Matching Models (Krea-2, SD3) haben ein max_sigma nahe 1.0
+                        progress = 1.0 - (sigma_float / max(1e-5, sigma_start))
+                    else:  
+                        # Klassisches SD/SDXL (k-diffusion)
+                        log_sigma = torch.log(torch.tensor(sigma_float + 1e-10))
+                        log_sigma_max = torch.log(torch.tensor(sigma_start)) # Dynamisch statt 1000.0
+                        log_sigma_min = torch.log(torch.tensor(0.1))
+                        
+                        progress = 1.0 - (log_sigma - log_sigma_min) / (log_sigma_max - log_sigma_min)
                     
-                    progress = 1.0 - (log_sigma - log_sigma_min) / (log_sigma_max - log_sigma_min)
-                    progress = float(progress.clamp(0.0, 1.0))
+                    progress = float(max(0.0, min(1.0, progress)))
                     
                     # Get the schedule index based on progress
                     schedule_idx = int(progress * (len(detail_schedule_tensor) - 1))

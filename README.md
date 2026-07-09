@@ -6,17 +6,33 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.0.0
+**Current Version:** 2.1.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## 🎉 Version 2.0.1 - Major Release
+## 🎉 Version 2.1.0 - New Helper Nodes
 
-**This is a major release with new integrated nodes and cleanup of deprecated features.**
+**This release adds new image manipulation utilities and enhances panorama workflow capabilities.**
 
-### 🆕 New Integrated Nodes:
+### 🆕 New Nodes:
+
+#### Image Manipulation & Helpers (2 nodes)
+- ⭐ **Star Box Drawer** - Draw rectangular boxes on images (filled or outlined) with customizable colors, positions, and sizes. Perfect for masking, highlighting regions, and visual debugging.
+- ⭐ **Star Image Shifter** - Shift images horizontally and vertically with seamless wrapping. Ideal for panoramas, tileable textures, and adjusting seam positions in 360° images.
+
+### ✨ Enhancements:
+- **Star Save Panorama JPG+** now outputs both the original image AND the stereoscopic 3D image (when enabled) for further workflow processing
+- Added comprehensive documentation for all new nodes in `web/docs`
+
+---
+
+## Version 2.0.1 - Major Release
+
+**This was a major release with new integrated nodes and cleanup of deprecated features.**
+
+### New Integrated Nodes:
 
 #### LTX Video Toolz (8 nodes)
 - ⭐ **Star LTX Video Settings** - Comprehensive video dimension and frame calculator for LTX video generation with divisibility constraints
@@ -39,7 +55,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ❌ **StarNanoBanana** - Removed to reduce external API dependencies
 
 ### What Changed:
-- **86 active nodes** (77 from cleanup + 9 new integrated nodes)
+- **88 active nodes** (77 from cleanup + 11 new nodes total)
 - Added `soundfile>=0.12.0` dependency for music generation
 - Removed `google-generativeai` and `onnxruntime-gpu` dependencies
 - Cleaned up insightface-related commented dependencies
