@@ -1,8 +1,39 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 2.1.1 (2026-07-10)
+
+### ✨ Enhancements
+
+#### Star 360 Parallax Viewer (`StarPanoramaViewer`)
+- **On-Screen Control Bar** - Added interactive control panel at the bottom of the viewer
+  - **Pan Arrows (◀ ▲ ▼ ▶)** - Press and hold to continuously pan the view in any direction
+  - **Reset Button (⌂)** - Return camera to initial orientation and default zoom level
+  - **Zoom Buttons (− / +)** - Manual zoom in/out controls (same range as scroll wheel)
+  - **Auto-Rotation Toggle (▶/⏸)** - Start/stop automatic horizontal rotation of the panorama
+  - **Speed Slider** - Adjust auto-rotation speed from -5 to +5 (negative values reverse direction, 0 pauses)
+  - **Fullscreen Button (⛶)** - Toggle fullscreen viewing mode with proper aspect ratio handling
+- **Improved Mouse Controls** - More responsive drag-to-pan navigation with smoother interpolation
+- **Per-Run Cleanup** - Properly cancels animation frames and removes old controls when re-executing the workflow
+- **Event Listener Cleanup** - Uses AbortController to properly clean up all event listeners between runs
+
+### 🐛 Bug Fixes
+- **Fixed Black Screen Issue** - Corrected sphere geometry rendering (changed from `THREE.BackSide` to `THREE.FrontSide` to work with inverted geometry)
+- **Fixed Image Caching** - Added cache-busting timestamps to `/view` URLs since temp filenames are reused across runs
+
+### 📚 Documentation
+- Updated `web/docs/StarPanoramaViewer.md` with comprehensive control bar documentation
+- Added detailed descriptions of all interactive controls and features
+- Updated limitations section to reflect fullscreen availability
+
+### 📊 Statistics
+- **Total Active Nodes:** 89 (unchanged from v2.1.0)
+- **No Breaking Changes:** Fully compatible with v2.1.0 workflows
+
+---
+
 ## Version 2.1.0 (2026-07-09)
 
-### 🆕 New Nodes (2 total)
+### 🆕 New Nodes (3 total)
 
 #### Image Manipulation & Helpers
 - **Star Box Drawer** (`StarBoxDrawer`) - Draw rectangular boxes on images
@@ -19,6 +50,14 @@
   - Adjust seam positions in 360° equirectangular images
   - Category: `⭐StarNodes/Helpers And Tools`
 
+- **Star 360 Parallax Viewer** (`StarPanoramaViewer`) - Interactive 360° panorama viewer
+  - Embedded Three.js renderer inside the ComfyUI node
+  - Supports mono, side-by-side (SBS) and top/bottom stereoscopic layouts
+  - Mouse-driven parallax displacement for SBS/Top-Bottom images
+  - Real-time orbit controls with zoom and smooth camera interpolation
+  - Optional depth_map input for future depth-based enhancements
+  - Category: `⭐StarNodes/Image And Latent`
+
 ### ✨ Enhancements
 
 #### Star Save Panorama JPG+
@@ -32,10 +71,11 @@
 - Added comprehensive help files in `web/docs`:
   - `StarBoxDrawer.md` - Complete guide for the Box Drawer node
   - `StarImageShifter.md` - Complete guide for the Image Shifter node
+  - `StarPanoramaViewer.md` - Complete guide for the 360 Parallax Viewer node
   - Updated `StarSavePanoramaJPEGPlus.md` - Added documentation for new `3d_image` output
 
 ### 📊 Statistics
-- **Total Active Nodes:** 88 (86 from v2.0.1 + 2 new)
+- **Total Active Nodes:** 89 (86 from v2.0.1 + 3 new)
 - **No Breaking Changes:** Fully compatible with v2.0.1 workflows
 
 ---

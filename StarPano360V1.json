@@ -1,8 +1,8 @@
 {
   "id": "34f6b13b-86da-4714-924e-fd770ae08d96",
   "revision": 1,
-  "last_node_id": 2007,
-  "last_link_id": 20178,
+  "last_node_id": 2009,
+  "last_link_id": 20182,
   "nodes": [
     {
       "id": 1,
@@ -56,7 +56,7 @@
         false,
         0.8,
         true,
-        421614607,
+        783524630,
         "randomize",
         false,
         "",
@@ -375,92 +375,6 @@
       "bgcolor": "#0b1220"
     },
     {
-      "id": 48,
-      "type": "⭐ Star Save Image+",
-      "pos": [
-        2900,
-        230
-      ],
-      "size": [
-        660,
-        990
-      ],
-      "flags": {},
-      "order": 40,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 64
-        },
-        {
-          "name": "StarMetaData 1",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 2",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 3",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 4",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 5",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "path",
-          "type": "STRING",
-          "links": [
-            65
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "⭐ Star Save Image+",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "None",
-        true,
-        "first",
-        "PanoramaHQ",
-        "",
-        "Off",
-        "Panorama",
-        false,
-        "_",
-        false,
-        95
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
       "id": 998,
       "type": "StarSavePanoramaJPEGPlus",
       "pos": [
@@ -472,7 +386,7 @@
         680
       ],
       "flags": {},
-      "order": 44,
+      "order": 45,
       "mode": 0,
       "inputs": [
         {
@@ -484,7 +398,7 @@
           "name": "base_path",
           "shape": 7,
           "type": "STRING",
-          "link": null
+          "link": 20181
         },
         {
           "name": "depth_map",
@@ -877,122 +791,6 @@
       "bgcolor": "#0b1220"
     },
     {
-      "id": 47,
-      "type": "LayerFilter: FilmV2",
-      "pos": [
-        2500,
-        760
-      ],
-      "size": [
-        320,
-        370
-      ],
-      "flags": {},
-      "order": 39,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 20171
-        },
-        {
-          "name": "depth_map",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 61
-        }
-      ],
-      "outputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            64,
-            67,
-            20106
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_layerstyle",
-        "ver": "d94bef1ee5ed3656f5ff1bb2830a4ffd94f40935",
-        "Node name for S&R": "LayerFilter: FilmV2",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        0.5,
-        0.5,
-        1,
-        0,
-        "filmgrainer",
-        0.05,
-        1.6,
-        0.3,
-        0.3,
-        0.2,
-        2,
-        1,
-        0.2
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 46,
-      "type": "DepthAnythingV2Preprocessor",
-      "pos": [
-        2500,
-        590
-      ],
-      "size": [
-        320,
-        100
-      ],
-      "flags": {},
-      "order": 38,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 20170
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            61,
-            66
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_controlnet_aux",
-        "ver": "e8b689a513c3e6b63edc44066560ca5919c0576e",
-        "Node name for S&R": "DepthAnythingV2Preprocessor",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "depth_anything_v2_vitl.pth",
-        1024
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
       "id": 1008,
       "type": "VAEUtils_VAEDecodeTiled",
       "pos": [
@@ -1102,7 +900,7 @@
         90
       ],
       "flags": {},
-      "order": 43,
+      "order": 44,
       "mode": 0,
       "inputs": [
         {
@@ -1758,7 +1556,7 @@
         }
       },
       "widgets_values": [
-        "seamless equirectangular 360 degree panorama, a wide-angle scene of flower hills at sunset, filled with numerous funny fluffy purple otters featuring dark purple and white fur with distinct purple mohawk hairstyles and glowing golden stars on their chests; a massive sea monster lurks deep beneath the surface, its colossal power crushing ships below. In the foreground, three specific otters are positioned prominently, each holding a sign: \"STARNODES UPDATE 2.1.0\", \"NEW PANORAMA NODES!\", and \"WORKFLOW INCLUDED!\". The scene includes a Sunda Leopard Cat, set in a high-quality octane render with extreme detail, featuring a perfectly wrapped horizon where every element flows into the seamless environment, exhibiting pinched zenith and nadir points., "
+        "seamless equirectangular 360 degree panorama, a wide-angle scene of flower hills during the blue hour under a vast starry sky. The landscape is filled with funny fluffy purple otters featuring dark purple and white fur and distinctive purple mohawk hairstyles, each wearing a golden star on its chest as they play throughout the field. In the foreground, two specific otters hold signs: one reads \"STARNODES UPDATE 2.1.1\" and the other reads \"NEW PANORAMA PARALLAX VIEWER!\". The scene is rendered in a high-quality octane render style with intricate details, featuring soft lighting that highlights the plush texture of the otters' fur and the shimmering points of light from the stars above., "
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -1810,7 +1608,6 @@
           ]
         }
       ],
-      "title": "⚡KSampler⚡",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.25.0",
@@ -1822,303 +1619,13 @@
         }
       },
       "widgets_values": [
-        305552693030435,
+        357484539912523,
         "randomize",
         10,
         1,
         "euler",
         "simple",
         1
-      ],
-      "color": "#009933",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 41,
-      "type": "StarSDUpscaleRefinerAdvanced",
-      "pos": [
-        1450,
-        490
-      ],
-      "size": [
-        400,
-        660
-      ],
-      "flags": {},
-      "order": 34,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 20161
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 20164
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 20167
-        },
-        {
-          "name": "IMAGE",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 20175
-        },
-        {
-          "name": "options",
-          "shape": 7,
-          "type": "SIGMAS",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "links": [
-            20173
-          ]
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "StarSDUpscaleRefinerAdvanced",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "None",
-        0.25,
-        "None",
-        0.1,
-        "None",
-        0.1,
-        "masterpiece, best quality, highres, photography, 8k, hq, high details",
-        "(worst quality, low quality, normal quality:1.5)",
-        "No",
-        155624697314649,
-        "randomize",
-        10,
-        0.15,
-        1024,
-        "euler",
-        "simple",
-        "None",
-        false,
-        "4x_NMKD-Siax_200k.pth",
-        3200
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 1012,
-      "type": "StarSDUpscaleRefinerAdvanced",
-      "pos": [
-        1930,
-        490
-      ],
-      "size": [
-        400,
-        660
-      ],
-      "flags": {},
-      "order": 36,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 20162
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 20165
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 20168
-        },
-        {
-          "name": "IMAGE",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 20172
-        },
-        {
-          "name": "options",
-          "shape": 7,
-          "type": "SIGMAS",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "links": [
-            20169,
-            20170,
-            20171
-          ]
-        },
-        {
-          "name": "latent",
-          "type": "LATENT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "StarSDUpscaleRefinerAdvanced",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "None",
-        0.25,
-        "None",
-        0.1,
-        "None",
-        0.1,
-        "masterpiece, best quality, highres, photography, 8k, hq, high details",
-        "(worst quality, low quality, normal quality:1.5)",
-        "No",
-        938274215322268,
-        "randomize",
-        10,
-        0.15,
-        1024,
-        "euler",
-        "simple",
-        "None",
-        false,
-        "4x_NMKD-Siax_200k.pth",
-        3200
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 9,
-      "type": "UNETLoader",
-      "pos": [
-        490,
-        280
-      ],
-      "size": [
-        450,
-        140
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            9,
-            19
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.25.0",
-        "Node name for S&R": "UNETLoader",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        },
-        "models": [
-          {
-            "name": "krea2_turbo_fp8_scaled.safetensors",
-            "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
-            "directory": "diffusion_models"
-          }
-        ]
-      },
-      "widgets_values": [
-        "krea2_turbo-nvfp4.safetensors",
-        "default"
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 2,
-      "type": "StarWildcardsAdvanced",
-      "pos": [
-        -760,
-        270
-      ],
-      "size": [
-        400,
-        640
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            3
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "StarWildcardsAdvanced",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        33472591558363,
-        "randomize",
-        "a high detailed 360 panorama of a wide angle scene in the flower hills at sunset.",
-        "None",
-        "everywhere there are funny fluffy purple (dark purple and white with purple mohawk hair style) otters playing with golden stars on their chests. ",
-        "horrorwesen2",
-        "3 otters are more in the foreground each one of them is holding a sign with text on it.",
-        "wildcat",
-        "1. sign text \"STARNODES UPDATE 2.1.0\"",
-        "None",
-        "2. sign text \"NEW PANORAMA NODES!\"",
-        "None",
-        "3. sign text \"WORKFLOW INCLUDED!\"",
-        "None",
-        "style: high quality octane render in high details.",
-        "None"
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -2241,7 +1748,7 @@
         160
       ],
       "flags": {},
-      "order": 14,
+      "order": 12,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -2254,13 +1761,14 @@
         }
       ],
       "properties": {
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {}
-        },
         "cnr_id": "comfyui_starnodes",
         "ver": "2.1.0",
-        "Node name for S&R": "StarEasyTextStorage"
+        "Node name for S&R": "StarEasyTextStorage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
       },
       "widgets_values": [
         "Load Text",
@@ -2351,7 +1859,7 @@
         490
       ],
       "flags": {},
-      "order": 42,
+      "order": 43,
       "mode": 0,
       "inputs": [
         {
@@ -2406,6 +1914,541 @@
         false,
         "Inpaint"
       ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 47,
+      "type": "LayerFilter: FilmV2",
+      "pos": [
+        2500,
+        760
+      ],
+      "size": [
+        320,
+        370
+      ],
+      "flags": {},
+      "order": 39,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 20171
+        },
+        {
+          "name": "depth_map",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            64,
+            67,
+            20106,
+            20179
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_layerstyle",
+        "ver": "d94bef1ee5ed3656f5ff1bb2830a4ffd94f40935",
+        "Node name for S&R": "LayerFilter: FilmV2",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        0.5,
+        0.5,
+        1,
+        0,
+        "filmgrainer",
+        0.05,
+        1.6,
+        0.3,
+        0.3,
+        0.2,
+        2,
+        1,
+        0.2
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 46,
+      "type": "DepthAnythingV2Preprocessor",
+      "pos": [
+        2500,
+        590
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 38,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 20170
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            61,
+            66,
+            20180
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_controlnet_aux",
+        "ver": "e8b689a513c3e6b63edc44066560ca5919c0576e",
+        "Node name for S&R": "DepthAnythingV2Preprocessor",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "depth_anything_v2_vitl.pth",
+        1024
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 48,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        2900,
+        240
+      ],
+      "size": [
+        660,
+        990
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 64
+        },
+        {
+          "name": "StarMetaData 1",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 2",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 3",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 4",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 5",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": [
+            65,
+            20181
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.0.1",
+        "Node name for S&R": "⭐ Star Save Image+",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "PanoramaHQ",
+        "",
+        "Off",
+        "Panorama",
+        false,
+        "_",
+        false,
+        95
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 9,
+      "type": "UNETLoader",
+      "pos": [
+        490,
+        280
+      ],
+      "size": [
+        450,
+        140
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            9,
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "UNETLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        },
+        "models": [
+          {
+            "name": "krea2_turbo_fp8_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
+            "directory": "diffusion_models"
+          }
+        ]
+      },
+      "widgets_values": [
+        "krea2TurboNSFWAIO_v10-int4_convrot.safetensors",
+        "default"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 2,
+      "type": "StarWildcardsAdvanced",
+      "pos": [
+        -760,
+        270
+      ],
+      "size": [
+        400,
+        640
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.0.1",
+        "Node name for S&R": "StarWildcardsAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        405399035589901,
+        "randomize",
+        "a high detailed 360 panorama of a wide angle scene in the flower hills at blue hour with starry sky.",
+        "None",
+        "everywhere there are funny fluffy purple (dark purple and white with purple mohawk hair style) otters playing with golden stars on their chests. ",
+        "None",
+        "2 Otthers are more in the foreground each one of them is holding a sign with text on it.",
+        "None",
+        "1. sign text \"STARNODES UPDATE 2.1.1\"",
+        "None",
+        "2. sign text \"NEW PANORAMA PARALAXX VIEWER!\"",
+        "None",
+        "3.",
+        "None",
+        "style: high quality octane render in high details.",
+        "None"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 41,
+      "type": "StarSDUpscaleRefinerAdvanced",
+      "pos": [
+        1500,
+        460
+      ],
+      "size": [
+        400,
+        660
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 20161
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 20164
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 20167
+        },
+        {
+          "name": "IMAGE",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 20175
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            20173
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.0.1",
+        "Node name for S&R": "StarSDUpscaleRefinerAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "None",
+        0.25,
+        "None",
+        0.1,
+        "None",
+        0.1,
+        "masterpiece, best quality, highres, photography, 8k, hq, high details",
+        "(worst quality, low quality, normal quality:1.5)",
+        "No",
+        772279308671915,
+        "randomize",
+        10,
+        0.2,
+        1024,
+        "euler",
+        "simple",
+        "None",
+        false,
+        "4x_NMKD-Siax_200k.pth",
+        3200
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 1012,
+      "type": "StarSDUpscaleRefinerAdvanced",
+      "pos": [
+        1930,
+        490
+      ],
+      "size": [
+        400,
+        660
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 20162
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 20165
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 20168
+        },
+        {
+          "name": "IMAGE",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 20172
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            20169,
+            20170,
+            20171
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.0.1",
+        "Node name for S&R": "StarSDUpscaleRefinerAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "None",
+        0.25,
+        "None",
+        0.1,
+        "None",
+        0.1,
+        "masterpiece, best quality, highres, photography, 8k, hq, high details",
+        "(worst quality, low quality, normal quality:1.5)",
+        "No",
+        13854419251109,
+        "randomize",
+        10,
+        0.26,
+        1024,
+        "euler",
+        "simple",
+        "None",
+        false,
+        "4x_NMKD-Siax_200k.pth",
+        3200
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 2008,
+      "type": "StarPanoramaViewer",
+      "pos": [
+        2900,
+        1310
+      ],
+      "size": [
+        532,
+        600
+      ],
+      "flags": {},
+      "order": 42,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 20179
+        },
+        {
+          "name": "depth_map",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 20180
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.1.1",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "Node name for S&R": "StarPanoramaViewer"
+      },
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
     }
@@ -2826,6 +2869,30 @@
       3,
       5,
       "STRING"
+    ],
+    [
+      20179,
+      47,
+      0,
+      2008,
+      0,
+      "IMAGE"
+    ],
+    [
+      20180,
+      46,
+      0,
+      2008,
+      1,
+      "IMAGE"
+    ],
+    [
+      20181,
+      48,
+      0,
+      998,
+      1,
+      "STRING"
     ]
   ],
   "groups": [
@@ -2933,8 +3000,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 17,
-          "lastNodeId": 2007,
-          "lastLinkId": 20178,
+          "lastNodeId": 2009,
+          "lastLinkId": 20182,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -4791,8 +4858,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 17,
-          "lastNodeId": 2007,
-          "lastLinkId": 20178,
+          "lastNodeId": 2009,
+          "lastLinkId": 20182,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -6650,10 +6717,10 @@
   "extra": {
     "ue_links": [],
     "ds": {
-      "scale": 0.35584102738374135,
+      "scale": 0.6934334949442742,
       "offset": [
-        2802.844089338009,
-        416.7882429720704
+        -1219.0415480164995,
+        -363.5429484713104
       ]
     },
     "links_added_by_ue": [],

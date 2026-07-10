@@ -6,21 +6,42 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.1.0
+**Current Version:** 2.1.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## 🎉 Version 2.1.0 - New Helper Nodes
+## 🎉 Version 2.1.1 - Enhanced Panorama Viewer
+
+**This release adds interactive controls and fullscreen support to the panorama viewer.**
+
+### ✨ Enhancements:
+
+#### Star 360 Parallax Viewer
+- **On-Screen Control Bar** - Interactive control panel at the bottom of the viewer with:
+  - **Pan Arrows (◀ ▲ ▼ ▶)** - Press and hold to pan the view in any direction
+  - **Reset Button (⌂)** - Return camera to initial orientation and zoom
+  - **Zoom Buttons (− / +)** - Zoom in/out controls
+  - **Auto-Rotation Toggle (▶/⏸)** - Start/stop automatic panorama rotation
+  - **Speed Slider** - Adjust auto-rotation speed from -5 to +5 (negative = reverse direction)
+  - **Fullscreen Button (⛶)** - Toggle fullscreen viewing mode
+- **Improved Mouse Controls** - More responsive drag-to-pan navigation
+- **Per-Run Cleanup** - Properly cleans up previous viewer instances when re-executing
+- **Bug Fixes** - Fixed rendering issue that caused black screen on initial load
+
+---
+
+## Version 2.1.0 - New Helper Nodes
 
 **This release adds new image manipulation utilities and enhances panorama workflow capabilities.**
 
 ### 🆕 New Nodes:
 
-#### Image Manipulation & Helpers (2 nodes)
+#### Image Manipulation & Helpers (3 nodes)
 - ⭐ **Star Box Drawer** - Draw rectangular boxes on images (filled or outlined) with customizable colors, positions, and sizes. Perfect for masking, highlighting regions, and visual debugging.
 - ⭐ **Star Image Shifter** - Shift images horizontally and vertically with seamless wrapping. Ideal for panoramas, tileable textures, and adjusting seam positions in 360° images.
+- ⭐ **Star 360 Parallax Viewer** - Interactive 360° panorama viewer embedded in ComfyUI. Supports mono, side-by-side and top/bottom stereoscopic images with mouse-driven parallax and real-time Three.js rendering.
 
 ### ✨ Enhancements:
 - **Star Save Panorama JPG+** now outputs both the original image AND the stereoscopic 3D image (when enabled) for further workflow processing
@@ -55,13 +76,16 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 - ❌ **StarNanoBanana** - Removed to reduce external API dependencies
 
 ### What Changed:
-- **88 active nodes** (77 from cleanup + 11 new nodes total)
+- **86 active nodes** (77 from cleanup + 9 new integrated nodes)
 - Added `soundfile>=0.12.0` dependency for music generation
 - Removed `google-generativeai` and `onnxruntime-gpu` dependencies
 - Cleaned up insightface-related commented dependencies
 - Fixed duplicate imports bug
 - Streamlined codebase for better maintainability
 - Integrated LTX Video Toolz and ACE Step Music nodes
+
+### Total Active Nodes (v2.1.1)
+- **89 active nodes** (86 from v2.0.1 + 3 new helper nodes)
 
 **Migration:** If you used any removed nodes, please check `CHANGELOG.md` for alternatives and migration notes.
 
