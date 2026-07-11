@@ -6,11 +6,19 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.1.1
+**Current Version:** 2.1.2
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.1.2 - Star Tiled SeedVR Upscaler
+
+# Star Tiled SeedVR Upscaler
+
+## Description
+Upscales an image with the SeedVR2 diffusion model by processing it in overlapping tiles. This keeps VRAM usage low even for very large output resolutions. The whole SeedVR2 pipeline (preprocessing, VAE encoding, conditioning, sampling, decoding, color correction)
+Gives higher details as native SeedVR workflow.
 
 ## 🎉 Version 2.1.1 - Enhanced Panorama Viewer
 
