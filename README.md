@@ -6,11 +6,18 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.1.2
+**Current Version:** 2.1.3
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.1.3 - Star Flux2/Qwen-Image-Edit Inpainter
+
+# Star Flux2/Qwen-Image-Edit Inpainter
+
+## Description
+All-in-one inpainting node for **Flux2** models (Flux2 Dev and Flux2 Klein) and **Qwen-Image-Edit** models. Combines smart crop-and-stitch, text conditioning, optional reference images, InpaintModelConditioning, Differential Diffusion and sampling in a single user-friendly node. Crop and stitch settings are hardcoded to sensible defaults — just connect model, clip, vae, image and mask, write your prompt and go. Up to 4 reference images can be connected to guide the generation, and the inpaint area itself can be used as an automatic reference for consistent results.
 
 ## 🎉 Version 2.1.2 - Star Tiled SeedVR Upscaler
 
@@ -232,6 +239,7 @@ Gives higher details as native SeedVR workflow.
 - ⭐ StarSampler FLUX: Specialized sampler for Flux models with model and conditioning passthroughs
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 - ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
+- ⭐ Star Flux2/Qwen-Image-Edit Inpainter: All-in-one inpainting node for Flux2 (Dev/Klein) and Qwen-Image-Edit models with built-in crop-and-stitch, reference image support and Differential Diffusion
 - ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
 
 ### ⭐StarNodes/Qwen & Image Editing
