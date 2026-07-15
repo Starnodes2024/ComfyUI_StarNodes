@@ -82,14 +82,15 @@ class StarSampler:
                 "max_shift": ("FLOAT", {"default": 1.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Max shift for Flux models (ignored for SD models)"}),
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
-                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
+                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement, or ⭐ Star Ideogram4 Enhancer Option to bypass censorship with trajectory perturbation."}),
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "IMAGE", "VAE", "INT")
-    RETURN_NAMES = ("model", "positive", "negative", "latent", "image", "vae", "seed")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "IMAGE", "VAE", "INT", "STRING", "SAMPLER_INFO")
+    RETURN_NAMES = ("model", "positive", "negative", "latent", "image", "vae", "seed", "info", "split_info")
     FUNCTION = "execute"
     CATEGORY = "⭐StarNodes/Sampler"
+    OUTPUT_NODE = False
 
     def make_detail_schedule(self, steps, detail_amount, detail_start, detail_end, detail_bias, detail_exponent):
         """Create a detail daemon schedule for enhanced sampling."""
@@ -160,8 +161,136 @@ class StarSampler:
         except Exception:
             return False
 
+    def _get_model_name(self, model):
+        """Extract model name from model object."""
+        try:
+            if hasattr(model, 'model') and hasattr(model.model, 'model_config'):
+                config = model.model.model_config
+                if hasattr(config, 'unet_config') and isinstance(config.unet_config, dict):
+                    return config.unet_config.get('_name_or_path', 'Unknown Model')
+            return 'Unknown Model'
+        except:
+            return 'Unknown Model'
+
+    def _create_info_output(self, processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg):
+        """Create formatted info string."""
+        model_name = self._get_model_name(model)
+        info_lines = [
+            f"Processing Time: {processing_time:.2f}s",
+            f"Model: {model_name}",
+            f"Text Encoder (CLIP): Embedded in model",
+            f"VAE Model: {type(vae).__name__}",
+            f"Sampler: {sampler_name}",
+            f"Scheduler: {scheduler}",
+            f"Denoise: {denoise:.3f}",
+            f"Steps: {steps}",
+            f"CFG: {cfg:.1f}"
+        ]
+        return "\n".join(info_lines)
+
+    def _create_split_info(self, processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg):
+        """Create split info dict for Star Split Sampler Info node."""
+        model_name = self._get_model_name(model)
+        return {
+            "processing_time": processing_time,
+            "model": model_name,
+            "text_encoder": "Embedded in model",
+            "vae_model": type(vae).__name__,
+            "sampler": sampler_name,
+            "scheduler": scheduler,
+            "denoise": denoise,
+            "steps": steps,
+            "cfg": cfg
+        }
+
     def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, 
                 decode_image=True, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None):
+
+        start_time = time.time()
+
+        if isinstance(options, dict) and options.get("starnodes_type") == "IDEOGRAM4_PERTURBATION" and bool(options.get("enabled", False)):
+            try:
+                method = options.get("method", "noise_scaling")
+                perturbation_strength = float(options.get("perturbation_strength", 2.0))
+                split_step = int(options.get("split_step", 2))
+                stage1_sampler = options.get("stage1_sampler", "lcm")
+                stage2_sampler = options.get("stage2_sampler", sampler_name)
+                stage1_denoise = float(options.get("stage1_denoise", 1.0))
+                stage2_denoise = float(options.get("stage2_denoise", 1.0))
+
+                split_step = max(1, min(split_step, steps - 1))
+                stage1_denoise = max(0.0, min(1.0, stage1_denoise))
+                stage2_denoise = max(0.0, min(1.0, stage2_denoise))
+
+                if negative is None:
+                    negative = conditioning_zero_out(positive)
+
+                generator = torch.manual_seed(seed)
+                noise = torch.randn(latent["samples"].shape, dtype=torch.float32, layout=torch.strided, generator=generator, device="cpu")
+                noise = noise.to(device=latent["samples"].device)
+
+                if method == "noise_scaling":
+                    perturbed_noise = noise * perturbation_strength
+                    noise_latent = latent.copy()
+                    noise_latent["samples"] = perturbed_noise
+                    logging.info(f"StarSampler: Ideogram4 perturbation - noise_scaling with strength={perturbation_strength}")
+                    latent_1 = common_ksampler(model, seed, split_step, cfg, stage1_sampler, scheduler, positive, negative, noise_latent, denoise=stage1_denoise)[0]
+                elif method == "sigma_shift":
+                    k_sampler = comfy.samplers.KSampler(model, steps=split_step, device=latent["samples"].device, sampler=stage1_sampler, scheduler=scheduler, denoise=stage1_denoise)
+                    sigmas = k_sampler.sigmas.clone()
+                    sigma_offset = perturbation_strength / 100.0
+                    sigmas[0] = sigmas[0] + sigma_offset
+                    logging.info(f"StarSampler: Ideogram4 perturbation - sigma_shift with offset={sigma_offset}")
+                    noise_latent = latent.copy()
+                    noise_latent["samples"] = noise
+                    
+                    from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicGuider, SamplerCustomAdvanced
+                    noise_gen = Noise_RandomNoise(seed)
+                    basic_guider = BasicGuider()
+                    sampler_advanced = SamplerCustomAdvanced()
+                    guider = basic_guider.get_guider(model, positive)[0]
+                    sampler_obj = comfy.samplers.sampler_object(stage1_sampler)
+                    latent_1 = sampler_advanced.sample(noise_gen, guider, sampler_obj, sigmas, noise_latent)[1]
+                elif method == "combine_both":
+                    perturbed_noise = noise * perturbation_strength
+                    k_sampler = comfy.samplers.KSampler(model, steps=split_step, device=latent["samples"].device, sampler=stage1_sampler, scheduler=scheduler, denoise=stage1_denoise)
+                    sigmas = k_sampler.sigmas.clone()
+                    sigma_offset = perturbation_strength / 100.0
+                    sigmas[0] = sigmas[0] + sigma_offset
+                    logging.info(f"StarSampler: Ideogram4 perturbation - combine_both with noise_strength={perturbation_strength}, sigma_offset={sigma_offset}")
+                    noise_latent = latent.copy()
+                    noise_latent["samples"] = perturbed_noise
+                    
+                    from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, BasicGuider, SamplerCustomAdvanced
+                    noise_gen = Noise_RandomNoise(seed)
+                    basic_guider = BasicGuider()
+                    sampler_advanced = SamplerCustomAdvanced()
+                    guider = basic_guider.get_guider(model, positive)[0]
+                    sampler_obj = comfy.samplers.sampler_object(stage1_sampler)
+                    latent_1 = sampler_advanced.sample(noise_gen, guider, sampler_obj, sigmas, noise_latent)[1]
+                else:
+                    raise ValueError(f"Unknown perturbation method: {method}")
+
+                remaining_steps = steps - split_step
+                if remaining_steps > 0:
+                    out_latent = common_ksampler(model, seed, remaining_steps, cfg, stage2_sampler, scheduler, positive, negative, latent_1, denoise=stage2_denoise)[0]
+                else:
+                    out_latent = latent_1
+
+                image = None
+                if decode_image:
+                    images = vae.decode(out_latent["samples"])
+                    if len(images.shape) == 5:
+                        images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+                    image = images
+
+                processing_time = time.time() - start_time
+                info = self._create_info_output(processing_time, model, vae, stage1_sampler, scheduler, denoise, steps, cfg)
+                split_info = self._create_split_info(processing_time, model, vae, stage1_sampler, scheduler, denoise, steps, cfg)
+
+                return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
+            except Exception as e:
+                logging.warning(f"StarSampler: Ideogram4 perturbation options ignored due to error: {e}")
 
         if isinstance(options, dict) and options.get("starnodes_type") == "ZIT" and (
             bool(options.get("enabled", False)) or int(options.get("details", 0)) > 0
@@ -228,7 +357,11 @@ class StarSampler:
                         images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
                     image = images
 
-                return (model, positive, negative, out_latent, image, vae, seed)
+                processing_time = time.time() - start_time
+                info = self._create_info_output(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
+                split_info = self._create_split_info(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
+
+                return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
             except Exception as e:
                 logging.warning(f"StarSampler: ZIT options ignored due to error: {e}")
 
@@ -431,7 +564,11 @@ class StarSampler:
         if negative is None:
             negative = positive  # Return positive as negative if not used
         
-        return (model, positive, negative, out_latent, image, vae, seed)
+        processing_time = time.time() - start_time
+        info = self._create_info_output(processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg)
+        split_info = self._create_split_info(processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg)
+        
+        return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
 
 
 # Mapping for ComfyUI to recognize the node
