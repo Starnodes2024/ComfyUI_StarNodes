@@ -6,11 +6,34 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.1.5
+**Current Version:** 2.2.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.2.0 - New Nodes & Enhancements
+
+### 🆕 New Nodes:
+
+#### ⭐ Star Krea2 Unbound
+A streamlined prompt adherence enhancer for Krea2 models. Single MODEL in, MODEL out — no widgets, no configuration. Fixed settings (enabled, strength 1.0) for instant plug-and-play use. Optimized code with all debug overhead removed.
+
+#### ⭐ Star 360 Parallax Viewer Pro
+Enhanced panorama viewer with optimized frame rendering. Renders only one loop and duplicates frames for multi-loop exports, drastically reducing RAM usage and processing time. Includes a "Create Video Frames" toggle to skip frame rendering entirely when only interactive viewing is needed. Green frame overlay for export dimensions is now conditional on the toggle state.
+
+#### ⭐ Star Ollama Prompt Helper
+User-friendly single node for local Ollama integration. Create or refine prompts for image generation using preset system prompts (15 presets sorted alphabetically) or custom system prompts. Supports vision language models via optional image input. Includes "Free Ram" toggle for model memory management, temperature control, and seed with control-after-generate.
+
+### ✨ Enhancements:
+- **Star Sampler (Unified)** — Added tiled VAE decoder for lower VRAM usage during sampling
+
+---
+
+## 🎉 Version 2.1.5 - ⭐ Star Image Compare
+
+## Description
+A new interactive before/after image comparison node. Connect two IMAGE inputs and use a draggable slider to wipe between the two images.
 
 ## 🎉 Version 2.1.5 - ⭐ Star Image Compare
 
@@ -412,43 +435,7 @@ The Star Wildcards node allows you to combine up to 7 different prompts, each wi
 
 ### Core Dependencies
 All dependencies are listed in `requirements.txt` and will be installed automatically:
-- **google-generativeai>=0.8.3** - Required for Star Nano Banana (Gemini) node
 - **color-matcher** - Required for Star Simple Filters color matching features
 - **psd-tools>=1.10.0** - Required for PSD export nodes
 - **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
 
-### Optional Dependencies (InfiniteYou Face Swap)
-These dependencies are now **optional** and commented out in `requirements.txt`. Only install if you need InfiniteYou face swap functionality:
-- **insightface** - Required for InfiniteYou face swap nodes
-- **onnxruntime** / **onnxruntime-gpu** - Required for face detection and processing
-- **huggingface_hub** - Required for model downloads
-- **facexlib==0.3.0** - Required for face processing
-
-### Google Gemini API Key
-To use the **Star Nano Banana** and **Star Gemini Refiner** nodes:
-1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create or edit `googleapi.ini` in the comfyui_starnodes folder
-3. Add your key using one of these methods:
-   - **Method 1 (Direct)**: Uncomment and set `[API_KEY]` section with `key = YOUR_API_KEY_HERE`
-   - **Method 2 (External file)**: Uncomment `[API_PATH]` section and point to external ini file
-   - **Method 3 (Environment)**: Set `GOOGLE_API_KEY` environment variable
-
-### InfiniteYou Setup
-For InfiniteYou Insightface is a requirement. If you are having trouble installing it (windows) here is how to fix that problem:
-1. Download that insightface wheel that fits your python version from: 
-https://github.com/Gourieff/Assets/tree/main/Insightface
-2. open command and input:
-PATH_TO_YOUR_COMFYUI\.venv\Scripts\python.exe -m pip install PATH_TO_DOWNLOADED_WHEEL\insightface-0.7.3-cp312-cp312-win_amd64.whl onnxruntime
-3. Restart ComfyUI
-Also this Video could help you if you having problems:
-https://www.youtube.com/watch?v=vCCVxGtCyho&ab_channel=DataLeveling
-
-You will need the InfiniteYou Models from Bytedance:
-https://huggingface.co/vuongminhkhoi4/ComfyUI_InfiniteYou/tree/main
-in models/infiniteyou place:
-aes_stage2_img_proj.bin
-sim_stage1_img_proj.bin
-
-in models/controlnet place:
-sim_stage1_control_net.safetensors
-aes_stage2_control.safetensors
