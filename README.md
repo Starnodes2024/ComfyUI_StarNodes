@@ -17,7 +17,7 @@ A collection of utility nodes designed to simplify and enhance your ComfyUI work
 ### 🆕 New Nodes:
 
 #### ⭐ Star Krea2 Unbound
-A streamlined prompt adherence enhancer for Krea2 models. Single MODEL in, MODEL out — no widgets, no configuration. Fixed settings (enabled, strength 1.0) for instant plug-and-play use. Optimized code with all debug overhead removed.
+A streamlined prompt adherence enhancer for Krea2 models. Unbound Krea2 . Caution: Removes the NSFW filter.
 
 #### ⭐ Star 360 Parallax Viewer Pro
 Enhanced panorama viewer with optimized frame rendering. Renders only one loop and duplicates frames for multi-loop exports, drastically reducing RAM usage and processing time. Includes a "Create Video Frames" toggle to skip frame rendering entirely when only interactive viewing is needed. Green frame overlay for export dimensions is now conditional on the toggle state.

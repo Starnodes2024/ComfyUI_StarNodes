@@ -5,12 +5,19 @@ from io import BytesIO
 
 import numpy as np
 from PIL import Image
-from ollama import Client
 from server import PromptServer
 from aiohttp import web
 
-_PROMPTS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "systemprompts.json")
+# --- NEU: Sicherer Import von Ollama ---
+try:
+    from ollama import Client
+    HAS_OLLAMA = True
+except ImportError:
+    HAS_OLLAMA = False
+    print("\n[StarNodes] WARNUNG: Die 'ollama' Python-Bibliothek fehlt. Der 'Star Ollama Prompt Helper' Node wurde geladen, funktioniert aber erst nach der Installation (pip install ollama).\n")
+# ---------------------------------------
 
+_PROMPTS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "systemprompts.json")
 
 def _load_presets():
     try:
@@ -20,13 +27,16 @@ def _load_presets():
     except Exception:
         return {}
 
-
 _PRESETS = _load_presets()
 _PRESET_NAMES = list(_PRESETS.keys())
 
 
 @PromptServer.instance.routes.post("/starnodes/ollama/models")
 async def _star_ollama_models(request):
+    # Check, ob Ollama überhaupt installiert ist, bevor die Route etwas macht
+    if not HAS_OLLAMA:
+        return web.json_response({"error": "Die 'ollama' Bibliothek fehlt. Bitte 'pip install ollama' ausführen."}, status=500)
+
     body = await request.json()
     url = body.get("url", "http://127.0.0.1:11434")
     try:
@@ -99,6 +109,10 @@ class StarOllamaPromptHelper:
 
     def generate(self, local_address, model, free_ram, system_prompt_preset,
                  system_prompt, prompt, temperature, seed, image=None):
+
+        # Wenn der Node ausgeführt wird, brechen wir mit einer sauberen Fehlermeldung ab, falls Ollama fehlt
+        if not HAS_OLLAMA:
+            raise RuntimeError("Die 'ollama' Bibliothek ist nicht installiert. Bitte öffne dein Terminal und installiere sie mit 'pip install ollama'.")
 
         if system_prompt_preset != "Custom" and system_prompt_preset in _PRESETS:
             sys_text = _PRESETS[system_prompt_preset]
