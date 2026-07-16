@@ -53,63 +53,100 @@ function computeExportDims(node) {
     return { width, height };
 }
 
-function updateGreenFrame(node) {
+function updatePreviewLayout(node) {
     if (!node.panoramaWidget) return;
     const widget = node.panoramaWidget;
     const container = widget.container;
-    const createFrames = getWidgetValue(node, "create_video_frames");
     const dims = computeExportDims(node);
 
-    if (!widget.greenFrame) {
-        const frame = document.createElement("div");
-        frame.style.position = "absolute";
-        frame.style.border = "3px solid #00ff00";
-        frame.style.boxShadow = "0 0 8px rgba(0,255,0,0.6)";
-        frame.style.pointerEvents = "none";
-        frame.style.zIndex = "5";
-        frame.style.left = "50%";
-        frame.style.top = "50%";
-        frame.style.transform = "translate(-50%, -50%)";
-        container.appendChild(frame);
-        widget.greenFrame = frame;
+    const effect = getWidgetValue(node, "overlay_effect") || "None";
+    const opacityVal = getWidgetValue(node, "overlay_opacity");
+    const opacity = (opacityVal !== null) ? opacityVal : 100;
 
-        const label = document.createElement("div");
-        label.style.position = "absolute";
-        label.style.top = "-22px";
-        label.style.left = "50%";
-        label.style.transform = "translateX(-50%)";
-        label.style.background = "rgba(0,180,0,0.85)";
-        label.style.color = "#fff";
-        label.style.fontSize = "11px";
-        label.style.padding = "2px 8px";
-        label.style.borderRadius = "3px";
-        label.style.whiteSpace = "nowrap";
-        label.style.fontWeight = "bold";
-        frame.appendChild(label);
-        widget.greenFrameLabel = label;
-    }
+    const isFullscreen = document.fullscreenElement === container;
+    const containerW = isFullscreen ? container.clientWidth : 512;
+    const containerH = isFullscreen ? container.clientHeight : 512;
 
-    const containerW = container.clientWidth || 512;
-    const containerH = container.clientHeight || 512;
     const aspect = dims.width / dims.height;
-    const containerAspect = containerW / containerH;
+    let w, h;
 
-    let frameW, frameH;
-    if (aspect > containerAspect) {
-        frameW = containerW - 8;
-        frameH = frameW / aspect;
+    if (containerW / containerH > aspect) {
+        h = containerH;
+        w = containerH * aspect;
     } else {
-        frameH = containerH - 8;
-        frameW = frameH * aspect;
+        w = containerW;
+        h = containerW / aspect;
     }
 
-    widget.greenFrame.style.width = `${frameW}px`;
-    widget.greenFrame.style.height = `${frameH}px`;
-    widget.greenFrameLabel.textContent = `${dims.width}x${dims.height}`;
-    widget._lastDims = `${dims.width}x${dims.height}`;
+    if (!widget.cssOverlay) {
+        const overlay = document.createElement("div");
+        overlay.style.position = "absolute";
+        overlay.style.pointerEvents = "none";
+        overlay.style.zIndex = "5";
+        container.appendChild(overlay);
+        widget.cssOverlay = overlay;
+    }
 
-    const showFrame = (createFrames === true || createFrames === "true");
-    widget.greenFrame.style.display = showFrame ? "block" : "none";
+    if (widget.canvas) {
+        widget.canvas.style.position = "absolute";
+        widget.canvas.style.left = "0";
+        widget.canvas.style.right = "0";
+        widget.canvas.style.top = "0";
+        widget.canvas.style.bottom = "0";
+        widget.canvas.style.margin = "auto";
+        widget.canvas.style.width = `${w}px`;
+        widget.canvas.style.height = `${h}px`;
+    }
+
+    widget.cssOverlay.style.left = "0";
+    widget.cssOverlay.style.right = "0";
+    widget.cssOverlay.style.top = "0";
+    widget.cssOverlay.style.bottom = "0";
+    widget.cssOverlay.style.margin = "auto";
+    widget.cssOverlay.style.width = `${w}px`;
+    widget.cssOverlay.style.height = `${h}px`;
+
+    const op = opacity / 100.0;
+    if (effect === "Black" && op > 0) {
+        widget.cssOverlay.style.background = `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,${op}) 100%)`;
+        widget.cssOverlay.style.backdropFilter = "none";
+        widget.cssOverlay.style.webkitMaskImage = "none";
+        widget.cssOverlay.style.border = "none";
+    } else if (effect === "White" && op > 0) {
+        widget.cssOverlay.style.background = `radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,${op}) 100%)`;
+        widget.cssOverlay.style.backdropFilter = "none";
+        widget.cssOverlay.style.webkitMaskImage = "none";
+        widget.cssOverlay.style.border = "none";
+    } else if (effect === "Blur" && op > 0) {
+        widget.cssOverlay.style.background = "transparent";
+        widget.cssOverlay.style.backdropFilter = `blur(${op * 10}px)`;
+        widget.cssOverlay.style.webkitMaskImage = `radial-gradient(ellipse at center, transparent 40%, black 100%)`;
+        widget.cssOverlay.style.maskImage = `radial-gradient(ellipse at center, transparent 40%, black 100%)`;
+        widget.cssOverlay.style.border = "none";
+    } else {
+        widget.cssOverlay.style.background = "transparent";
+        widget.cssOverlay.style.backdropFilter = "none";
+        widget.cssOverlay.style.webkitMaskImage = "none";
+        widget.cssOverlay.style.maskImage = "none";
+        if (effect === "Overlay" && op > 0) {
+            widget.cssOverlay.style.border = "1px dashed rgba(255,255,255,0.4)";
+        } else {
+            widget.cssOverlay.style.border = "none";
+        }
+    }
+
+    if (widget.viewerState && widget.viewerState.camera && widget.viewerState.renderer) {
+        const cam = widget.viewerState.camera;
+        const ren = widget.viewerState.renderer;
+        
+        if (ren.domElement.width !== Math.round(w) || ren.domElement.height !== Math.round(h)) {
+            ren.setSize(w, h);
+            cam.aspect = w / h;
+            cam.updateProjectionMatrix();
+        }
+    }
+
+    widget._lastLayoutKey = `${w}x${h}_${effect}_${opacity}_${isFullscreen}`;
 }
 
 app.registerExtension({
@@ -134,11 +171,10 @@ app.registerExtension({
                 container.style.overflow = "hidden";
 
                 const canvas = document.createElement("canvas");
+                // SICHERHEITS-FIX: Wieder eingefügt für LiteGraph Stabilität
                 canvas.width = 512;
                 canvas.height = 512;
                 canvas.style.display = "block";
-                canvas.style.width = "100%";
-                canvas.style.height = "100%";
                 container.appendChild(canvas);
 
                 const loadingText = document.createElement("div");
@@ -162,7 +198,8 @@ app.registerExtension({
                 widget.container = container;
                 widget.loadingText = loadingText;
                 widget.viewer = null;
-                widget.greenFrame = null;
+                // FIX: Eigene Variable anstatt des geschützten 'node' Getters verwenden
+                widget._parent_node = this;
 
                 this.panoramaWidget = widget;
                 const w = this.size ? this.size[0] : 0;
@@ -172,15 +209,17 @@ app.registerExtension({
                 const self = this;
                 widget._pollInterval = setInterval(() => {
                     const dims = computeExportDims(self);
-                    const createFrames = getWidgetValue(self, "create_video_frames");
-                    const showFrame = (createFrames === true || createFrames === "true");
-                    const key = `${dims.width}x${dims.height}_${showFrame}`;
-                    if (widget._lastDims !== key) {
-                        updateGreenFrame(self);
+                    const effect = getWidgetValue(self, "overlay_effect") || "None";
+                    const opacity = getWidgetValue(self, "overlay_opacity");
+                    const isFullscreen = document.fullscreenElement === container;
+                    const key = `${dims.width}x${dims.height}_${effect}_${opacity}_${isFullscreen}`;
+                    
+                    if (widget._lastLayoutKey !== key) {
+                        updatePreviewLayout(self);
                     }
                 }, 500);
 
-                updateGreenFrame(this);
+                updatePreviewLayout(this);
 
                 return result;
             };
@@ -206,7 +245,7 @@ app.registerExtension({
 
                     if (this.panoramaWidget) {
                         initPanoramaViewerPro(this.panoramaWidget, imageUrl, panoData.layout, depthUrl);
-                        updateGreenFrame(this);
+                        updatePreviewLayout(this);
                     }
                 }
             };
@@ -277,8 +316,7 @@ function initPanoramaViewerPro(widget, imageUrl, layout, depthUrl) {
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         camera.position.set(0, 0, 0.1);
 
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-        renderer.setSize(512, 512);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
 
         const geometry = new THREE.SphereGeometry(500, 60, 40);
         geometry.scale(-1, 1, 1);
@@ -299,7 +337,9 @@ function initPanoramaViewerPro(widget, imageUrl, layout, depthUrl) {
             autoRotate: false,
             autoSpeed: 1,
             heldX: 0,
-            heldY: 0
+            heldY: 0,
+            camera: camera,
+            renderer: renderer
         };
         widget.viewerState = state;
         const signal = state.abort.signal;
@@ -445,16 +485,18 @@ function initPanoramaViewerPro(widget, imageUrl, layout, depthUrl) {
             }, { signal });
             controls.appendChild(fsBtn);
 
+            // FIX: Auch hier die kompatible Zuweisung nutzen
             document.addEventListener("fullscreenchange", () => {
-                if (document.fullscreenElement === container) {
-                    renderer.setSize(container.clientWidth, container.clientHeight);
-                    camera.aspect = container.clientWidth / container.clientHeight;
-                } else {
-                    renderer.setSize(512, 512);
-                    camera.aspect = 1;
+                const targetNode = widget._parent_node || widget.node;
+                if (targetNode) {
+                    updatePreviewLayout(targetNode);
                 }
-                camera.updateProjectionMatrix();
             }, { signal });
+
+            const initialNode = widget._parent_node || widget.node;
+            if (initialNode) {
+                updatePreviewLayout(initialNode);
+            }
 
             function animate() {
                 state.frameId = requestAnimationFrame(animate);

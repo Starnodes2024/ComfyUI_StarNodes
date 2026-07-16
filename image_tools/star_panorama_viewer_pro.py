@@ -2,9 +2,11 @@ import folder_paths
 import os
 import math
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 import torch
-
+import comfy.utils
+import comfy.model_management as mm
+import gc
 
 class StarPanoramaViewerPro:
     RATIO_MAP = {
@@ -41,14 +43,18 @@ class StarPanoramaViewerPro:
                 "resolution": (["HD (1280x720)", "Full HD (1920x1080)"], {"default": "Full HD (1920x1080)"}),
                 "ratio": (ratio_labels, {"default": "16:9"}),
                 "custom_ratio": ("STRING", {"default": "21:9", "multiline": False}),
-                "framerate": ([24, 25, 30, 50, 60], {"default": 30}),
+                "framerate": (["24", "25", "30", "50", "60"], {"default": "30"}),
                 "direction": (["Right to Left", "Left to Right"], {"default": "Right to Left"}),
                 "num_loops": ("INT", {"default": 1, "min": 1, "max": 100}),
-                "zoom": ("FLOAT", {"default": 1.0, "min": 0.5, "max": 5.0, "step": 0.1}),
+                "zoom": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 5.0, "step": 0.1}),
                 "speed": ("FLOAT", {"default": 30.0, "min": 1.0, "max": 360.0, "step": 1.0}),
+                "overlay_effect": (["None", "Black", "White", "Blur", "Overlay"], {"default": "None"}),
+                "overlay_opacity": ("INT", {"default": 100, "min": 0, "max": 100, "step": 1}),
             },
             "optional": {
                 "depth_map": ("IMAGE",),
+                "overlay_image": ("IMAGE",),
+                "overlay_mask": ("MASK",),
             }
         }
 
@@ -57,7 +63,7 @@ class StarPanoramaViewerPro:
     FUNCTION = "view_panorama_pro"
     OUTPUT_NODE = True
     CATEGORY = "⭐StarNodes/Image And Latent"
-    DESCRIPTION = "360-degree panorama viewer with parallax effect that exports an image batch for video creation."
+    DESCRIPTION = "360-degree panorama viewer with parallax effect and overlays that exports an image batch for video creation."
 
     @staticmethod
     def _parse_custom_ratio(text):
@@ -147,7 +153,8 @@ class StarPanoramaViewerPro:
         return equi_np[py, px]
 
     def view_panorama_pro(self, image, layout, create_video_frames, resolution, ratio, custom_ratio,
-                          framerate, direction, num_loops, zoom, speed, depth_map=None):
+                          framerate, direction, num_loops, zoom, speed, overlay_effect="None", 
+                          overlay_opacity=100, depth_map=None, overlay_image=None, overlay_mask=None):
         out_w, out_h = self._get_export_dims(resolution, ratio, custom_ratio)
 
         img_tensor = image[0]
@@ -199,14 +206,95 @@ class StarPanoramaViewerPro:
 
         dir_sign = 1.0 if direction == "Left to Right" else -1.0
 
-        one_loop_frames = []
+        # Pre-calculate Vignette Mask or Prepared Overlay
+        vignette_mask = None
+        prepared_overlay = None
+
+        if overlay_effect != "None" and overlay_opacity > 0:
+            if overlay_effect in ["Black", "White", "Blur"]:
+                X, Y = np.meshgrid(np.linspace(-1, 1, out_w), np.linspace(-1, 1, out_h))
+                radius = np.sqrt(X**2 + Y**2)
+                max_radius = np.sqrt(2)
+                mask = np.clip(radius / max_radius, 0, 1)
+                # Curve the mask for a natural vignette falloff
+                mask = np.power(mask, 2.0)
+                vignette_mask = mask[..., np.newaxis] * (overlay_opacity / 100.0)
+            
+            elif overlay_effect == "Overlay" and overlay_image is not None:
+                ov_tensor = overlay_image[0]
+                ov_np = (255.0 * ov_tensor.cpu().numpy()).astype(np.uint8)
+                ov_img = Image.fromarray(ov_np, mode="RGB").convert("RGBA")
+                
+                # Maske als Alpha-Kanal anwenden (Invertiert, damit ComfyUI-Transparenz passt)
+                if overlay_mask is not None:
+                    mask_tensor = overlay_mask[0]
+                    inverted_mask = 1.0 - mask_tensor
+                    mask_np = (255.0 * inverted_mask.cpu().numpy()).astype(np.uint8)
+                    mask_img = Image.fromarray(mask_np, mode="L")
+                    ov_img.putalpha(mask_img)
+                
+                prepared_overlay = ov_img.resize((out_w, out_h), Image.LANCZOS)
+
+        # Fortschrittsbalken initialisieren
+        pbar = comfy.utils.ProgressBar(frames_per_loop)
+        
+        # GPU Device abrufen
+        device = mm.get_torch_device()
+        
+        all_chunks = []
+        current_chunk = []
+        chunk_size = 10 # Verarbeitet 10 Frames auf einmal
+
         for i in range(frames_per_loop):
             yaw = (dir_sign * i * degrees_per_frame) % 360.0
             frame_np = self._equirect_to_perspective(equi_np, yaw, 0.0, fov, out_w, out_h)
-            frame_tensor = torch.from_numpy(frame_np.astype(np.float32) / 255.0)
-            one_loop_frames.append(frame_tensor)
+            
+            # Apply Overlay Effects
+            if overlay_effect != "None" and overlay_opacity > 0:
+                frame_float = frame_np.astype(np.float32)
+                
+                if overlay_effect == "Black" and vignette_mask is not None:
+                    frame_np = (frame_float * (1.0 - vignette_mask)).astype(np.uint8)
+                    
+                elif overlay_effect == "White" and vignette_mask is not None:
+                    frame_np = (frame_float * (1.0 - vignette_mask) + 255.0 * vignette_mask).astype(np.uint8)
+                    
+                elif overlay_effect == "Blur" and vignette_mask is not None:
+                    pil_frame = Image.fromarray(frame_np)
+                    blurred_np = np.array(pil_frame.filter(ImageFilter.GaussianBlur(radius=15)), dtype=np.float32)
+                    frame_np = (frame_float * (1.0 - vignette_mask) + blurred_np * vignette_mask).astype(np.uint8)
+                    
+                elif overlay_effect == "Overlay" and prepared_overlay is not None:
+                    pil_frame = Image.fromarray(frame_np).convert("RGBA")
+                    ov_with_opacity = prepared_overlay.copy()
+                    
+                    # Adjust alpha channel of overlay based on user opacity
+                    alpha = ov_with_opacity.split()[3]
+                    alpha = alpha.point(lambda p: p * (overlay_opacity / 100.0))
+                    ov_with_opacity.putalpha(alpha)
+                    
+                    pil_frame.alpha_composite(ov_with_opacity)
+                    frame_np = np.array(pil_frame.convert("RGB"), dtype=np.uint8)
 
-        one_loop_batch = torch.stack(one_loop_frames, dim=0)
+            frame_tensor = torch.from_numpy(frame_np.astype(np.float32) / 255.0)
+            current_chunk.append(frame_tensor)
+            
+            # ComfyUI UI aktualisieren
+            pbar.update(1)
+
+            # Wenn der Chunk voll ist oder der letzte Frame erreicht wurde
+            if len(current_chunk) == chunk_size or i == frames_per_loop - 1:
+                # Chunk zusammenfügen und direkt auf die GPU schieben
+                chunk_batch = torch.stack(current_chunk, dim=0).to(device)
+                all_chunks.append(chunk_batch)
+                
+                # Listen leeren und RAM Garbage Collection erzwingen
+                current_chunk = []
+                gc.collect()
+
+        # Am Ende alle VRAM-Chunks zu einem großen Batch verbinden 
+        # und für den Output Node zurück auf die CPU holen
+        one_loop_batch = torch.cat(all_chunks, dim=0).cpu()
 
         if num_loops > 1:
             frames_batch = one_loop_batch.repeat(num_loops, 1, 1, 1)
