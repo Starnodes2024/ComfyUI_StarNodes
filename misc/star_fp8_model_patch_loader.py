@@ -19,7 +19,7 @@ class StarFP8ModelPatchLoader:
     FUNCTION = "load_model_patch"
     EXPERIMENTAL = False
 
-    CATEGORY = "\u2b50StarNodes/Loaders"
+    CATEGORY = "\u2b50StarNodes/Model"
 
     def _count_nonzero_fp8_safe(self, t: torch.Tensor) -> int:
         if t is None:

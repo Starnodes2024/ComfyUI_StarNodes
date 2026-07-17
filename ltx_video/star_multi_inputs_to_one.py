@@ -1,7 +1,7 @@
 class StarMultiInputsToOne:
     BGCOLOR = "#3d124d"
     COLOR = "#19124d"
-    CATEGORY = '⭐StarNodes/Utilities'
+    CATEGORY = '⭐StarNodes/Helpers And Tools'
     RETURN_TYPES = ("*",)
     RETURN_NAMES = ("output",)
     FUNCTION = "process_inputs"

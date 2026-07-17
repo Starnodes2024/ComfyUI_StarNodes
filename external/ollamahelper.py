@@ -34,7 +34,7 @@ class OllamaModelChooser:
     RETURN_TYPES = ("STRING", (),)
     RETURN_NAMES = ("Instructions (System)", "Ollama Model",)
     FUNCTION = "select_model"
-    CATEGORY = "⭐StarNodes"
+    CATEGORY = "⭐StarNodes/Prompts"
 
     def select_model(self, Model, Instructions):
         return (Instructions, Model)
@@ -45,5 +45,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OllamaModelChooser": "⭐ Starnode Ollama Helper"
+    "OllamaModelChooser": "⭐ Star Ollama Helper"
 }

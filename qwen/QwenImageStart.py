@@ -482,5 +482,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "QwenImageStartSettings": "⭐ Qwen Image Star(t) Settings"
+    "QwenImageStartSettings": "⭐ Star Qwen Image Start(t) Settings"
 }

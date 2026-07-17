@@ -16,7 +16,7 @@ class StarVAE_LTXV_Load:
     RETURN_TYPES = ("VAE", "VAE")
     RETURN_NAMES = ("video_vae", "audio_vae")
     FUNCTION = "load_vae"
-    CATEGORY = "StarVAE"
+    CATEGORY = "⭐StarNodes/Video"
 
     def load_vae(self, video_vae, audio_vae):
         video_vae_path = folder_paths.get_full_path_or_raise("vae", video_vae)
@@ -35,5 +35,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarVAE_LTXV_Load": "StarVAE LTXV Load"
+    "StarVAE_LTXV_Load": "⭐ Star VAE LTXV Load"
 }

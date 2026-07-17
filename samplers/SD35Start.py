@@ -351,5 +351,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SD35StartSettings": "⭐ SD3.5 Star(t) Settings"
+    "SD35StartSettings": "⭐ Star SD3.5 Start(t) Settings"
 }

@@ -18,7 +18,7 @@ class StarVAE_LTXV_Save:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("info",)
     FUNCTION = "save_vae"
-    CATEGORY = "StarVAE"
+    CATEGORY = "⭐StarNodes/Video"
     OUTPUT_NODE = True
 
     def save_vae(self, checkpoint, save_name):
@@ -308,5 +308,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarVAE_LTXV_Save": "StarVAE LTXV Save"
+    "StarVAE_LTXV_Save": "⭐ Star VAE LTXV Save"
 }

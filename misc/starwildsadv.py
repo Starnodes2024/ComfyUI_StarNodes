@@ -269,6 +269,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarWildsAdv": "⭐StarNodes/Text & Prompt Generation/Wildcards Advanced",
+    "StarWildsAdv": "⭐ Star Wildcards Advanced",
     "StarWildcardsAdvanced": "⭐ Star Wildcards Advanced"
 }

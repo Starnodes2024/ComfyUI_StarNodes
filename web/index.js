@@ -7,4 +7,6 @@ import "./js/star_stop_and_go.js";
 import "./js/star_image_loop_dynamic.js";
 import "./js/star_video_loop_dynamic.js";
 import "./js/star_image_compare.js";
+import "./js/star_video_compressor.js";
+import "./js/star_output_cleaner.js";
 

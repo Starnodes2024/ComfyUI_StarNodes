@@ -6,18 +6,36 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.2.0
+**Current Version:** 2.3.0
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.3.0 - New Nodes & Category Reorganization
+
+### 🆕 New Nodes:
+
+#### ⭐ Star Video Loader
+Standalone video loader that decodes any video file from the ComfyUI `input` folder into frames (IMAGE batch), audio (AUDIO), fps, frame count, and a `STAR_FILENAMES` reference — with force_rate / skip / every-kth / cap controls, inline preview and progress bars. No Video Helper Suite required.
+
+#### ⭐ Star Video Compressor
+Compress videos or IMAGE batches to a chosen quality (CRF slider) or a desired file size (two-pass bitrate encoding). Formats: H.264 MP4, H.265/HEVC MP4, VP9 WebM, AV1 MP4. Perfect for Discord's 10 MB upload limit. Includes inline video preview, three progress indicators, and detailed info output. See `web/docs/StarVideoCompressor.md`.
+
+#### ⭐ Star Output Cleaner
+Browse, select and clean up images in your ComfyUI output folder (or any custom folder) directly from a node. Features 200×200 thumbnails, paging, date filtering (last N days/weeks/months or date range), permanent delete with confirmation dialog, and ZIP download. See `web/docs/StarOutputCleaner.md`.
+
+### 🗂️ Category Reorganization:
+All nodes are now organized under the `⭐StarNodes/` prefix with clear, user-friendly categories.
+
+---
 
 ## 🎉 Version 2.2.0 - New Nodes & Enhancements
 
 ### 🆕 New Nodes:
 
 #### ⭐ Star Krea2 Unbound
-A streamlined prompt adherence enhancer for Krea2 models. Unbound Krea2 . Caution: Removes the NSFW filter.
+A streamlined prompt adherence enhancer for Krea2 models. Single MODEL in, MODEL out — no widgets, no configuration. Fixed settings (enabled, strength 1.0) for instant plug-and-play use. Optimized code with all debug overhead removed.
 
 #### ⭐ Star 360 Parallax Viewer Pro
 Enhanced panorama viewer with optimized frame rendering. Renders only one loop and duplicates frames for multi-loop exports, drastically reducing RAM usage and processing time. Includes a "Create Video Frames" toggle to skip frame rendering entirely when only interactive viewing is needed. Green frame overlay for export dimensions is now conditional on the toggle state.
@@ -438,4 +456,5 @@ All dependencies are listed in `requirements.txt` and will be installed automati
 - **color-matcher** - Required for Star Simple Filters color matching features
 - **psd-tools>=1.10.0** - Required for PSD export nodes
 - **beautifulsoup4**, **newspaper3k**, **lxml** - Required for web scraping nodes
+- **imageio-ffmpeg** - Required for Star Video Loader/Compressor (bundled ffmpeg with libx264/libx265)
 

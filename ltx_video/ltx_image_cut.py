@@ -14,7 +14,7 @@ class LTXImageCut:
     RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE")
     RETURN_NAMES = ("images", "first_image", "last_image", "selected_frame")
     FUNCTION = "cut_frames"
-    CATEGORY = "⭐StarNodes/LTX Video"
+    CATEGORY = "⭐StarNodes/Video"
     
     def cut_frames(self, images, cut_first_frames, cut_last_frames, export_frame_number):
         import torch
@@ -80,5 +80,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LTXImageCut": "⭐ LTX Image Cut",
+    "LTXImageCut": "⭐ Star LTX Image Cut",
 }

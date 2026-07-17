@@ -14,7 +14,7 @@ class StarLTXVGetLastFrame:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("last_frame",)
     FUNCTION = "get_last_frame"
-    CATEGORY = "⭐StarNodes/LTX Video"
+    CATEGORY = "⭐StarNodes/Video"
     
     def get_last_frame(self, images):
         if isinstance(images, dict):

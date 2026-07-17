@@ -52,7 +52,7 @@ class StarLTXVideoSettings:
     RETURN_TYPES = ("INT", "FLOAT", "INT", "FLOAT", "INT", "FLOAT", "INT", "FLOAT", "INT", "FLOAT", "INT", "FLOAT", "INT", "FLOAT")
     RETURN_NAMES = ("width", "width_float", "height", "height_float", "width_50%", "width_50%_float", "height_50%", "height_50%_float", "frames", "frames_float", "fps", "fps_float", "seconds", "seconds_float")
     FUNCTION = "calculate_settings"
-    CATEGORY = "⭐StarNodes/LTX Video"
+    CATEGORY = "⭐StarNodes/Video"
     
     @staticmethod
     def _round_to_divisible_32_plus_1(value):

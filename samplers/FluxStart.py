@@ -389,5 +389,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "FluxStartSettings": "⭐ FLUX Star(t) Settings"
+    "FluxStartSettings": "⭐ Star FLUX Start(t) Settings"
 }

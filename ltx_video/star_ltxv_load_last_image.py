@@ -17,7 +17,7 @@ class StarLTXVLoadLastImage:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "load_last_image"
-    CATEGORY = "⭐StarNodes/LTX Video"
+    CATEGORY = "⭐StarNodes/Video"
     
     @classmethod
     def IS_CHANGED(cls, folder_path):

@@ -91,7 +91,7 @@ class StarKrea2Unbound:
     RETURN_TYPES = ("MODEL",)
     RETURN_NAMES = ("model",)
     FUNCTION = "apply"
-    CATEGORY = "⭐StarNodes/Model"
+    CATEGORY = "⭐StarNodes/Helpers And Tools"
     DESCRIPTION = "Unbound prompt adherence enhancer for Krea2 models."
 
     def apply(self, model):

@@ -275,6 +275,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarTextStorage": "⭐StarNodes/Text & Prompt Generation/Easy-Text-Storage",
+    "StarTextStorage": "⭐ Star Easy-Text-Storage",
     "StarEasyTextStorage": "⭐ Star Easy-Text-Storage"
 }

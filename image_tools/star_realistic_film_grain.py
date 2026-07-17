@@ -38,7 +38,7 @@ class StarRealisticFilmGrain:
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "apply_film_grain"
-    CATEGORY = "⭐StarNodes/Image & Latent Selection"
+    CATEGORY = "⭐StarNodes/Image And Latent"
 
     def _apply_grain_to_image(self, image, current_size, current_variance, use_chroma, blend_strength, auto_scale_grain):
         """Core grain application logic extracted for reuse."""

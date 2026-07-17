@@ -34,5 +34,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "DetailStarDaemon": "⭐ Detail Star Daemon"
+    "DetailStarDaemon": "⭐ Star Detail Daemon"
 }

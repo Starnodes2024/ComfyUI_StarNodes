@@ -205,5 +205,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SDXLStartSettings": "⭐ SD(XL) Star(t) Settings"
+    "SDXLStartSettings": "⭐ Star SD(XL) Start(t) Settings"
 }

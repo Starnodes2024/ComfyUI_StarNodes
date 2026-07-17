@@ -130,5 +130,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarDistilledOptimizerZIT": "⭐ Distilled Optimizer (QWEN/ZIT)",
+    "StarDistilledOptimizerZIT": "⭐ Star Distilled Optimizer (QWEN/ZIT)",
 }
