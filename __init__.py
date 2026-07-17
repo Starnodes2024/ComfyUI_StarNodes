@@ -216,11 +216,11 @@ NODE_CLASS_MAPPINGS = {
     **STAR_VIDEO_TOOLS_NODE_CLASS_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_CLASS_MAPPINGS,
     # Manual add for Star Detail Enhancer
-    **({k: v for k, v in {"AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_MAPPINGS.get("AdaptiveDetailEnhancement")}.items() if v is not None}),
+    "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_MAPPINGS["AdaptiveDetailEnhancement"],
     # Manual add for StarShowLastFrame
-    **({k: v for k, v in {"Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_MAPPINGS.get("Star_Show_Last_Frame")}.items() if v is not None}),
+    "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_MAPPINGS["Star_Show_Last_Frame"],
     # Manual add for StarAspectVideoRatio
-    **({k: v for k, v in {"Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_MAPPINGS.get("Starnodes_Aspect_Video_Ratio")}.items() if v is not None}),
+    "Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_MAPPINGS["Starnodes_Aspect_Video_Ratio"],
 
 }
 
@@ -316,11 +316,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_VIDEO_TOOLS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_DISPLAY_NAME_MAPPINGS,
     # Manual add for Star Detail Enhancer
-    **({k: v for k, v in {"AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_DISPLAY_NAMES.get("AdaptiveDetailEnhancement")}.items() if v is not None}),
+    "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_DISPLAY_NAMES["AdaptiveDetailEnhancement"],
     # Manual add for StarShowLastFrame
-    **({k: v for k, v in {"Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES.get("Star_Show_Last_Frame")}.items() if v is not None}),
+    "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES["Star_Show_Last_Frame"],
     # Manual add for StarAspectVideoRatio
-    **({k: v for k, v in {"Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_DISPLAY_NAMES.get("Starnodes_Aspect_Video_Ratio")}.items() if v is not None}),
+    "Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_DISPLAY_NAMES["Starnodes_Aspect_Video_Ratio"],
 
 }
 
