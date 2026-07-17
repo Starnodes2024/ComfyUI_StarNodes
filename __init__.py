@@ -80,7 +80,14 @@ from .image_tools.StarImageShifter import NODE_CLASS_MAPPINGS as STAR_IMAGE_SHIF
 from .image_tools.star_panorama_viewer import NODE_CLASS_MAPPINGS as STAR_PANORAMA_VIEWER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_PANORAMA_VIEWER_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_panorama_viewer_pro import NODE_CLASS_MAPPINGS as STAR_PANORAMA_VIEWER_PRO_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_PANORAMA_VIEWER_PRO_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_krea2_unbound import NODE_CLASS_MAPPINGS as STAR_KREA2_UNBOUND_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_KREA2_UNBOUND_NODE_DISPLAY_NAME_MAPPINGS
-from .image_tools.star_ollama_prompt_helper import NODE_CLASS_MAPPINGS as STAR_OLLAMA_PROMPT_HELPER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_OLLAMA_PROMPT_HELPER_NODE_DISPLAY_NAME_MAPPINGS
+try:
+    from .image_tools.star_ollama_prompt_helper import NODE_CLASS_MAPPINGS as STAR_OLLAMA_PROMPT_HELPER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_OLLAMA_PROMPT_HELPER_NODE_DISPLAY_NAME_MAPPINGS
+    STAR_OLLAMA_PROMPT_HELPER_AVAILABLE = True
+except Exception as e:
+    print(f"StarNodes: Could not load star_ollama_prompt_helper: {e}")
+    STAR_OLLAMA_PROMPT_HELPER_NODE_MAPPINGS = {}
+    STAR_OLLAMA_PROMPT_HELPER_NODE_DISPLAY_NAME_MAPPINGS = {}
+    STAR_OLLAMA_PROMPT_HELPER_AVAILABLE = False
 from .image_tools.star_tiled_seedvr_upscaler import NODE_CLASS_MAPPINGS as STAR_TILED_SEEDVR_UPSCALER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_TILED_SEEDVR_UPSCALER_NODE_DISPLAY_NAME_MAPPINGS
 from .image_tools.star_realistic_film_grain import NODE_CLASS_MAPPINGS as STAR_REALISTIC_FILM_GRAIN_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_REALISTIC_FILM_GRAIN_NODE_DISPLAY_NAME_MAPPINGS
 from .text_io.star_prompt_picker import NODE_CLASS_MAPPINGS as STAR_PROMPT_PICKER_NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_PROMPT_PICKER_NODE_DISPLAY_NAME_MAPPINGS
@@ -209,11 +216,11 @@ NODE_CLASS_MAPPINGS = {
     **STAR_VIDEO_TOOLS_NODE_CLASS_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_CLASS_MAPPINGS,
     # Manual add for Star Detail Enhancer
-    "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_MAPPINGS["AdaptiveDetailEnhancement"],
+    **({k: v for k, v in {"AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_MAPPINGS.get("AdaptiveDetailEnhancement")}.items() if v is not None}),
     # Manual add for StarShowLastFrame
-    "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_MAPPINGS["Star_Show_Last_Frame"],
+    **({k: v for k, v in {"Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_MAPPINGS.get("Star_Show_Last_Frame")}.items() if v is not None}),
     # Manual add for StarAspectVideoRatio
-    "Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_MAPPINGS["Starnodes_Aspect_Video_Ratio"],
+    **({k: v for k, v in {"Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_MAPPINGS.get("Starnodes_Aspect_Video_Ratio")}.items() if v is not None}),
 
 }
 
@@ -309,11 +316,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_VIDEO_TOOLS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_DISPLAY_NAME_MAPPINGS,
     # Manual add for Star Detail Enhancer
-    "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_DISPLAY_NAMES["AdaptiveDetailEnhancement"],
+    **({k: v for k, v in {"AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_DISPLAY_NAMES.get("AdaptiveDetailEnhancement")}.items() if v is not None}),
     # Manual add for StarShowLastFrame
-    "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES["Star_Show_Last_Frame"],
+    **({k: v for k, v in {"Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES.get("Star_Show_Last_Frame")}.items() if v is not None}),
     # Manual add for StarAspectVideoRatio
-    "Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_DISPLAY_NAMES["Starnodes_Aspect_Video_Ratio"],
+    **({k: v for k, v in {"Starnodes_Aspect_Video_Ratio": STARASPECTVIDEORATIO_NODE_DISPLAY_NAMES.get("Starnodes_Aspect_Video_Ratio")}.items() if v is not None}),
 
 }
 
