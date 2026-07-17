@@ -1,9 +1,15 @@
 import os
 import io
 import numpy as np
-import cv2
 from PIL import Image
 import folder_paths
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    print("[StarSavePanoramaJPEGPlus] Warning: 'opencv-python' not installed. Node will not be available.")
 
 from .star_save_panorama_jpeg import XMP_TEMPLATE
 
@@ -149,9 +155,11 @@ class StarSavePanoramaJPEGPlus:
         return {"ui": {"images": results}, "result": (images, stereo_output,)}
 
 
-NODE_CLASS_MAPPINGS = {
-    "StarSavePanoramaJPEGPlus": StarSavePanoramaJPEGPlus,
-}
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarSavePanoramaJPEGPlus": "\u2b50 Star Save Panorama JPG+",
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
+
+if CV2_AVAILABLE:
+    NODE_CLASS_MAPPINGS["StarSavePanoramaJPEGPlus"] = StarSavePanoramaJPEGPlus
+    NODE_DISPLAY_NAME_MAPPINGS["StarSavePanoramaJPEGPlus"] = "\u2b50 Star Save Panorama JPG+"
+else:
+    print("[StarSavePanoramaJPEGPlus] Node not registered due to missing dependency: opencv-python")

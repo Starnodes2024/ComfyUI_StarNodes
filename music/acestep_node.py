@@ -1,4 +1,10 @@
-import requests
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    print("[ACEStepMusicGenerator] Warning: 'requests' not installed. Node will not be available.")
+
 import json
 import time
 import os
@@ -506,10 +512,11 @@ class ACEStepMusicGenerator:
                 raise Exception(f"Failed to query task status: {str(e)}")
 
 
-NODE_CLASS_MAPPINGS = {
-    "ACEStepMusicGenerator": ACEStepMusicGenerator,
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "ACEStepMusicGenerator": "⭐ Star ACE Step Music Gen (Local API)",
-}
+if REQUESTS_AVAILABLE:
+    NODE_CLASS_MAPPINGS["ACEStepMusicGenerator"] = ACEStepMusicGenerator
+    NODE_DISPLAY_NAME_MAPPINGS["ACEStepMusicGenerator"] = "⭐ Star ACE Step Music Gen (Local API)"
+else:
+    print("[ACEStepMusicGenerator] Node not registered due to missing dependency: requests")

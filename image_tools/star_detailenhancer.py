@@ -1,8 +1,14 @@
 import torch
 import torch.nn.functional as F
-import cv2
 import numpy as np
 from PIL import Image
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    print("[AdaptiveDetailEnhancement] Warning: 'opencv-python' not installed. Node will not be available.")
 
 class AdaptiveDetailEnhancement:
     def __init__(self):
@@ -201,10 +207,11 @@ class AdaptiveDetailEnhancement:
         return (result,)
 
 # Node Mapping für ComfyUI
-NODE_CLASS_MAPPINGS = {
-    "AdaptiveDetailEnhancement": AdaptiveDetailEnhancement
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "AdaptiveDetailEnhancement": "⭐ Star Adaptive Detail Enhancement"
-}
+if CV2_AVAILABLE:
+    NODE_CLASS_MAPPINGS["AdaptiveDetailEnhancement"] = AdaptiveDetailEnhancement
+    NODE_DISPLAY_NAME_MAPPINGS["AdaptiveDetailEnhancement"] = "⭐ Star Adaptive Detail Enhancement"
+else:
+    print("[AdaptiveDetailEnhancement] Node not registered due to missing dependency: opencv-python")

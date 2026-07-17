@@ -2,12 +2,22 @@ import os
 import torch
 import numpy as np
 from PIL import Image
-from psd_tools import PSDImage
-from psd_tools.api.layers import PixelLayer
-from psd_tools.constants import ColorMode, ChannelID, Compression, BlendMode
-from psd_tools.api.mask import Mask
-from psd_tools.psd.layer_and_mask import MaskData, MaskFlags, ChannelInfo, ChannelData
-from psd_tools.compression import compress
+
+try:
+    from psd_tools import PSDImage
+    from psd_tools.api.layers import PixelLayer
+    from psd_tools.constants import ColorMode, ChannelID, Compression, BlendMode
+    from psd_tools.api.mask import Mask
+    from psd_tools.psd.layer_and_mask import MaskData, MaskFlags, ChannelInfo, ChannelData
+    from psd_tools.compression import compress
+    PSD_TOOLS_AVAILABLE = True
+except ImportError:
+    PSD_TOOLS_AVAILABLE = False
+    print("[StarPSDSaverAdvLayers] Warning: 'psd-tools' not installed. Node will not be available.")
+    # Create dummy BlendMode for BLEND_MODE_MAP
+    class BlendMode:
+        pass
+
 import folder_paths
 
 
@@ -479,10 +489,11 @@ class StarPSDSaverAdvLayers:
         return (flattened_tensor,)
 
 
-NODE_CLASS_MAPPINGS = {
-    "StarPSDSaverAdvLayers": StarPSDSaverAdvLayers
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarPSDSaverAdvLayers": "⭐ Star PSD Saver Adv. Layers"
-}
+if PSD_TOOLS_AVAILABLE:
+    NODE_CLASS_MAPPINGS["StarPSDSaverAdvLayers"] = StarPSDSaverAdvLayers
+    NODE_DISPLAY_NAME_MAPPINGS["StarPSDSaverAdvLayers"] = "⭐ Star PSD Saver Adv. Layers"
+else:
+    print("[StarPSDSaverAdvLayers] Node not registered due to missing dependency: psd-tools")

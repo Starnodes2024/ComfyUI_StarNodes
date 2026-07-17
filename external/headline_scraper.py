@@ -1,6 +1,24 @@
-import requests
-from bs4 import BeautifulSoup
-from newspaper import Article
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    print("[headline_scraper] Warning: 'requests' not installed.")
+
+try:
+    from bs4 import BeautifulSoup
+    BS4_AVAILABLE = True
+except ImportError:
+    BS4_AVAILABLE = False
+    print("[headline_scraper] Warning: 'beautifulsoup4' not installed.")
+
+try:
+    from newspaper import Article
+    NEWSPAPER_AVAILABLE = True
+except ImportError:
+    NEWSPAPER_AVAILABLE = False
+    print("[headline_scraper] Warning: 'newspaper3k' not installed.")
+
 from typing import List, Dict
 import sys
 

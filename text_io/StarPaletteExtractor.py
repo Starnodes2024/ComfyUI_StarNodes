@@ -1,8 +1,21 @@
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from typing import List, Tuple, Dict
-import webcolors
 import colorsys
+
+try:
+    import webcolors
+    WEBCOLORS_AVAILABLE = True
+except ImportError:
+    WEBCOLORS_AVAILABLE = False
+    print("[StarPaletteExtractor] Warning: 'webcolors' not installed. Node will not be available.")
+
+try:
+    from sklearn.cluster import KMeans
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    print("[StarPaletteExtractor] Warning: 'sklearn' not installed. Node will not be available.")
 
 class StarPaletteExtractor:
     """
@@ -42,7 +55,8 @@ class StarPaletteExtractor:
         small_img = pil_img.resize((128, 128), resample=Image.LANCZOS)
         arr = np.array(small_img).reshape(-1, 3)
         # KMeans clustering
-        from sklearn.cluster import KMeans
+        if not SKLEARN_AVAILABLE:
+            raise ImportError("sklearn is required for StarPaletteExtractor")
         kmeans = KMeans(n_clusters=num_colors, n_init=5, random_state=42)
         labels = kmeans.fit_predict(arr)
         palette = kmeans.cluster_centers_.astype(np.uint8)
@@ -219,10 +233,11 @@ class StarPaletteExtractor:
                 
         return (palette_str, palette_img_tensor, palette_str, *color_outputs)
 
-NODE_CLASS_MAPPINGS = {
-    "StarPaletteExtractor": StarPaletteExtractor
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarPaletteExtractor": "⭐ Star Palette Extractor"
-}
+if WEBCOLORS_AVAILABLE and SKLEARN_AVAILABLE:
+    NODE_CLASS_MAPPINGS["StarPaletteExtractor"] = StarPaletteExtractor
+    NODE_DISPLAY_NAME_MAPPINGS["StarPaletteExtractor"] = "⭐ Star Palette Extractor"
+else:
+    print("[StarPaletteExtractor] Node not registered due to missing dependencies: webcolors, sklearn")

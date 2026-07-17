@@ -1,5 +1,17 @@
-import requests
-from bs4 import BeautifulSoup
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    print("[StarNewsScraper] Warning: 'requests' not installed. Node will not be available.")
+
+try:
+    from bs4 import BeautifulSoup
+    BS4_AVAILABLE = True
+except ImportError:
+    BS4_AVAILABLE = False
+    print("[StarNewsScraper] Warning: 'beautifulsoup4' not installed. Node will not be available.")
+
 from typing import List, Dict
 import os
 
@@ -130,11 +142,11 @@ class StarNewsScraper:
         return (output_text,)
 
 # This line is required to register the node with ComfyUI
-NODE_CLASS_MAPPINGS = {
-    "StarNewsScraper": StarNewsScraper
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-# A dictionary that contains the friendly/humanly readable titles for the nodes
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarNewsScraper": "⭐ Star Web Scraper (Headlines) 📰"
-}
+if REQUESTS_AVAILABLE and BS4_AVAILABLE:
+    NODE_CLASS_MAPPINGS["StarNewsScraper"] = StarNewsScraper
+    NODE_DISPLAY_NAME_MAPPINGS["StarNewsScraper"] = "⭐ Star Web Scraper (Headlines) 📰"
+else:
+    print("[StarNewsScraper] Node not registered due to missing dependencies: requests, beautifulsoup4")

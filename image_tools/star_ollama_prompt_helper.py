@@ -5,9 +5,22 @@ from io import BytesIO
 
 import numpy as np
 from PIL import Image
-from ollama import Client
-from server import PromptServer
-from aiohttp import web
+
+try:
+    from ollama import Client
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    print("[StarOllamaPromptHelper] Warning: 'ollama' not installed. Node will not be available.")
+    Client = None
+
+try:
+    from server import PromptServer
+    from aiohttp import web
+    SERVER_AVAILABLE = True
+except ImportError:
+    SERVER_AVAILABLE = False
+    print("[StarOllamaPromptHelper] Warning: ComfyUI server not available.")
 
 _PROMPTS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "systemprompts.json")
 
@@ -25,17 +38,18 @@ _PRESETS = _load_presets()
 _PRESET_NAMES = list(_PRESETS.keys())
 
 
-@PromptServer.instance.routes.post("/starnodes/ollama/models")
-async def _star_ollama_models(request):
-    body = await request.json()
-    url = body.get("url", "http://127.0.0.1:11434")
-    try:
-        client = Client(host=url)
-        raw = client.list().get("models", [])
-        names = [m.get("model", m.get("name", "")) for m in raw]
-        return web.json_response(names)
-    except Exception as e:
-        return web.json_response({"error": str(e)}, status=500)
+if SERVER_AVAILABLE and OLLAMA_AVAILABLE:
+    @PromptServer.instance.routes.post("/starnodes/ollama/models")
+    async def _star_ollama_models(request):
+        body = await request.json()
+        url = body.get("url", "http://127.0.0.1:11434")
+        try:
+            client = Client(host=url)
+            raw = client.list().get("models", [])
+            names = [m.get("model", m.get("name", "")) for m in raw]
+            return web.json_response(names)
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
 
 
 class StarOllamaPromptHelper:
@@ -137,10 +151,11 @@ class StarOllamaPromptHelper:
         return {"result": (result_text,), "ui": {"seed": [seed]}}
 
 
-NODE_CLASS_MAPPINGS = {
-    "StarOllamaPromptHelper": StarOllamaPromptHelper,
-}
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "StarOllamaPromptHelper": "⭐ Star Ollama Prompt Helper",
-}
+if OLLAMA_AVAILABLE and SERVER_AVAILABLE:
+    NODE_CLASS_MAPPINGS["StarOllamaPromptHelper"] = StarOllamaPromptHelper
+    NODE_DISPLAY_NAME_MAPPINGS["StarOllamaPromptHelper"] = "⭐ Star Ollama Prompt Helper"
+else:
+    print("[StarOllamaPromptHelper] Node not registered due to missing dependencies: ollama")
