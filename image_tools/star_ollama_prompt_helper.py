@@ -1,6 +1,7 @@
 import os
 import json
 import base64
+import re
 from io import BytesIO
 
 import numpy as np
@@ -23,6 +24,10 @@ except ImportError:
     print("[StarOllamaPromptHelper] Warning: ComfyUI server not available.")
 
 _PROMPTS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "systemprompts.json")
+
+# Downscale images sent to vision models so prompt processing is faster.
+# Set to None to disable and always send full resolution.
+_MAX_IMAGE_SIZE = 768
 
 
 def _load_presets():
@@ -65,9 +70,9 @@ class StarOllamaPromptHelper:
                 "model": ((), {
                     "tooltip": "Select a model. Click refresh to load available models from the server.",
                 }),
-                "free_ram": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "On: unload model immediately after generation. Off: keep model loaded for 5 minutes.",
+                "keep_alive": (["0", "5m", "30m", "1h", "-1"], {
+                    "default": "5m",
+                    "tooltip": "How long the model stays loaded in memory after generation. '-1' = forever, '0' = unload immediately (slow on repeat runs).",
                 }),
                 "system_prompt_preset": (["Custom"] + _PRESET_NAMES, {
                     "default": "Custom",
@@ -82,6 +87,10 @@ class StarOllamaPromptHelper:
                     "default": "",
                     "multiline": True,
                     "tooltip": "Your prompt text to send to the model.",
+                }),
+                "allow_thinking": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "If True, outputs the reasoning process. If False, instructs the model to skip reasoning to speed up generation.",
                 }),
                 "temperature": ("FLOAT", {
                     "default": 0.8,
@@ -104,51 +113,78 @@ class StarOllamaPromptHelper:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("result",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("result", "think_output")
     FUNCTION = "generate"
     OUTPUT_NODE = True
     CATEGORY = "⭐StarNodes/Prompts"
     DESCRIPTION = "Use a local Ollama model to create or refine prompts for image generation."
 
-    def generate(self, local_address, model, free_ram, system_prompt_preset,
-                 system_prompt, prompt, temperature, seed, image=None):
+    def generate(self, local_address, model, keep_alive, system_prompt_preset,
+                 system_prompt, prompt, allow_thinking, temperature, seed, image=None):
 
         if system_prompt_preset != "Custom" and system_prompt_preset in _PRESETS:
             sys_text = _PRESETS[system_prompt_preset]
         else:
             sys_text = system_prompt
 
-        keep_alive = "0" if free_ram else "5m"
+        # Optimization: Force the model to skip thinking if disabled
+        if not allow_thinking:
+            sys_text += "\n\nImportant: Answer directly without any internal reasoning or <think> tags."
 
         opts = {"temperature": float(temperature)}
         if seed > 0:
             opts["seed"] = int(seed)
 
-        user_msg = {"role": "user", "content": prompt}
+        imgs_b64 = []
         if image is not None:
-            imgs_b64 = []
             for img_tensor in image:
                 i = 255.0 * img_tensor.cpu().numpy()
                 img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+                if _MAX_IMAGE_SIZE and max(img.size) > _MAX_IMAGE_SIZE:
+                    img.thumbnail((_MAX_IMAGE_SIZE, _MAX_IMAGE_SIZE), Image.BILINEAR)
                 buf = BytesIO()
-                img.save(buf, format="PNG")
+                img.save(buf, format="PNG", optimize=False)
                 imgs_b64.append(base64.b64encode(buf.getvalue()).decode("utf-8"))
-            user_msg["images"] = imgs_b64
 
         client = Client(host=local_address)
-        resp = client.chat(
-            model=model,
-            messages=[
-                {"role": "system", "content": sys_text},
-                user_msg,
-            ],
-            options=opts,
-            keep_alive=keep_alive,
-        )
+        
+        gen_kwargs = {
+            "model": model,
+            "prompt": prompt,
+            "system": sys_text,
+            "options": opts,
+            "keep_alive": keep_alive,
+            "think": allow_thinking
+        }
+        
+        if imgs_b64:
+            gen_kwargs["images"] = imgs_b64
+            
+        resp = client.generate(**gen_kwargs)
 
-        result_text = resp.message.content
-        return {"result": (result_text,), "ui": {"seed": [seed]}}
+        if isinstance(resp, dict):
+            result_text = resp.get("response", "")
+            think_text = resp.get("thinking", "")
+        else:
+            result_text = getattr(resp, "response", "")
+            think_text = getattr(resp, "thinking", "")
+            
+        # Optionaler Fallback für Modelle, die das native Thinking-Feld ignorieren
+        if not think_text:
+            think_match = re.search(r"<think>(.*?)</think>", result_text, re.DOTALL | re.IGNORECASE)
+            if think_match:
+                think_text = think_match.group(1).strip()
+                result_text = re.sub(r"<think>.*?</think>", "", result_text, flags=re.DOTALL | re.IGNORECASE).strip()
+
+        if think_text is None:
+            think_text = ""
+
+        # Erzwinge leeren Output, wenn Toggle auf False steht
+        if not allow_thinking:
+            think_text = ""
+
+        return {"result": (result_text, think_text), "ui": {"seed": [seed]}}
 
 
 NODE_CLASS_MAPPINGS = {}
