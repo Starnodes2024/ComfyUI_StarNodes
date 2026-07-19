@@ -12,7 +12,7 @@ You can now choose ready-to-use color themes for nodes in ComfyUI settings and a
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## 🎉 Version 2.3.5 - New Nodes, Fancy Progress Bar & Consolidated Release
+## 🎉 Version 2.3.6 - New Nodes, Fancy Progress Bar & Consolidated Release
 
 ### 🆕 New Nodes:
 
