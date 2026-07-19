@@ -21,7 +21,7 @@ Advanced background removal powered by Lucida (BiRefNet fine-tune). Excels at se
 
 ---
 
-## 🎉 Version 2.3.5 - New Nodes, Fancy Progress Bar & Consolidated Release
+## 🎉 Version 2.3.6 - New Nodes, Fancy Progress Bar & Consolidated Release
 
 ### 🆕 New Nodes:
 
@@ -370,7 +370,7 @@ Search for "Starnodes" in ComfyUI Manager and install
 
 Find the nodes under "⭐StarNodes" category or search for "star" in the node browser.
 
-### Wildcards
+### Wildcards 
 You will find the wildcards in the wildcards folder of your ComfyUI main folder. If you add your own just copy the new files to this location.
 
 ## Wildcard Rules in the Star Wildcards Node
