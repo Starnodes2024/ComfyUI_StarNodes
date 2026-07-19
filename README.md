@@ -6,11 +6,20 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.3.6
+**Current Version:** 2.3.7
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.3.7 - Star Lucida RMBG
+
+### 🆕 New Node:
+
+#### ⭐ Star Lucida RMBG
+Advanced background removal powered by Lucida (BiRefNet fine-tune). Excels at semi-transparent objects (glass), camouflage, text/logos with soft shadows, glow/VFX, and illustrations/line art. Auto-downloads model from HuggingFace on first use. Based on [egeorcun/lucida](https://github.com/egeorcun/lucida).
+
+---
 
 ## 🎉 Version 2.3.5 - New Nodes, Fancy Progress Bar & Consolidated Release
 
