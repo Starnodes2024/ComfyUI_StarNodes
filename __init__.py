@@ -112,6 +112,7 @@ except Exception as e:
     STAR_SIZE_CALCULATOR_BY_SIDE_NODE_CLASS_MAPPINGS = {}
     STAR_SIZE_CALCULATOR_BY_SIDE_NODE_DISPLAY_NAME_MAPPINGS = {}
     STAR_SIZE_CALCULATOR_AVAILABLE = False
+from .text_io.star_show_everything import NODE_CLASS_MAPPINGS as STAR_SHOW_EVERYTHING_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_SHOW_EVERYTHING_NODE_DISPLAY_NAME_MAPPINGS
 
 import os
 import shutil
@@ -215,6 +216,7 @@ NODE_CLASS_MAPPINGS = {
     **STAR_IMAGE_COMPARE_NODE_CLASS_MAPPINGS,
     **STAR_VIDEO_TOOLS_NODE_CLASS_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_CLASS_MAPPINGS,
+    **STAR_SHOW_EVERYTHING_NODE_MAPPINGS,
     # Manual add for Star Detail Enhancer
     "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_MAPPINGS["AdaptiveDetailEnhancement"],
     # Manual add for StarShowLastFrame
@@ -315,6 +317,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_IMAGE_COMPARE_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_VIDEO_TOOLS_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_OUTPUT_CLEANER_NODE_DISPLAY_NAME_MAPPINGS,
+    **STAR_SHOW_EVERYTHING_NODE_DISPLAY_NAME_MAPPINGS,
     # Manual add for Star Detail Enhancer
     "AdaptiveDetailEnhancement": STARDETAILENHANCER_NODE_DISPLAY_NAMES["AdaptiveDetailEnhancement"],
     # Manual add for StarShowLastFrame
@@ -324,7 +327,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
 }
 
-__version__ = "2.3.1"
+__version__ = "2.3.5"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"

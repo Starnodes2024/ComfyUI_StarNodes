@@ -1,12 +1,15 @@
 import folder_paths
 import os
 import math
+import time
 import numpy as np
 from PIL import Image, ImageFilter
 import torch
 import comfy.utils
 import comfy.model_management as mm
 import gc
+
+from ..star_progress import make_event_cb, ProgressReporter
 
 class StarPanoramaViewerPro:
     RATIO_MAP = {
@@ -55,7 +58,8 @@ class StarPanoramaViewerPro:
                 "depth_map": ("IMAGE",),
                 "overlay_image": ("IMAGE",),
                 "overlay_mask": ("MASK",),
-            }
+            },
+            "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     RETURN_TYPES = ("IMAGE",)
@@ -154,7 +158,9 @@ class StarPanoramaViewerPro:
 
     def view_panorama_pro(self, image, layout, create_video_frames, resolution, ratio, custom_ratio,
                           framerate, direction, num_loops, zoom, speed, overlay_effect="None", 
-                          overlay_opacity=100, depth_map=None, overlay_image=None, overlay_mask=None):
+                          overlay_opacity=100, depth_map=None, overlay_image=None, overlay_mask=None,
+                          unique_id=None):
+        start_time = time.time()
         out_w, out_h = self._get_export_dims(resolution, ratio, custom_ratio)
 
         img_tensor = image[0]
@@ -236,6 +242,8 @@ class StarPanoramaViewerPro:
                 prepared_overlay = ov_img.resize((out_w, out_h), Image.LANCZOS)
 
         # Fortschrittsbalken initialisieren
+        event_cb = make_event_cb(unique_id)
+        reporter = ProgressReporter(frames_per_loop, label="rendering panorama", event_cb=event_cb)
         pbar = comfy.utils.ProgressBar(frames_per_loop)
         
         # GPU Device abrufen
@@ -281,6 +289,8 @@ class StarPanoramaViewerPro:
             
             # ComfyUI UI aktualisieren
             pbar.update(1)
+            reporter.report(fraction=0.0, sub=f"frame {i+1}/{frames_per_loop}")
+            reporter.finish_unit()
 
             # Wenn der Chunk voll ist oder der letzte Frame erreicht wurde
             if len(current_chunk) == chunk_size or i == frames_per_loop - 1:
@@ -295,6 +305,8 @@ class StarPanoramaViewerPro:
         # Am Ende alle VRAM-Chunks zu einem großen Batch verbinden 
         # und für den Output Node zurück auf die CPU holen
         one_loop_batch = torch.cat(all_chunks, dim=0).cpu()
+
+        reporter.finish_all(time.time() - start_time)
 
         if num_loops > 1:
             frames_batch = one_loop_batch.repeat(num_loops, 1, 1, 1)

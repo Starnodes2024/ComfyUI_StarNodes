@@ -6,15 +6,18 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.3.1
+**Current Version:** 2.3.5
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
 
-## 🎉 Version 2.3.0 - New Nodes & Category Reorganization
+## 🎉 Version 2.3.5 - New Nodes, Fancy Progress Bar & Consolidated Release
 
 ### 🆕 New Nodes:
+
+#### ⭐ Star LTXV All-in-One (2-Pass)
+Single-node port of the "LTXV Sulphur All in 1" workflow: pass 1 at half resolution → 2x latent upscale → pass 2 at full resolution. Supports text-to-video, image-to-video, and image+audio-to-video modes with built-in model/LoRA/CLIP/VAE caching.
 
 #### ⭐ Star Video Loader
 Standalone video loader that decodes any video file from the ComfyUI `input` folder into frames (IMAGE batch), audio (AUDIO), fps, frame count, and a `STAR_FILENAMES` reference — with force_rate / skip / every-kth / cap controls, inline preview and progress bars. No Video Helper Suite required.
@@ -23,95 +26,43 @@ Standalone video loader that decodes any video file from the ComfyUI `input` fol
 Compress videos or IMAGE batches to a chosen quality (CRF slider) or a desired file size (two-pass bitrate encoding). Formats: H.264 MP4, H.265/HEVC MP4, VP9 WebM, AV1 MP4. Perfect for Discord's 10 MB upload limit. Includes inline video preview, three progress indicators, and detailed info output. See `web/docs/StarVideoCompressor.md`.
 
 #### ⭐ Star Output Cleaner
-Browse, select and clean up images in your ComfyUI output folder (or any custom folder) directly from a node. Features 200×200 thumbnails, paging, date filtering (last N days/weeks/months or date range), permanent delete with confirmation dialog, and ZIP download. See `web/docs/StarOutputCleaner.md`.
-
-### 🗂️ Category Reorganization:
-All nodes are now organized under the `⭐StarNodes/` prefix with clear, user-friendly categories.
-
----
-
-## 🎉 Version 2.2.0 - New Nodes & Enhancements
-
-### 🆕 New Nodes:
+Browse, select and clean up images in your ComfyUI output folder (or any custom folder) directly from a node. Features 200×200 thumbnails, paging, date filtering, permanent delete with confirmation dialog, and ZIP download.
 
 #### ⭐ Star Krea2 Unbound
-A streamlined prompt adherence enhancer for Krea2 models. Single MODEL in, MODEL out — no widgets, no configuration. Fixed settings (enabled, strength 1.0) for instant plug-and-play use. Optimized code with all debug overhead removed.
+Streamlined prompt adherence enhancer for Krea2 models. Single MODEL in, MODEL out — no widgets, no configuration.
 
 #### ⭐ Star 360 Parallax Viewer Pro
-Enhanced panorama viewer with optimized frame rendering. Renders only one loop and duplicates frames for multi-loop exports, drastically reducing RAM usage and processing time. Includes a "Create Video Frames" toggle to skip frame rendering entirely when only interactive viewing is needed. Green frame overlay for export dimensions is now conditional on the toggle state.
+Enhanced panorama viewer with optimized frame rendering. Renders only one loop and duplicates frames for multi-loop exports. Includes "Create Video Frames" toggle, overlay effects, and depth map support.
 
 #### ⭐ Star Ollama Prompt Helper
-User-friendly single node for local Ollama integration. Create or refine prompts for image generation using preset system prompts (15 presets sorted alphabetically) or custom system prompts. Supports vision language models via optional image input. Includes "Free Ram" toggle for model memory management, temperature control, and seed with control-after-generate.
+User-friendly single node for local Ollama integration. Create or refine prompts using 15 preset system prompts or custom prompts. Supports vision models via optional image input.
+
+#### ⭐ Star Image Compare
+Interactive before/after image comparison node with a draggable wipe slider.
+
+#### ⭐ Star Realistic Film Grain
+Add realistic analog film grain with authentic film stock profiles, luminance masking, and organic variance.
+
+#### ⭐ Star Flux2/Qwen-Image-Edit Inpainter
+All-in-one inpainting node for Flux2 and Qwen-Image-Edit models with built-in crop-and-stitch, reference image support, and Differential Diffusion.
+
+#### ⭐ Star Tiled SeedVR Upscaler
+Upscales an image with SeedVR2 by processing it in overlapping tiles to keep VRAM usage low. Includes color correction for seamless blending.
+
+#### ⭐ Star Box Drawer
+Draw rectangular boxes on images (filled or outlined) with customizable colors, positions, and sizes.
+
+#### ⭐ Star Image Shifter
+Shift images horizontally and vertically with seamless wrapping for panoramas and tileable textures.
+
+#### ⭐ Star 360 Parallax Viewer
+Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, fullscreen, and on-screen controls. Supports mono, SBS, and top/bottom stereoscopic images.
 
 ### ✨ Enhancements:
+- **Fancy animated DOM progress bar** — Added to Star Sampler, Star SD Upscale Refiner (both variants), Star Tiled SeedVR Upscaler, Star 360 Parallax Viewer Pro, and Star LTXV All-in-One. The standard ComfyUI progress bar remains as fallback.
 - **Star Sampler (Unified)** — Added tiled VAE decoder for lower VRAM usage during sampling
-
----
-
-## 🎉 Version 2.1.5 - ⭐ Star Image Compare
-
-## Description
-A new interactive before/after image comparison node. Connect two IMAGE inputs and use a draggable slider to wipe between the two images.
-
-## 🎉 Version 2.1.5 - ⭐ Star Image Compare
-
-## Description
-A new interactive before/after image comparison node. Connect two IMAGE inputs and use a draggable slider to wipe between the two images.
-
-## 🎉 Version 2.1.4 - ⭐ Star Realistic Film Grain
-
-## Description
-A new Image filter / manipulating filter node to add realistic film gran effects to images
-
-## 🎉 Version 2.1.3 - Star Flux2/Qwen-Image-Edit Inpainter
-
-# Star Flux2/Qwen-Image-Edit Inpainter
-
-## Description
-All-in-one inpainting node for **Flux2** models (Flux2 Dev and Flux2 Klein) and **Qwen-Image-Edit** models. Combines smart crop-and-stitch, text conditioning, optional reference images, InpaintModelConditioning, Differential Diffusion and sampling in a single user-friendly node. Crop and stitch settings are hardcoded to sensible defaults — just connect model, clip, vae, image and mask, write your prompt and go. Up to 4 reference images can be connected to guide the generation, and the inpaint area itself can be used as an automatic reference for consistent results.
-
-## 🎉 Version 2.1.2 - Star Tiled SeedVR Upscaler
-
-# Star Tiled SeedVR Upscaler
-
-## Description
-Upscales an image with the SeedVR2 diffusion model by processing it in overlapping tiles. This keeps VRAM usage low even for very large output resolutions. The whole SeedVR2 pipeline (preprocessing, VAE encoding, conditioning, sampling, decoding, color correction)
-Gives higher details as native SeedVR workflow.
-
-## 🎉 Version 2.1.1 - Enhanced Panorama Viewer
-
-**This release adds interactive controls and fullscreen support to the panorama viewer.**
-
-### ✨ Enhancements:
-
-#### Star 360 Parallax Viewer
-- **On-Screen Control Bar** - Interactive control panel at the bottom of the viewer with:
-  - **Pan Arrows (◀ ▲ ▼ ▶)** - Press and hold to pan the view in any direction
-  - **Reset Button (⌂)** - Return camera to initial orientation and zoom
-  - **Zoom Buttons (− / +)** - Zoom in/out controls
-  - **Auto-Rotation Toggle (▶/⏸)** - Start/stop automatic panorama rotation
-  - **Speed Slider** - Adjust auto-rotation speed from -5 to +5 (negative = reverse direction)
-  - **Fullscreen Button (⛶)** - Toggle fullscreen viewing mode
-- **Improved Mouse Controls** - More responsive drag-to-pan navigation
-- **Per-Run Cleanup** - Properly cleans up previous viewer instances when re-executing
-- **Bug Fixes** - Fixed rendering issue that caused black screen on initial load
-
----
-
-## Version 2.1.0 - New Helper Nodes
-
-**This release adds new image manipulation utilities and enhances panorama workflow capabilities.**
-
-### 🆕 New Nodes:
-
-#### Image Manipulation & Helpers (3 nodes)
-- ⭐ **Star Box Drawer** - Draw rectangular boxes on images (filled or outlined) with customizable colors, positions, and sizes. Perfect for masking, highlighting regions, and visual debugging.
-- ⭐ **Star Image Shifter** - Shift images horizontally and vertically with seamless wrapping. Ideal for panoramas, tileable textures, and adjusting seam positions in 360° images.
-- ⭐ **Star 360 Parallax Viewer** - Interactive 360° panorama viewer embedded in ComfyUI. Supports mono, side-by-side and top/bottom stereoscopic images with mouse-driven parallax and real-time Three.js rendering.
-
-### ✨ Enhancements:
-- **Star Save Panorama JPG+** now outputs both the original image AND the stereoscopic 3D image (when enabled) for further workflow processing
-- Added comprehensive documentation for all new nodes in `web/docs`
+- **Category Reorganization** — All nodes organized under the `⭐StarNodes/` prefix
+- **Star Save Panorama JPG+** — Now outputs both original and stereoscopic 3D image
 
 ---
 

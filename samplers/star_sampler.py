@@ -9,6 +9,8 @@ import comfy.model_base
 import comfy.model_sampling
 from comfy.utils import ProgressBar
 
+from ..star_progress import make_event_cb, patch_model_for_progress
+
 # Try to import from nodes, but handle if not available
 try:
     from nodes import common_ksampler, CLIPTextEncode
@@ -84,7 +86,8 @@ class StarSampler:
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
                 "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
-            }
+            },
+            "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "IMAGE", "VAE", "INT", "STRING", "SAMPLER_INFO")
@@ -204,10 +207,12 @@ class StarSampler:
             "cfg": cfg
         }
 
-    def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae, 
-                decode_image=True, tiled_vae_decoding=False, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None):
+    def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae,
+                decode_image=True, tiled_vae_decoding=False, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None,
+                unique_id=None):
 
         start_time = time.time()
+        event_cb = make_event_cb(unique_id)
 
         if isinstance(options, dict) and options.get("starnodes_type") == "ZIT" and (
             bool(options.get("enabled", False)) or int(options.get("details", 0)) > 0
@@ -248,6 +253,15 @@ class StarSampler:
 
                 if negative is None:
                     negative = conditioning_zero_out(positive)
+
+                # Patch for progress bar in ZIT two-pass mode
+                _zit_reporter = None
+                _zit_cleanup = None
+                if event_cb is not None:
+                    total_zit_steps = start_steps + max(refine_steps, 0)
+                    work_model, _zit_reporter, _zit_cleanup = patch_model_for_progress(
+                        work_model, total_zit_steps, event_cb,
+                        is_flux=True, label="ZIT sampling")
 
                 generator = torch.manual_seed(seed)
                 noise = torch.randn(latent["samples"].shape, dtype=torch.float32, layout=torch.strided, generator=generator, device="cpu")
@@ -290,6 +304,11 @@ class StarSampler:
                 info = self._create_info_output(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
                 split_info = self._create_split_info(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
 
+                if _zit_cleanup is not None:
+                    _zit_cleanup()
+                if _zit_reporter is not None:
+                    _zit_reporter.finish_all(processing_time)
+
                 return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
             except Exception as e:
                 logging.warning(f"StarSampler: ZIT options ignored due to error: {e}")
@@ -298,6 +317,14 @@ class StarSampler:
         is_flux = self.is_flux_model(model)
         
         logging.info(f"StarSampler: Model type={'Flux' if is_flux else 'SD/SDXL/Flow(non-Flux)'}, steps={steps}, cfg={cfg}")
+        
+        # Patch model for fancy DOM progress bar (ComfyUI built-in ProgressBar
+        # remains as fallback via comfy.utils.ProgressBar inside patch).
+        _reporter = None
+        _cleanup = None
+        if event_cb is not None:
+            model, _reporter, _cleanup = patch_model_for_progress(
+                model, steps, event_cb, is_flux=is_flux, label="sampling")
         
         # For Flux models, use guidance in conditioning instead of CFG
         if is_flux:
@@ -478,6 +505,12 @@ class StarSampler:
                 # Standard sampling without detail daemon
                 out_latent = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 
                                             positive, negative, latent, denoise=denoise)[0]
+        
+        # Finish progress reporting
+        if _cleanup is not None:
+            _cleanup()
+        if _reporter is not None:
+            _reporter.finish_all(time.time() - start_time)
         
         # Decode the latent to an image if requested
         image = None

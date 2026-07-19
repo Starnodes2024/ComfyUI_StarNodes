@@ -6,6 +6,8 @@ import comfy.utils
 import folder_paths
 import nodes
 
+from ..star_progress import make_event_cb, ProgressReporter
+
 
 # Inlined from comfy.ldm.seedvr.color_fix and comfy_extras.nodes_seedvr to avoid version dependencies
 D65_WHITE_X = 0.95047
@@ -221,7 +223,8 @@ class StarTiledSeedVRUpscaler:
                 "scale": ("FLOAT", {"default": 2.0, "min": 1.0, "max": 8.0, "step": 0.25, "tooltip": "Upscale factor for the output image."}),
                 "rows": ("INT", {"default": 3, "min": 1, "max": 16, "tooltip": "Number of tile rows. More rows = smaller tiles = less VRAM."}),
                 "cols": ("INT", {"default": 3, "min": 1, "max": 16, "tooltip": "Number of tile columns. More columns = smaller tiles = less VRAM."}),
-            }
+            },
+            "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     RETURN_TYPES = ("IMAGE",)
@@ -348,11 +351,16 @@ class StarTiledSeedVRUpscaler:
         fixed = lab_color_transfer(decoded.movedim(-1, 1) * 2.0 - 1.0, reference.movedim(-1, 1) * 2.0 - 1.0)
         return fixed.movedim(1, -1).add(1.0).div(2.0).clamp(0.0, 1.0)
 
-    def upscale(self, image, model_name, vae_name, scale, rows, cols):
+    def upscale(self, image, model_name, vae_name, scale, rows, cols, unique_id=None):
+        import time
+        start_time = time.time()
         model = self._load_model(model_name)
         vae = self._load_vae(vae_name)
 
-        pbar = comfy.utils.ProgressBar(image.shape[0] * rows * cols)
+        total_tiles = image.shape[0] * rows * cols
+        event_cb = make_event_cb(unique_id)
+        reporter = ProgressReporter(total_tiles, label="upscaling", event_cb=event_cb)
+        pbar = comfy.utils.ProgressBar(total_tiles)
         results = []
         for b in range(image.shape[0]):
             img = image[b:b + 1, :, :, :3]
@@ -365,8 +373,11 @@ class StarTiledSeedVRUpscaler:
             for (y1, x1, y2, x2, i, j) in coords:
                 tiles.append(self._process_tile(upscaled[:, y1:y2, x1:x2, :], model, vae))
                 pbar.update(1)
+                reporter.report(fraction=0.0, sub=f"tile {len(tiles)}/{len(coords)}")
+                reporter.finish_unit()
             results.append(self._merge_tiles(tiles, coords, target_h, target_w, overlap_x, overlap_y))
 
+        reporter.finish_all(time.time() - start_time)
         return (torch.cat(results, dim=0),)
 
 

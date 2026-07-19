@@ -1,6 +1,7 @@
 """Star SD Upscale Refiner with optional simple image upscaling."""
 
 import math
+import time
 import inspect
 from copy import deepcopy
 
@@ -23,6 +24,8 @@ from nodes import (
     ControlNetLoader,
 )
 from comfy_extras.nodes_upscale_model import UpscaleModelLoader, ImageUpscaleWithModel
+
+from ..star_progress import make_event_cb, patch_model_for_progress
 
 try:
     from comfy_extras.nodes_custom_sampler import KSamplerSelect, SamplerCustom
@@ -892,6 +895,7 @@ class StarSDUpscaleRefiner:
                     },
                 ),
             },
+            "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     # Single ready IMAGE output after internal sampling & decode
@@ -928,6 +932,7 @@ class StarSDUpscaleRefiner:
         UPSCALE_IMAGE=True,
         UPSCALE_MODEL="Default",
         OUTPUT_LONGEST_SIDE=3200,
+        unique_id=None,
     ):
         """Simple refinement setup node.
 
@@ -936,6 +941,8 @@ class StarSDUpscaleRefiner:
           -> 3x LoraLoader
           -> CLIPTextEncode (pos/neg)
         """
+
+        start_time = time.time()
 
         # 1) Load checkpoint (MODEL, CLIP, VAE)
         ckpt_loader = CheckpointLoaderSimple()
@@ -1072,6 +1079,16 @@ class StarSDUpscaleRefiner:
 
         sampler_custom = SamplerCustom()
 
+        # Patch model for fancy DOM progress bar
+        _ref_reporter = None
+        _ref_cleanup = None
+        if unique_id is not None:
+            event_cb = make_event_cb(unique_id)
+            if event_cb is not None:
+                model, _ref_reporter, _ref_cleanup = patch_model_for_progress(
+                    model, int(refine_steps), event_cb,
+                    is_flux=False, label="refining")
+
         arg_names = inspect.getfullargspec(sampler_custom.sample).args[1:]
         kwargs = {}
         for name in arg_names:
@@ -1150,6 +1167,11 @@ class StarSDUpscaleRefiner:
             if len(images.shape) == 5:
                 images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
             image = images
+
+        if _ref_cleanup is not None:
+            _ref_cleanup()
+        if _ref_reporter is not None:
+            _ref_reporter.finish_all(time.time() - start_time)
 
         return (image, out_latent)
 
@@ -1261,6 +1283,7 @@ class StarSDUpscaleRefinerAdvanced:
                 # (e.g. from ⭐ Star FlowMatch Option)
                 "options": ("SIGMAS", {}),
             },
+            "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     RETURN_TYPES = ("IMAGE", "LATENT")
@@ -1302,7 +1325,9 @@ class StarSDUpscaleRefinerAdvanced:
         UPSCALE_MODEL="Default",
         OUTPUT_LONGEST_SIDE=3200,
         options=None,
+        unique_id=None,
     ):
+        start_time = time.time()
         model, clip = self._apply_lora_if_needed(model, clip, lora_1_name, lora_1_strength)
         model, clip = self._apply_lora_if_needed(model, clip, lora_2_name, lora_2_strength)
         model, clip = self._apply_lora_if_needed(model, clip, lora_3_name, lora_3_strength)
@@ -1455,6 +1480,16 @@ class StarSDUpscaleRefinerAdvanced:
 
         sampler_custom = SamplerCustom()
 
+        # Patch model for fancy DOM progress bar
+        _ref_reporter = None
+        _ref_cleanup = None
+        if unique_id is not None:
+            event_cb = make_event_cb(unique_id)
+            if event_cb is not None:
+                model, _ref_reporter, _ref_cleanup = patch_model_for_progress(
+                    model, int(refine_steps), event_cb,
+                    is_flux=False, label="refining")
+
         if use_negative == "No":
             # Build an "empty" negative CONDITIONING matching ComfyUI's structure
             # positive_cond is typically a list like [[tensor, dict], ...]
@@ -1538,6 +1573,11 @@ class StarSDUpscaleRefinerAdvanced:
             if len(images.shape) == 5:
                 images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
             image = images
+
+        if _ref_cleanup is not None:
+            _ref_cleanup()
+        if _ref_reporter is not None:
+            _ref_reporter.finish_all(time.time() - start_time)
 
         return (image, out_latent)
 
