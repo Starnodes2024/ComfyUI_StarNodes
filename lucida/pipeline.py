@@ -199,7 +199,9 @@ def _decontaminate_fallback(rgb: np.ndarray, alpha: np.ndarray) -> np.ndarray:
     solid = alpha >= 0.999
     if not solid.any():
         return rgb
-    indices = ndimage.distance_transform_edt(~solid, return_indices=True)
+    _, indices = ndimage.distance_transform_edt(~solid, return_indices=True)
+    # Convert indices to integers for array indexing
+    indices = indices.astype(np.intp)
     nearest_fg = rgb[indices[0], indices[1]]
     contaminated = (alpha < 0.999)[..., None]
     return np.where(contaminated, nearest_fg, rgb)
