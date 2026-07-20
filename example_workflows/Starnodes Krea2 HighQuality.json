@@ -1,0 +1,1332 @@
+{
+  "id": "397a953a-eb00-4d9a-aa6e-b193adb84860",
+  "revision": 0,
+  "last_node_id": 22,
+  "last_link_id": 21,
+  "nodes": [
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [
+        100,
+        920
+      ],
+      "size": [
+        450,
+        120
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "VAELoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        },
+        "models": [
+          {
+            "name": "qwen_image_vae.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/vae/qwen_image_vae.safetensors",
+            "directory": "vae"
+          }
+        ]
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 5,
+      "type": "StarKrea2Unbound",
+      "pos": [
+        100,
+        1280
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarKrea2Unbound"
+      },
+      "widgets_values": [],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 7,
+      "type": "CLIPTextEncode",
+      "pos": [
+        720,
+        1230
+      ],
+      "size": [
+        410,
+        90
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 7
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 10,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        1880,
+        840
+      ],
+      "size": [
+        220,
+        610
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 13
+        },
+        {
+          "name": "StarMetaData 1",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 2",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 3",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 4",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 5",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "",
+        "",
+        "Off",
+        "ComfyUI",
+        false,
+        "_",
+        false,
+        95
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 2,
+      "type": "Lora Loader",
+      "pos": [
+        100,
+        1090
+      ],
+      "size": [
+        440,
+        150
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            3
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            7,
+            15
+          ]
+        },
+        {
+          "name": "NAME_STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "was-node-suite-comfyui",
+        "ver": "ea935d1044ae5a26efa54ebeb18fe9020af49a45",
+        "Node name for S&R": "Lora Loader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "krea2_anyataylorjoy_v1_onetrainer.safetensors",
+        1,
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 14,
+      "type": "PreviewAny",
+      "pos": [
+        720,
+        990
+      ],
+      "size": [
+        310,
+        200
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            20
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 11,
+      "type": "StarTiledSeedVRUpscaler",
+      "pos": [
+        1880,
+        580
+      ],
+      "size": [
+        250,
+        210
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            13,
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarTiledSeedVRUpscaler"
+      },
+      "widgets_values": [
+        "seedvr2_7b-int8_convrot.safetensors",
+        "ema_vae_fp16.safetensors",
+        2,
+        3,
+        3,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 8,
+      "type": "StarAdvanvesRatioLatent",
+      "pos": [
+        1260,
+        540
+      ],
+      "size": [
+        450,
+        270
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            9
+          ]
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarAdvanvesRatioLatent"
+      },
+      "widgets_values": [
+        "5:7",
+        "21:9",
+        "Qwen Image (≈ 1328x1328)",
+        1920,
+        1080,
+        "16 (FLUX/QWEN/ZIT)",
+        false,
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 13,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        2640,
+        550
+      ],
+      "size": [
+        470,
+        720
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        },
+        {
+          "name": "StarMetaData 1",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 2",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 3",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 4",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 5",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "",
+        "",
+        "Off",
+        "ComfyUI",
+        false,
+        "_",
+        true,
+        95
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 6,
+      "type": "StarSampler",
+      "pos": [
+        1260,
+        870
+      ],
+      "size": [
+        220,
+        520
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 6
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 8
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 9
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 5
+        },
+        {
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "detail_schedule",
+          "shape": 7,
+          "type": "DETAIL_SCHEDULE",
+          "link": null
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            14
+          ]
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            12,
+            21
+          ]
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "links": [
+            16
+          ]
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "split_info",
+          "type": "SAMPLER_INFO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarSampler"
+      },
+      "widgets_values": [
+        1026700582158821,
+        "randomize",
+        10,
+        1,
+        "euler",
+        "simple",
+        1,
+        true,
+        false,
+        1.15,
+        0.5,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 15,
+      "type": "PreviewImage",
+      "pos": [
+        1510,
+        870
+      ],
+      "size": [
+        230,
+        370
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 3,
+      "type": "CLIPLoader",
+      "pos": [
+        100,
+        700
+      ],
+      "size": [
+        450,
+        170
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "CLIPLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        },
+        "models": [
+          {
+            "name": "qwen3vl_4b_fp8_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/text_encoders/qwen3vl_4b_fp8_scaled.safetensors",
+            "directory": "text_encoders"
+          }
+        ]
+      },
+      "widgets_values": [
+        "qwen3vl_4b_fp8_scaled.safetensors",
+        "krea2",
+        "default"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        100,
+        560
+      ],
+      "size": [
+        420,
+        90
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "UNETLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        },
+        "models": [
+          {
+            "name": "krea2_turbo_fp8_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_fp8_scaled.safetensors",
+            "directory": "diffusion_models"
+          }
+        ]
+      },
+      "widgets_values": [
+        "kreamania_v2-nvfp4.safetensors",
+        "default"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 9,
+      "type": "StarOllamaPromptHelper",
+      "pos": [
+        720,
+        560
+      ],
+      "size": [
+        400,
+        380
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "type": "STRING",
+          "links": [
+            19
+          ]
+        },
+        {
+          "name": "think_output",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarOllamaPromptHelper"
+      },
+      "widgets_values": [
+        "http://127.0.0.1:11434",
+        "huihui_ai/gemma-4-abliterated:12b",
+        "0",
+        "Krea2 Image Prompt Refiner",
+        "",
+        "a cinematic erotic sexy half body action photo of an ancient warrior princess with war face paint sitting on a mystic black evil looking war unicorn with golden high detailed eyes. close up view from the frond showing the head whole black metal of the giant angry black unicorn and the sexy ancient warrior princess",
+        false,
+        0.8,
+        248569347,
+        "randomize"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 12,
+      "type": "StarSDUpscaleRefinerAdvanced",
+      "pos": [
+        2280,
+        550
+      ],
+      "size": [
+        340,
+        710
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 14
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 15
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 16
+        },
+        {
+          "name": "IMAGE",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            18
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "title": "⚡⭐ Star SD Upscale Refiner Advanced⚡",
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarSDUpscaleRefinerAdvanced"
+      },
+      "widgets_values": [
+        "None",
+        0.25,
+        "None",
+        0.1,
+        "None",
+        0.1,
+        "masterpiece, best quality, highres",
+        "(worst quality, low quality, normal quality:1.5)",
+        "No",
+        584945366527025,
+        "randomize",
+        25,
+        0.2,
+        1024,
+        "euler",
+        "simple",
+        "None",
+        false,
+        "4x_NMKD-Siax_200k.pth",
+        3200,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [
+        100,
+        40
+      ],
+      "size": [
+        3010,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "# ⭐ Krea 2 — High Quality ⭐ StarNodes Template\n\n**Pipeline:** ① Load Krea 2 models ➜ ② Prompt (optional Ollama refiner) ➜ ③ Size & sample ➜ ④ SeedVR2 upscale ➜ ⑤ Refine & save\n**Requires:** ComfyUI 0.25+ · StarNodes · WAS Node Suite · (optional) Ollama running locally for the prompt helper"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 17,
+      "type": "Note",
+      "pos": [
+        100,
+        300
+      ],
+      "size": [
+        480,
+        210
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Load Diffusion Model** — the Krea 2 checkpoint (Turbo FP8 recommended).\n• **Load CLIP** — Qwen3VL-4B text encoder, keep type **krea2**.\n• **Load VAE** — Qwen-Image VAE used by Krea 2.\n• **Lora Loader** — optional style/character LoRA on top of the base model.\n• **Star Krea2 Unbound** — StarNodes patch that lets the Krea 2 model answer the prompt freely, without its built-in boundaries."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 18,
+      "type": "Note",
+      "pos": [
+        720,
+        300
+      ],
+      "size": [
+        440,
+        210
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Ollama Prompt Helper** — turns a short idea into a rich Krea 2 prompt using a local Ollama LLM (server + model selectable). Skip it and type directly into CLIP Text Encode if you prefer.\n• **Preview Any** — shows the refined prompt text before encoding.\n• **CLIP Text Encode** — encodes the final prompt into conditioning."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 19,
+      "type": "Note",
+      "pos": [
+        1260,
+        300
+      ],
+      "size": [
+        500,
+        190
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Advanced Ratio Latent** — pick aspect ratio & resolution; builds the empty latent (multiples of 16).\n• **Star Sampler** — all-in-one sampler + VAE decode. Preset fits Krea 2 Turbo: ~10 steps, CFG 1, euler / simple.\n• **Preview Image** — quick look at the base render."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 20,
+      "type": "Note",
+      "pos": [
+        1880,
+        300
+      ],
+      "size": [
+        260,
+        230
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Tiled SeedVR2 Upscaler** — SeedVR2 diffusion upscale, tiled & VRAM-friendly (7B int8 + EMA VAE).\n• **⭐ Star Save Image+** — saves the upscaled image with metadata."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 22,
+      "type": "Note",
+      "pos": [
+        100,
+        1510
+      ],
+      "size": [
+        1370,
+        470
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "## 📥 Model Downloads — standard Krea 2 set\n\n**Krea 2 (repo: huggingface.co/Comfy-Org/Krea-2)**\n• Diffusion model ➜ `models/diffusion_models/` — [krea2_turbo_fp8_scaled.safetensors](https://huggingface.co/Comfy-Org/Krea-2/resolve/main/diffusion_models/krea2_turbo_fp8_scaled.safetensors)\n• Text encoder ➜ `models/text_encoders/` — [qwen3vl_4b_fp8_scaled.safetensors](https://huggingface.co/Comfy-Org/Krea-2/resolve/main/text_encoders/qwen3vl_4b_fp8_scaled.safetensors)\n• VAE ➜ `models/vae/` — [qwen_image_vae.safetensors](https://huggingface.co/Comfy-Org/Krea-2/resolve/main/vae/qwen_image_vae.safetensors)\n• Optional style LoRAs ➜ `models/loras/` — [browse Krea 2 LoRAs](https://huggingface.co/Comfy-Org/Krea-2/tree/main/loras)\n\n**SeedVR2 upscaler (group ④)** ➜ `models/SEEDVR2/`\n• [Comfy-Org/SeedVR2](https://huggingface.co/Comfy-Org/SeedVR2) — seedvr2_7b-int8_convrot.safetensors · [ema_vae_fp16.safetensors](https://huggingface.co/numz/SeedVR2_comfyUI/resolve/main/ema_vae_fp16.safetensors)\n\n**Refiner upscale model (group ⑤)** ➜ `models/upscale_models/`\n• [4x_NMKD-Siax_200k.pth](https://openmodeldb.info/models/4x-NMKD-Siax-CX)"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 21,
+      "type": "Note",
+      "pos": [
+        2280,
+        300
+      ],
+      "size": [
+        830,
+        190
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **⚡ Star SD Upscale Refiner Advanced** — final polish: 4x NMKD upscale (optional) + low-denoise resample for crisp detail.\n• **⭐ Star Save Image+** — saves the final refined image."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      3,
+      0,
+      2,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      2,
+      0,
+      5,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      4,
+      0,
+      6,
+      3,
+      "VAE"
+    ],
+    [
+      6,
+      5,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      7,
+      2,
+      1,
+      7,
+      0,
+      "CLIP"
+    ],
+    [
+      8,
+      7,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      9,
+      8,
+      0,
+      6,
+      2,
+      "LATENT"
+    ],
+    [
+      12,
+      6,
+      4,
+      11,
+      0,
+      "IMAGE"
+    ],
+    [
+      13,
+      11,
+      0,
+      10,
+      0,
+      "IMAGE"
+    ],
+    [
+      14,
+      6,
+      0,
+      12,
+      0,
+      "MODEL"
+    ],
+    [
+      15,
+      2,
+      1,
+      12,
+      1,
+      "CLIP"
+    ],
+    [
+      16,
+      6,
+      5,
+      12,
+      2,
+      "VAE"
+    ],
+    [
+      17,
+      11,
+      0,
+      12,
+      3,
+      "IMAGE"
+    ],
+    [
+      18,
+      12,
+      0,
+      13,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      9,
+      0,
+      14,
+      0,
+      "STRING"
+    ],
+    [
+      20,
+      14,
+      0,
+      7,
+      1,
+      "STRING"
+    ],
+    [
+      21,
+      6,
+      4,
+      15,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "① MODEL LOADING",
+      "bounding": [
+        60,
+        230,
+        560,
+        1172
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "② PROMPT",
+      "bounding": [
+        680,
+        230,
+        520,
+        1130
+      ],
+      "color": "#9b5aa6",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "③ SIZE & SAMPLING",
+      "bounding": [
+        1220,
+        230,
+        580,
+        1192
+      ],
+      "color": "#4a9e5c",
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "④ SEEDVR2 UPSCALE",
+      "bounding": [
+        1840,
+        230,
+        340,
+        1260
+      ],
+      "color": "#b07830",
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "⑤ REFINE & FINAL SAVE",
+      "bounding": [
+        2240,
+        230,
+        910,
+        1080
+      ],
+      "color": "#a34f6d",
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "📥 MODEL DOWNLOADS",
+      "bounding": [
+        60,
+        1440,
+        1450,
+        560
+      ],
+      "color": "#5b6b7c",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.31863081771035673,
+      "offset": [
+        540.2173420164238,
+        96.04421198480448
+      ]
+    },
+    "frontendVersion": "1.45.21",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
