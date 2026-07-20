@@ -48,17 +48,21 @@ def _enhanced_forward(tf, x, mask, topts):
     return (ref.detach().float() + delta * scale).to(cand.dtype)
 
 
-def star_unbound_wrapper(executor, x, timesteps, context, attention_mask=None, transformer_options=None, **kw):
-    topts = transformer_options or {}
-    cfg = topts.get(_WKEY)
+def star_unbound_wrapper(executor, *args, **kwargs):
+    # 'x' ist in der Regel das erste positionelle Argument nach dem 'executor'
+    x = kwargs.get("x", args[0] if args else None)
     
-    # BUGFIX: Auf explizit 'None' prüfen, da leere Dictionaries sonst als False gewertet werden.
+    # transformer_options wird von ComfyUI fast immer als Keyword-Argument uebergeben
+    topts = kwargs.get("transformer_options", {})
+    cfg = topts.get(_WKEY) if topts else None
+    
+    # BUGFIX: Auf explizit 'None' pruefen, da leere Dictionaries sonst als False gewertet werden.
     if cfg is None or cfg.get("_active"):
-        return executor(x, timesteps, context, attention_mask, topts, **kw)
+        return executor(*args, **kwargs)
 
     dm = executor.class_obj
     if not _is_target(dm):
-        return executor(x, timesteps, context, attention_mask, topts, **kw)
+        return executor(*args, **kwargs)
 
     tf = dm.txtfusion
     if hasattr(tf, "_star_orig_fwd"):
@@ -77,7 +81,7 @@ def star_unbound_wrapper(executor, x, timesteps, context, attention_mask=None, t
     try:
         cfg["_active"] = True
         tf.forward = patched_fwd
-        return executor(x, timesteps, context, attention_mask, topts, **kw)
+        return executor(*args, **kwargs)
     finally:
         cfg["_active"] = False
         tf.forward = orig
