@@ -1,0 +1,1328 @@
+{
+  "id": "ea7d2c07-38d8-4b5b-a504-445bf7bfd712-v2",
+  "revision": 0,
+  "last_node_id": 48,
+  "last_link_id": 46,
+  "nodes": [
+    {
+      "id": 14,
+      "type": "Note",
+      "pos": [
+        2930,
+        600
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star PSD Saver** — activate to also save a PSD file for Photoshop with layers and masks."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 25,
+      "type": "StarPSDSaver",
+      "pos": [
+        2930,
+        370
+      ],
+      "size": [
+        240,
+        170
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "layer1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 27
+        },
+        {
+          "name": "mask1",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": 28
+        },
+        {
+          "name": "output_dir",
+          "type": "STRING",
+          "widget": {
+            "name": "output_dir"
+          },
+          "link": 36
+        }
+      ],
+      "outputs": [
+        {
+          "name": "flattened_image",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.7.2",
+        "Node name for S&R": "StarPSDSaver"
+      },
+      "widgets_values": [
+        "multilayer",
+        "PSD_Layers",
+        true
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 42,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        1040,
+        480
+      ],
+      "size": [
+        330,
+        610
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 37
+        },
+        {
+          "name": "StarMetaData 1",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 2",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 3",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 4",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 5",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "QwenImage",
+        "",
+        "Off",
+        "QwenImage",
+        false,
+        "_",
+        false,
+        95
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 13,
+      "type": "Note",
+      "pos": [
+        1080,
+        290
+      ],
+      "size": [
+        250,
+        90
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Save Folder String** — set how your image should be saved in your output folder."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 37,
+      "type": "StarAdvanvesRatioLatent",
+      "pos": [
+        600,
+        280
+      ],
+      "size": [
+        350,
+        290
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            33
+          ]
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarAdvanvesRatioLatent"
+      },
+      "widgets_values": [
+        "1:1",
+        "21:9",
+        "Qwen Image (≈ 1328x1328)",
+        1920,
+        1080,
+        "16 (FLUX/QWEN/ZIT)",
+        false,
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 33,
+      "type": "UNETLoader",
+      "pos": [
+        80,
+        270
+      ],
+      "size": [
+        430,
+        90
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            30
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "qwen_image_nvfp4.safetensors",
+        "default"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 36,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        80,
+        410
+      ],
+      "size": [
+        430,
+        90
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            31
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "Qwen-Image-Lightning-4steps-V1.0.safetensors",
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 35,
+      "type": "VAELoader",
+      "pos": [
+        80,
+        700
+      ],
+      "size": [
+        430,
+        60
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            32
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 11,
+      "type": "Note",
+      "pos": [
+        90,
+        1050
+      ],
+      "size": [
+        420,
+        90
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n The Lightning 4-steps LoRA is recommended for fast generation."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 10,
+      "type": "Note",
+      "pos": [
+        70,
+        40
+      ],
+      "size": [
+        1760,
+        130
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "# ⭐ Qwen Image — StarNodes Template\n\n**Pipeline:** ① Load Qwen Image models + optional LoRA ➜ ② Prompt & size settings ➜ ③ Star Sampler ➜ ④ Save image (optional PSD)\n**Requires:** ComfyUI 0.25+ · StarNodes "
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 43,
+      "type": "StarStopAndGo",
+      "pos": [
+        1470,
+        340
+      ],
+      "size": [
+        310,
+        490
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "any_input",
+          "shape": 7,
+          "type": "*",
+          "link": 41
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "*",
+          "links": [
+            38
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.5",
+        "Node name for S&R": "StarStopAndGo"
+      },
+      "widgets_values": [
+        "User Select",
+        5,
+        20,
+        true,
+        false,
+        null,
+        null
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 47,
+      "type": "Note",
+      "pos": [
+        1470,
+        890
+      ],
+      "size": [
+        310,
+        90
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Stop & Go** — pauses the workflow so you can review the first output before upscaling. Click continue to proceed."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 46,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        2350,
+        340
+      ],
+      "size": [
+        430,
+        640
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 40
+        },
+        {
+          "name": "StarMetaData 1",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 2",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 3",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 4",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "StarMetaData 5",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Z-Image-Turbo",
+        "",
+        "Off",
+        "QwenImage_HQ",
+        false,
+        "_",
+        true,
+        95
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 34,
+      "type": "CLIPLoader",
+      "pos": [
+        80,
+        550
+      ],
+      "size": [
+        430,
+        110
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            34,
+            42
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 9,
+      "type": "StarSaveFolderString",
+      "pos": [
+        2930,
+        740
+      ],
+      "size": [
+        250,
+        290
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 4,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "dir_only",
+          "type": "STRING",
+          "links": [
+            36
+          ]
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "links": [
+            28
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.7.0",
+        "Node name for S&R": "StarSaveFolderString"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "QwenImage",
+        "",
+        "Off",
+        "QwenImage",
+        false,
+        "_"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 4,
+      "type": "StarSampler",
+      "pos": [
+        610,
+        640
+      ],
+      "size": [
+        340,
+        520
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 35
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 33
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 32
+        },
+        {
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "detail_schedule",
+          "shape": 7,
+          "type": "DETAIL_SCHEDULE",
+          "link": null
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "*",
+          "link": 45
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            43
+          ]
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": null
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            27,
+            37,
+            41
+          ]
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "links": [
+            44
+          ]
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "split_info",
+          "type": "SAMPLER_INFO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.7.0",
+        "Node name for S&R": "StarSampler"
+      },
+      "widgets_values": [
+        892032827191910,
+        "randomize",
+        6,
+        1,
+        "euler",
+        "simple",
+        1,
+        true,
+        false,
+        1.25,
+        0.5,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 48,
+      "type": "StarDistilledOptimizerZIT",
+      "pos": [
+        610,
+        1210
+      ],
+      "size": [
+        340,
+        280
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "options",
+          "type": "*",
+          "links": [
+            45
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarDistilledOptimizerZIT"
+      },
+      "widgets_values": [
+        true,
+        "euler",
+        "res_multistep",
+        6,
+        3,
+        1,
+        0.6,
+        2.55,
+        1,
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 12,
+      "type": "Note",
+      "pos": [
+        620,
+        1580
+      ],
+      "size": [
+        310,
+        90
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Sampler** — choose your sampler settings. Without Lightning LoRA set steps to 25 or higher.\nDistilled Options (optional)"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 44,
+      "type": "StarTiledSeedVRUpscaler",
+      "pos": [
+        1890,
+        310
+      ],
+      "size": [
+        330,
+        210
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 38
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            39
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarTiledSeedVRUpscaler"
+      },
+      "widgets_values": [
+        "seedvr2_7b-int8_convrot.safetensors",
+        "ema_vae_fp16.safetensors",
+        2,
+        3,
+        3,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 38,
+      "type": "CLIPTextEncode",
+      "pos": [
+        80,
+        810
+      ],
+      "size": [
+        430,
+        200
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 34
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            35
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "a cinematic action photo High detailed photo real of an ancient warrior purple otter with  purple mohawk, golden star on his chest and war face paint sitting on a mystic purple evil looking war unicorn with golden high detailed eyes. Big title text: \"QWEN IMAGE\" "
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 45,
+      "type": "StarSDUpscaleRefinerAdvanced",
+      "pos": [
+        1890,
+        580
+      ],
+      "size": [
+        340,
+        710
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 43
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 42
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 44
+        },
+        {
+          "name": "IMAGE",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 39
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            40
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarSDUpscaleRefinerAdvanced"
+      },
+      "widgets_values": [
+        "None",
+        0.25,
+        "None",
+        0.1,
+        "None",
+        0.1,
+        "masterpiece, best quality, highres",
+        "(worst quality, low quality, normal quality:1.5)",
+        "No",
+        757500597209991,
+        "randomize",
+        8,
+        0.1,
+        1024,
+        "euler",
+        "beta",
+        "None",
+        false,
+        "4x_NMKD-Siax_200k.pth",
+        3200,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [
+        80,
+        1800
+      ],
+      "size": [
+        1730,
+        470
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "## 📥 Model Downloads — Qwen Image\n\n**Diffusion model (FP8)** ➜ `models/diffusion_models/`\n• [qwen_image_fp8_e4m3fn.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_fp8_e4m3fn.safetensors)\n• FP16: [qwen_image_bf16.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_bf16.safetensors)\n\n**Text encoder (FP8)** ➜ `models/text_encoders/`\n• [qwen_2.5_vl_7b_fp8_scaled.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors)\n• FP16: [qwen_2.5_vl_7b.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b.safetensors)\n\n**VAE** ➜ `models/vae/`\n• [qwen_image_vae.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors)\n• SeedVR2,ema_vae_fp16.safetensors https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/vae/ema_vae_fp16.safetensors\n\n**LoRA — Lightning 4-steps** ➜ `models/loras/`\n• [Qwen-Image-Lightning-4steps-V2.0.safetensors](https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-4steps-V2.0.safetensors)\n\n**SeedVR model** ➜ `models/diffusion_models/` https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_fp8_e4m3fn.safetensors\n• [003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x2_PSNR.pth](https://openmodeldb.info/models/003-realSR-BSRGAN-DFO-s64w8-SwinIR-M-x2-PSNR)\n\n"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    }
+  ],
+  "links": [
+    [
+      27,
+      4,
+      4,
+      25,
+      0,
+      "IMAGE"
+    ],
+    [
+      28,
+      9,
+      2,
+      25,
+      2,
+      "STRING"
+    ],
+    [
+      30,
+      33,
+      0,
+      36,
+      0,
+      "MODEL"
+    ],
+    [
+      31,
+      36,
+      0,
+      4,
+      0,
+      "MODEL"
+    ],
+    [
+      32,
+      35,
+      0,
+      4,
+      3,
+      "VAE"
+    ],
+    [
+      33,
+      37,
+      0,
+      4,
+      2,
+      "LATENT"
+    ],
+    [
+      34,
+      34,
+      0,
+      38,
+      0,
+      "CLIP"
+    ],
+    [
+      35,
+      38,
+      0,
+      4,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      36,
+      9,
+      1,
+      25,
+      3,
+      "STRING"
+    ],
+    [
+      37,
+      4,
+      4,
+      42,
+      0,
+      "IMAGE"
+    ],
+    [
+      38,
+      43,
+      0,
+      44,
+      0,
+      "IMAGE"
+    ],
+    [
+      39,
+      44,
+      0,
+      45,
+      3,
+      "IMAGE"
+    ],
+    [
+      40,
+      45,
+      0,
+      46,
+      0,
+      "IMAGE"
+    ],
+    [
+      41,
+      4,
+      4,
+      43,
+      0,
+      "IMAGE"
+    ],
+    [
+      42,
+      34,
+      0,
+      45,
+      1,
+      "CLIP"
+    ],
+    [
+      43,
+      4,
+      0,
+      45,
+      0,
+      "MODEL"
+    ],
+    [
+      44,
+      4,
+      5,
+      45,
+      2,
+      "VAE"
+    ],
+    [
+      45,
+      48,
+      0,
+      4,
+      6,
+      "*"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "① MODEL LOADING & LoRAs",
+      "bounding": [
+        60,
+        200,
+        480,
+        960
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "② SIZE & SAMPLING",
+      "bounding": [
+        580,
+        210,
+        400,
+        1310
+      ],
+      "color": "#4a9e5c",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "③ SAVE & OUTPUT",
+      "bounding": [
+        1010,
+        220,
+        380,
+        860
+      ],
+      "color": "#b07830",
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "④ PSD SAVER",
+      "bounding": [
+        2880,
+        240,
+        360,
+        840
+      ],
+      "color": "#a34f6d",
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "📥 MODEL DOWNLOADS",
+      "bounding": [
+        40,
+        1740,
+        1780,
+        550
+      ],
+      "color": "#5b6b7c",
+      "flags": {}
+    },
+    {
+      "id": 7,
+      "title": "⑤ STOP & GO",
+      "bounding": [
+        1430,
+        220,
+        380,
+        900
+      ],
+      "color": "#9b5aa6",
+      "flags": {}
+    },
+    {
+      "id": 8,
+      "title": "⑥ UPSCALE REFINE",
+      "bounding": [
+        1850,
+        230,
+        440,
+        1090
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 9,
+      "title": "⑦ SAVE UPSCALED",
+      "bounding": [
+        2310,
+        230,
+        530,
+        1090
+      ],
+      "color": "#a34f6d",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.4000000000000085,
+      "offset": [
+        325.06779064483635,
+        193.73962947967908
+      ]
+    },
+    "frontendVersion": "1.45.21",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
