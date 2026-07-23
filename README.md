@@ -6,11 +6,30 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.3.7
+**Current Version:** 2.3.8
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.3.8 - Star Tiled PiD Upscaler & Node Improvements
+
+### 🆕 New Node:
+
+#### ⭐ Star Tiled PiD Upscaler
+Upscales images with PiD / PixelDiT models using overlapping tiles for low VRAM usage. Supports qwenimage, flux, sd3, and sdxl latent formats. Features per-tile color matching, 4-step LCM sampling in pixel space, and automatic color/brightness bias correction for Flux2 models. Advanced settings (degrade_sigma, sigmas, color_bias_fix, model_factor) are handled internally — model_factor is fixed to 4x for optimal results.
+
+### 🔧 Node Improvements:
+- **Star LTXV All-in-One (2-Pass)**: Added ▶️ mode indicators, `image_to_video` as default mode, `model_override` optional input for externally patched models, `override_audio` toggle, sensible defaults for all model/LoRA/VAE/CLIP selections, `lora_1_strength` default set to 0.6
+- **Star Video Compressor**: Added `drop_first_frames` and `drop_last_frames` inputs with automatic audio sync
+- **Star Sampler (unified)**: Updated with latest improvements
+- **Star Image Compare**: Updated with latest JS improvements
+
+### 📋 New Workflow Templates:
+New example workflows included 
+
+
+---
 
 ## 🎉 Version 2.3.7 - Star Lucida RMBG
 
@@ -21,7 +40,7 @@ Advanced background removal powered by Lucida (BiRefNet fine-tune). Excels at se
 
 ---
 
-## 🎉 Version 2.3.6 - New Nodes, Fancy Progress Bar & Consolidated Release
+## 🎉 Version 2.3.5 - New Nodes, Fancy Progress Bar & Consolidated Release
 
 ### 🆕 New Nodes:
 
@@ -370,7 +389,7 @@ Search for "Starnodes" in ComfyUI Manager and install
 
 Find the nodes under "⭐StarNodes" category or search for "star" in the node browser.
 
-### Wildcards 
+### Wildcards
 You will find the wildcards in the wildcards folder of your ComfyUI main folder. If you add your own just copy the new files to this location.
 
 ## Wildcard Rules in the Star Wildcards Node

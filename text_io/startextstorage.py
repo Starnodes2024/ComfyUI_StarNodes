@@ -155,14 +155,14 @@ class StarEasyTextStorage:
         
         # Now load only the main storage for saving
         try:
-            with open(self.main_storage_file, 'r') as f:
+            with open(self.main_storage_file, 'r', encoding='utf-8') as f:
                 main_storage = json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             main_storage = {}
         
         # Save the text to the main storage
         main_storage[text_name] = text_content
-        with open(self.main_storage_file, 'w') as f:
+        with open(self.main_storage_file, 'w', encoding='utf-8') as f:
             json.dump(main_storage, f, indent=2)
         
         # Increment version to force refresh

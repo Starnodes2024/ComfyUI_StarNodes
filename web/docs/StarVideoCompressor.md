@@ -100,6 +100,8 @@ Note: decoding happens through ffmpeg directly into RAM — use
 | `frame_rate` | 30.0 | Only for the `images` input. Convert to input and connect loader `fps` for exact timing. |
 | `save_audio` | true | Keep/re-encode audio (AAC 128k; Opus for WebM). `false` = strip (saves ~16 KB/s). |
 | `save_output` | true | `true` = `output` folder, `false` = `temp`. |
+| `drop_first_frames` | 0 | Skip this many frames from the start of the output (1–1000; e.g. `10` = output starts at frame 11). `0` = off. Connected/embedded audio is shifted by the same amount so it stays in sync. |
+| `drop_last_frames` | 0 | Cut this many frames from the end of the output (1–1000; e.g. `10` = the last 10 frames are removed). `0` = off. Works together with `drop_first_frames`. Connected/embedded audio is trimmed to match so it stays in sync. |
 
 ### Outputs
 

@@ -1,5 +1,5 @@
 {
-  "id": "ea7d2c07-38d8-4b5b-a504-445bf7bfd712-v2",
+  "id": "7f7c6be3-686d-43d9-a860-ada9b210b077",
   "revision": 0,
   "last_node_id": 48,
   "last_link_id": 46,
@@ -198,65 +198,6 @@
       "bgcolor": "#653"
     },
     {
-      "id": 37,
-      "type": "StarAdvanvesRatioLatent",
-      "pos": [
-        600,
-        280
-      ],
-      "size": [
-        350,
-        290
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            33
-          ]
-        },
-        {
-          "name": "WIDTH",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "HEIGHT",
-          "type": "INT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "StarAdvanvesRatioLatent"
-      },
-      "widgets_values": [
-        "1:1",
-        "21:9",
-        "Qwen Image (≈ 1328x1328)",
-        1920,
-        1080,
-        "16 (FLUX/QWEN/ZIT)",
-        false,
-        1
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
       "id": 33,
       "type": "UNETLoader",
       "pos": [
@@ -268,7 +209,7 @@
         90
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -346,7 +287,7 @@
         60
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -381,7 +322,7 @@
         90
       ],
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -406,7 +347,7 @@
         130
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -479,7 +420,7 @@
         90
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -583,7 +524,7 @@
         110
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -621,7 +562,7 @@
         290
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 4,
       "inputs": [],
       "outputs": [
@@ -779,7 +720,7 @@
         "Node name for S&R": "StarSampler"
       },
       "widgets_values": [
-        892032827191910,
+        352629941807741,
         "randomize",
         6,
         1,
@@ -807,7 +748,7 @@
         280
       ],
       "flags": {},
-      "order": 10,
+      "order": 9,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -851,7 +792,7 @@
         90
       ],
       "flags": {},
-      "order": 11,
+      "order": 10,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -1023,7 +964,7 @@
         "masterpiece, best quality, highres",
         "(worst quality, low quality, normal quality:1.5)",
         "No",
-        757500597209991,
+        721955538946843,
         "randomize",
         8,
         0.1,
@@ -1051,7 +992,7 @@
         470
       ],
       "flags": {},
-      "order": 12,
+      "order": 11,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -1063,6 +1004,65 @@
       ],
       "color": "#223",
       "bgcolor": "#335"
+    },
+    {
+      "id": 37,
+      "type": "StarAdvanvesRatioLatent",
+      "pos": [
+        610,
+        290
+      ],
+      "size": [
+        350,
+        290
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            33
+          ]
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarAdvanvesRatioLatent"
+      },
+      "widgets_values": [
+        "1:1",
+        "21:9",
+        "Qwen Image (≈ 1328x1328)",
+        1920,
+        1080,
+        "16 (FLUX/QWEN/ZIT)",
+        false,
+        1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
     }
   ],
   "links": [
@@ -1312,10 +1312,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.4000000000000085,
+      "scale": 0.4400000000000112,
       "offset": [
-        325.06779064483635,
-        193.73962947967908
+        376.83615186601,
+        149.26112582057533
       ]
     },
     "frontendVersion": "1.45.21",

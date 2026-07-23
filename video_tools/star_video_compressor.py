@@ -85,6 +85,21 @@ class StarVideoCompressor:
                 "save_output": ("BOOLEAN", {"default": True, "tooltip":
                                 "True = ComfyUI output folder, False = "
                                 "temp folder."}),
+                "drop_first_frames": ("INT", {
+                    "default": 0, "min": 0, "max": 1000, "step": 1,
+                    "tooltip": "Skip this many frames from the start of "
+                               "the output (e.g. 10 = the output starts at "
+                               "frame 11). 0 = off. Any connected/embedded "
+                               "audio is shifted by the same amount to "
+                               "stay in sync."}),
+                "drop_last_frames": ("INT", {
+                    "default": 0, "min": 0, "max": 1000, "step": 1,
+                    "tooltip": "Cut this many frames from the end of the "
+                               "output (e.g. 10 = the last 10 frames are "
+                               "removed). 0 = off. Works together with "
+                               "drop_first_frames. Any connected/embedded "
+                               "audio is trimmed to match so it stays in "
+                               "sync."}),
             },
             "optional": {
                 "video": ("STAR_FILENAMES", {"tooltip":
@@ -115,8 +130,11 @@ class StarVideoCompressor:
 
     def compress(self, quality, format, preset, filename_prefix,
                  target_size_mb, video_path, frame_rate, save_audio,
-                 save_output, video=None, images=None, audio=None,
-                 unique_id=None):
+                 save_output, drop_first_frames=0, drop_last_frames=0,
+                 video=None, images=None, audio=None, unique_id=None):
+
+        drop_first_frames = max(0, min(1000, int(drop_first_frames)))
+        drop_last_frames = max(0, min(1000, int(drop_last_frames)))
 
         if format not in VIDEO_FORMATS:
             raise ValueError(f"Star Video Compressor: unknown format "
@@ -175,12 +193,29 @@ class StarVideoCompressor:
                 duration = in_info["duration"]
                 in_desc = f"{os.path.basename(src)} | " \
                           f"{fmt_media_brief(in_info)}"
-                source_args = ["-i", src]
+                drop_fps = in_info["fps"] or frame_rate
+                drop_time = drop_first_frames / max(drop_fps, 0.001) \
+                    if drop_first_frames > 0 else 0.0
+                drop_time_end = drop_last_frames / max(drop_fps, 0.001) \
+                    if drop_last_frames > 0 else 0.0
+                if drop_last_frames > 0 and not duration:
+                    raise ValueError(
+                        "Star Video Compressor: drop_last_frames needs a "
+                        "known input duration, but it could not be "
+                        f"determined for '{os.path.basename(src)}'. Set "
+                        "drop_last_frames to 0 for this file.")
+                if duration:
+                    duration = max(0.001, duration - drop_time - drop_time_end)
+                trim_in_args = (["-ss", f"{drop_time:.6f}"]
+                                 if drop_time > 0 else []) + \
+                                (["-t", f"{duration:.6f}"]
+                                 if drop_time_end > 0 else [])
+                source_args = trim_in_args + ["-i", src]
                 map_args, filter_args, payload = [], [], None
                 if not save_audio:
                     a_args = ["-an"]
                 elif audio_file:
-                    source_args += ["-i", audio_file]
+                    source_args += trim_in_args + ["-i", audio_file]
                     map_args = ["-map", "0:v:0", "-map", "1:a:0", "-shortest"]
                     a_args = audio_codec_args(fmt)
                 elif in_info["acodec"]:
@@ -189,6 +224,17 @@ class StarVideoCompressor:
                     a_args = []
             else:  # images batch
                 frames = src
+                total_frames = frames.shape[0]
+                if drop_first_frames + drop_last_frames >= total_frames:
+                    raise ValueError(
+                        "Star Video Compressor: drop_first_frames + "
+                        f"drop_last_frames ({drop_first_frames + drop_last_frames}) "
+                        "is >= the number of frames in the IMAGE batch "
+                        f"({total_frames}).")
+                end_idx = total_frames - drop_last_frames \
+                    if drop_last_frames > 0 else total_frames
+                frames = frames[drop_first_frames:end_idx]
+                drop_time = drop_first_frames / max(frame_rate, 0.001)
                 n, h, w = frames.shape[0], frames.shape[1], frames.shape[2]
                 duration = n / max(frame_rate, 0.001)
                 in_desc = (f"IMAGE batch | {n} frames @ {frame_rate:g} fps "
@@ -203,7 +249,9 @@ class StarVideoCompressor:
                 if not save_audio:
                     a_args = ["-an"]
                 elif audio_file:
-                    source_args += ["-i", audio_file]
+                    source_args += (["-ss", f"{drop_time:.6f}"]
+                                     if drop_time > 0 else []) + \
+                                     ["-i", audio_file]
                     map_args = ["-map", "0:v:0", "-map", "1:a:0", "-shortest"]
                     a_args = audio_codec_args(fmt)
                 else:

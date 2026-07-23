@@ -40,6 +40,7 @@ app.registerExtension({
             container.style.margin = "0";
             container.style.padding = "0";
 
+            // Img2 (Background)
             const img2 = document.createElement("img");
             img2.style.position = "absolute";
             img2.style.top = "0";
@@ -49,10 +50,22 @@ app.registerExtension({
             img2.style.objectFit = "contain";
             img2.style.userSelect = "none";
             img2.style.pointerEvents = "none";
+            img2.style.transformOrigin = "0 0";
             img2.draggable = false;
             img2.alt = "Image 2";
             img2.src = PLACEHOLDER_IMAGE;
 
+            // Clip-Wrapper keeps the visual split fixed in the viewport while zooming
+            const clipWrapper = document.createElement("div");
+            clipWrapper.style.position = "absolute";
+            clipWrapper.style.top = "0";
+            clipWrapper.style.left = "0";
+            clipWrapper.style.width = "100%";
+            clipWrapper.style.height = "100%";
+            clipWrapper.style.pointerEvents = "none";
+            clipWrapper.style.clipPath = "inset(0 50% 0 0)";
+
+            // Img1 (Foreground)
             const img1 = document.createElement("img");
             img1.style.position = "absolute";
             img1.style.top = "0";
@@ -62,10 +75,12 @@ app.registerExtension({
             img1.style.objectFit = "contain";
             img1.style.userSelect = "none";
             img1.style.pointerEvents = "none";
-            img1.style.clipPath = "inset(0 50% 0 0)";
+            img1.style.transformOrigin = "0 0";
             img1.draggable = false;
             img1.alt = "Image 1";
             img1.src = PLACEHOLDER_IMAGE;
+            
+            clipWrapper.appendChild(img1);
 
             const divider = document.createElement("div");
             divider.style.position = "absolute";
@@ -78,6 +93,7 @@ app.registerExtension({
             divider.style.cursor = "ew-resize";
             divider.style.pointerEvents = "none";
             divider.style.left = "50%";
+            divider.style.zIndex = "2";
 
             const slider = document.createElement("input");
             slider.type = "range";
@@ -85,7 +101,7 @@ app.registerExtension({
             slider.max = "1";
             slider.step = "0.01";
             slider.value = "0.5";
-            slider.title = "Drag to compare images. Right = Image 1, Left = Image 2.";
+            slider.title = "Drag: Compare | Scroll: Zoom | Right/Middle/Shift+Click: Pan | DblClick: Reset";
             slider.style.position = "absolute";
             slider.style.bottom = "10px";
             slider.style.left = "10px";
@@ -108,7 +124,7 @@ app.registerExtension({
             label.style.zIndex = "5";
 
             container.appendChild(img2);
-            container.appendChild(img1);
+            container.appendChild(clipWrapper);
             container.appendChild(divider);
             container.appendChild(slider);
             container.appendChild(label);
@@ -127,13 +143,24 @@ app.registerExtension({
             placeholder.style.display = "block";
             container.appendChild(placeholder);
 
+            // --- Zoom & Pan Variables ---
+            let zoom = 1;
+            let panX = 0;
+            let panY = 0;
+
+            const updateTransform = () => {
+                const t = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+                img1.style.transform = t;
+                img2.style.transform = t;
+            };
+
             const update = (val) => {
                 let pos = parseFloat(val);
                 if (isNaN(pos)) pos = 0.5;
                 pos = Math.max(0, Math.min(1, pos));
                 const pct = pos * 100;
 
-                img1.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+                clipWrapper.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
                 divider.style.left = `${pct}%`;
                 slider.value = pos;
 
@@ -151,27 +178,94 @@ app.registerExtension({
             slider.addEventListener("input", (e) => update(e.target.value));
             slider.addEventListener("pointerdown", (e) => e.stopPropagation());
 
-            let dragging = false;
+            let draggingSlider = false;
+            let panning = false;
+            let lastPanMouseX = 0;
+            let lastPanMouseY = 0;
+
             const getPosFromEvent = (e) => {
                 const rect = container.getBoundingClientRect();
                 return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
             };
 
-            container.addEventListener("pointerdown", (e) => {
-                dragging = true;
-                update(getPosFromEvent(e));
+            // --- Wheel Zoom Logic ---
+            container.addEventListener("wheel", (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+
+                const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(0.1, Math.min(zoom * zoomDelta, 20));
+
+                const rect = container.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Zoom to mouse cursor
+                panX = mouseX - (mouseX - panX) * (newZoom / zoom);
+                panY = mouseY - (mouseY - panY) * (newZoom / zoom);
+                zoom = newZoom;
+
+                updateTransform();
             });
+
+            // Prevent context menu on right click
+            container.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            // --- Pointer Logic (Slider vs Panning) ---
+            container.addEventListener("pointerdown", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Middle Click (1), Right Click (2) or Shift+Left Click -> Pan
+                if (e.button === 1 || e.button === 2 || (e.button === 0 && e.shiftKey)) {
+                    panning = true;
+                    lastPanMouseX = e.clientX;
+                    lastPanMouseY = e.clientY;
+                    container.style.cursor = "grabbing";
+                } else if (e.button === 0) {
+                    // Normal Left Click -> Drag Slider
+                    draggingSlider = true;
+                    update(getPosFromEvent(e));
+                    container.style.cursor = "ew-resize";
+                }
+            });
+
             container.addEventListener("pointermove", (e) => {
-                if (dragging) {
+                if (panning) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    panX += e.clientX - lastPanMouseX;
+                    panY += e.clientY - lastPanMouseY;
+                    lastPanMouseX = e.clientX;
+                    lastPanMouseY = e.clientY;
+                    updateTransform();
+                } else if (draggingSlider) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     update(getPosFromEvent(e));
                 }
             });
-            container.addEventListener("pointerup", () => {
-                dragging = false;
-            });
-            container.addEventListener("pointerleave", () => {
-                dragging = false;
+
+            const stopDrag = () => {
+                panning = false;
+                draggingSlider = false;
+                container.style.cursor = "ew-resize";
+            };
+
+            container.addEventListener("pointerup", stopDrag);
+            container.addEventListener("pointerleave", stopDrag);
+
+            // Double click to reset View
+            container.addEventListener("dblclick", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                zoom = 1;
+                panX = 0;
+                panY = 0;
+                updateTransform();
             });
 
             const widget = this.addDOMWidget("star_image_compare", "viewer", container, {

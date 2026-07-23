@@ -36,8 +36,19 @@ passes, with the standard ComfyUI progress bar as fallback.
 - `image_to_video` — needs `image`
 - `image_audio_to_video` — needs `image` **and** `audio` (audio is trimmed to the video length and preserved, not re-generated)
 
+**Audio output**
+- `audio` output is the model-generated audio by default, in every mode.
+- `image_audio_to_video`: the connected `audio` input is **always** passed straight to the `audio` output
+  (never re-generated), regardless of `override_audio`.
+- `text_to_video` / `image_to_video`: the `audio` output is the model-generated audio, unless
+  `override_audio` is enabled **and** an `audio` input is connected, in which case that connected audio
+  is passed straight to the output instead.
+
 **Model**
 - `base_model` — dropdown of `models/diffusion_models`
+- `model_override` (optional MODEL input) — when connected, this model is used **instead of** the
+  `base_model` dropdown (the dropdown selection and `weight_dtype` are then ignored). The `lora_1..3`
+  stack is still applied on top of it. Use this to feed in a model pre-patched with flash/sage attention.
 - `lora_1..3` + strengths — dropdowns of `models/loras`, `None` to skip
 - The base model + LoRA stack is **cached**: changing prompts, seed, size, sigmas, mode etc. does **not**
   reload the model. Changing the model/LoRA selection reloads once. One configuration is kept in memory.

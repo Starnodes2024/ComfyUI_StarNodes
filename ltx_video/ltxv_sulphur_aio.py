@@ -230,6 +230,30 @@ def _get_model(base_model, weight_dtype, lora_stack):
     return model
 
 
+_OVERRIDE_MODEL_CACHE = {"key": None, "model": None}
+
+
+def _apply_lora_stack(model, lora_stack):
+    """Apply a LoRA stack to an already-loaded model (used for model_override)."""
+    key = (id(model), lora_stack)
+    if _OVERRIDE_MODEL_CACHE["key"] == key and _OVERRIDE_MODEL_CACHE["model"] is not None:
+        print("[LTXV Sulphur AIO] override-model cache hit")
+        return _OVERRIDE_MODEL_CACHE["model"]
+
+    out_model = model
+    for lora_name, strength in lora_stack:
+        lora_path = folder_paths.get_full_path_or_raise("loras", lora_name)
+        lora_sd, lora_metadata = _load_lora_state_dict(lora_path)
+        print(f"[LTXV Sulphur AIO] applying LoRA to model_override: {lora_name} @ {strength}")
+        out_model = comfy.sd.load_lora_for_models(
+            out_model, None, lora_sd, strength, 0, lora_metadata
+        )[0]
+
+    _OVERRIDE_MODEL_CACHE["key"] = key
+    _OVERRIDE_MODEL_CACHE["model"] = out_model
+    return out_model
+
+
 def _get_clip(clip_1, clip_2):
     """DualCLIPLoader equivalent, type fixed to ltxv (as in the workflow)."""
     key = (clip_1, clip_2)
@@ -302,8 +326,9 @@ class LTXVSulphurAllInOne:
         ratio_list = list(HD_RATIOS.keys())
         return {
             "required": {
-                "mode": (["text_to_video", "image_to_video", "image_audio_to_video"],
-                         {"tooltip": "text_to_video: prompt only. image_to_video: connect an image. "
+                "mode": (["▶️ text_to_video", "▶️ image_to_video", "▶️ image_audio_to_video"],
+                         {"default": "▶️ image_to_video",
+                          "tooltip": "text_to_video: prompt only. image_to_video: connect an image. "
                                      "image_audio_to_video: connect an image AND an audio file."}),
                 "positive_prompt": ("STRING", {"multiline": True, "default": "",
                                                "tooltip": "What you want to see. LTXV likes detailed, "
@@ -342,7 +367,7 @@ class LTXVSulphurAllInOne:
                                   "tooltip": "Only used when video_size = Custom."}),
                 "frame_rate": ("INT", {"default": 25, "min": 1, "max": 120, "step": 1,
                                "tooltip": "Frames per second of the output video."}),
-                "seconds": ("INT", {"default": 4, "min": 1, "max": 120, "step": 1,
+                "seconds": ("INT", {"default": 10, "min": 1, "max": 120, "step": 1,
                             "tooltip": "Video length in seconds. Frame count is snapped to 8n+1 "
                                        "(4s @ 25fps = 97 frames)."}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF,
@@ -357,8 +382,15 @@ class LTXVSulphurAllInOne:
                 "image": ("IMAGE", {"tooltip": "Start frame / guide image (image_to_video modes)."}),
                 "audio": ("AUDIO", {"tooltip": "Voice / music track (image_audio_to_video mode). "
                                                "Trimmed to the video length and preserved as-is."}),
+                "override_audio": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled",
+                                    "tooltip": "text_to_video / image_to_video only: when disabled (default), "
+                                               "the connected 'audio' input is ignored and the model-generated "
+                                               "audio is sent to the audio output. When enabled, the connected "
+                                               "'audio' input is passed straight to the audio output instead. "
+                                               "Ignored in image_audio_to_video mode, where the connected audio "
+                                               "is always passed through to the output."}),
                 "lora_1": (lora_list, {"tooltip": "Optional LoRA stack, applied in order 1 -> 3."}),
-                "lora_1_strength": ("FLOAT", {"default": 1.0, "min": -100.0, "max": 100.0, "step": 0.01,
+                "lora_1_strength": ("FLOAT", {"default": 0.6, "min": -100.0, "max": 100.0, "step": 0.01,
                                     "tooltip": "The distilled LoRA in the original workflow ran at 0.6."}),
                 "lora_2": (lora_list,),
                 "lora_2_strength": ("FLOAT", {"default": 1.0, "min": -100.0, "max": 100.0, "step": 0.01}),
@@ -376,6 +408,10 @@ class LTXVSulphurAllInOne:
                                   "tooltip": "Sampler for pass 2 (full resolution refine)."}),
                 "weight_dtype": (["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"],
                                  {"tooltip": "Override base-model dtype. 'default' = as stored."}),
+                "model_override": ("MODEL", {"tooltip": "Optional external model (e.g. patched with "
+                                    "flash/sage attention). When connected, this is used instead of "
+                                    "loading 'base_model' from the dropdown, and the LoRA stack below "
+                                    "is applied to it directly."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -402,6 +438,7 @@ class LTXVSulphurAllInOne:
         sigma_preset,
         image=None,
         audio=None,
+        override_audio=False,
         lora_1="None",
         lora_1_strength=1.0,
         lora_2="None",
@@ -414,11 +451,13 @@ class LTXVSulphurAllInOne:
         sampler_pass1="euler_ancestral_cfg_pp",
         sampler_pass2="euler_cfg_pp",
         weight_dtype="default",
+        model_override=None,
         unique_id=None,
     ):
 
         start_time = time.time()
         event_cb = make_event_cb(unique_id)
+        mode = mode.split(" ", 1)[-1] if " " in mode else mode
         use_image = mode in ("image_to_video", "image_audio_to_video")
         use_audio = mode == "image_audio_to_video"
         if use_image and image is None:
@@ -445,7 +484,11 @@ class LTXVSulphurAllInOne:
             )
             if name and name != "None" and strength != 0.0
         )
-        model = _get_model(base_model, weight_dtype, lora_stack)
+        if model_override is not None:
+            print("[LTXV Sulphur AIO] using external model_override instead of base_model dropdown")
+            model = _apply_lora_stack(model_override, lora_stack)
+        else:
+            model = _get_model(base_model, weight_dtype, lora_stack)
         clip = _get_clip(clip_1, clip_2)
         video_vae = _get_vae(vae)
         audio_vae_model = _get_vae(audio_vae)
@@ -544,6 +587,15 @@ class LTXVSulphurAllInOne:
         vid2, aud2 = _res(LTXVSeparateAVLatent.execute(out2))
         images = nodes.VAEDecode().decode(video_vae, vid2)[0]
         audio_out = _res(LTXVAudioVAEDecode.execute(aud2, audio_vae_model))[0]
+
+        # ---- audio output selection ----------------------------------------
+        # image_audio_to_video: connected audio always passes through.
+        # otherwise: pass through only if override_audio is enabled and audio is connected,
+        # else use the model-generated audio (default behaviour).
+        if use_audio:
+            audio_out = audio
+        elif override_audio and audio is not None:
+            audio_out = audio
 
         if _rep2 is not None:
             _rep2.finish_all(time.time() - start_time)
