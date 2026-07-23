@@ -802,30 +802,6 @@
       "bgcolor": "#653"
     },
     {
-      "id": 29,
-      "type": "MarkdownNote",
-      "pos": [
-        -30,
-        300
-      ],
-      "size": [
-        700,
-        380
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "Models",
-      "properties": {},
-      "widgets_values": [
-        "### Model Download List & Locations\n\n| Input / Type | Filename | Direct Download Link | ComfyUI Target Folder |\n| :--- | :--- | :--- | :--- |\n| **base_model** | `ltx-2.3-22b-dev-fp8.safetensors` | [Download (FP8)](https://huggingface.co/Hippotes/LTX-2.3-various-formats/resolve/main/ltx-2.3-22b-dev-fp8.safetensors) | `ComfyUI/models/diffusion_models/` |\n| **clip_1** | `gemma-3-12b-it-heretic-v2_int8.safetensors` | [Download (INT8)](https://huggingface.co/DreamFast/gemma-3-12b-it-heretic-v2/resolve/main/comfyui/gemma-3-12b-it-heretic-v2_int8.safetensors) | `ComfyUI/models/text_encoders/` |\n| **clip_2** | `ltx-2.3_text_projection_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/text_encoders/ltx-2.3_text_projection_bf16.safetensors) | `ComfyUI/models/text_encoders/` |\n| **vae** | `LTX23_video_vae_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/vae/LTX23_video_vae_bf16.safetensors) | `ComfyUI/models/vae/` |\n| **audio_vae** | `LTX23_audio_vae_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/vae/LTX23_audio_vae_bf16.safetensors) | `ComfyUI/models/vae/` |\n| **upscale_model** | `ltx-2.3-spatial-upscaler-x2-1.1.safetensors` | [Download (x2 v1.1)](https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-spatial-upscaler-x2-1.1.safetensors) | `ComfyUI/models/upscale_models/` |\n\n---\n\n### Model Installation:\nPlease download the required `.safetensors` files using the direct links and move them into the corresponding ComfyUI subdirectories. Make sure the filenames match the ones in the workflow **exactly**.\n\n*   **Base Model (LTXV 2.3 FP8):** Place this file in `ComfyUI/models/diffusion_models/`.\n*   **Text Encoders (Gemma-3 & LTX-2.3 Projection):** Both files go into `ComfyUI/models/text_encoders/`.\n*   **VAE (Video & Audio):** Both VAE files belong in the `ComfyUI/models/vae/` folder.\n*   **Upscale Model (x2):** This file goes into the `ComfyUI/models/upscale_models/` folder. \n\n*Tip: After moving the files, restart ComfyUI (or press the \"Refresh\" button in the UI) so the models can be loaded properly.*"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
       "id": 20,
       "type": "Note",
       "pos": [
@@ -837,7 +813,7 @@
         130
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -860,7 +836,7 @@
         130
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -883,7 +859,7 @@
         130
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -907,7 +883,7 @@
         100
       ],
       "flags": {},
-      "order": 10,
+      "order": 9,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -931,7 +907,7 @@
         160
       ],
       "flags": {},
-      "order": 11,
+      "order": 10,
       "mode": 4,
       "inputs": [],
       "outputs": [
@@ -990,6 +966,30 @@
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
+    },
+    {
+      "id": 29,
+      "type": "MarkdownNote",
+      "pos": [
+        -30,
+        300
+      ],
+      "size": [
+        700,
+        380
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Models",
+      "properties": {},
+      "widgets_values": [
+        "### Model Download List & Locations\n\n| Input / Type | Filename | Direct Download Link | ComfyUI Target Folder |\n| :--- | :--- | :--- | :--- |\n| **base_model** | `ltx-2.3-22b-dev-fp8.safetensors` | [Download (FP8)](https://huggingface.co/Hippotes/LTX-2.3-various-formats/resolve/main/ltx-2.3-22b-dev-fp8.safetensors) | `ComfyUI/models/diffusion_models/` |\n| **lora** | `ltx-2.3-22b-distilled-lora-384-1.1.safetensors` | [Download (LoRA)](https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-22b-distilled-lora-384-1.1.safetensors) | `ComfyUI/models/loras/` |\n| **clip_1** | `gemma-3-12b-it-heretic-v2_int8.safetensors` | [Download (INT8)](https://huggingface.co/DreamFast/gemma-3-12b-it-heretic-v2/resolve/main/comfyui/gemma-3-12b-it-heretic-v2_int8.safetensors) | `ComfyUI/models/text_encoders/` |\n| **clip_2** | `ltx-2.3_text_projection_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/text_encoders/ltx-2.3_text_projection_bf16.safetensors) | `ComfyUI/models/text_encoders/` |\n| **vae** | `LTX23_video_vae_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/vae/LTX23_video_vae_bf16.safetensors) | `ComfyUI/models/vae/` |\n| **audio_vae** | `LTX23_audio_vae_bf16.safetensors` | [Download (BF16)](https://huggingface.co/Kijai/LTX2.3_comfy/resolve/main/vae/LTX23_audio_vae_bf16.safetensors) | `ComfyUI/models/vae/` |\n| **upscale_model** | `ltx-2.3-spatial-upscaler-x2-1.1.safetensors` | [Download (x2 v1.1)](https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-spatial-upscaler-x2-1.1.safetensors) | `ComfyUI/models/upscale_models/` |\n\n---\n\n### Model Installation:\nPlease download the required `.safetensors` files using the direct links and move them into the corresponding ComfyUI subdirectories. Make sure the filenames match the ones in the workflow **exactly**.\n\n*   **Base Model (LTXV 2.3 FP8):** Place this file in `ComfyUI/models/diffusion_models/`.\n*   **LoRA:** Place the distilled LoRA file in `ComfyUI/models/loras/`.\n*   **Text Encoders (Gemma-3 & LTX-2.3 Projection):** Both files go into `ComfyUI/models/text_encoders/`.\n*   **VAE (Video & Audio):** Both VAE files belong in the `ComfyUI/models/vae/` folder.\n*   **Upscale Model (x2):** This file goes into the `ComfyUI/models/upscale_models/` folder. \n\n*Tip: After moving the files, restart ComfyUI (or press the \"Refresh\" button in the UI) so the models can be loaded properly.*"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -1223,10 +1223,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 2.446363617936908,
+      "scale": 0.6038799571275477,
       "offset": [
-        -1042.9028583760398,
-        -151.13005512995773
+        334.637971333126,
+        193.69850280235957
       ]
     },
     "frontendVersion": "1.45.21",
