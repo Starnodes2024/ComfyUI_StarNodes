@@ -309,7 +309,7 @@ def _get_upscale_model(model_name):
 # ---------------------------------------------------------------------------
 
 class LTXVSulphurAllInOne:
-    CATEGORY = "LTXV"
+    CATEGORY = "⭐StarNodes/Video"
     FUNCTION = "generate"
     RETURN_TYPES = ("IMAGE", "AUDIO", "FLOAT")
     RETURN_NAMES = ("images", "audio", "frame_rate")

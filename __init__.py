@@ -330,7 +330,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
 }
 
-__version__ = "2.3.8"
+__version__ = "2.3.9"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"
