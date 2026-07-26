@@ -1,46 +1,35 @@
 # ⭐ Star Load Image+
 
-Load images like ComfyUI's default **Load Image** node, but with **5 additional text outputs** populated from the image metadata.
+Load an image from your ComfyUI `input` **or `output`** folder — or paste it
+straight from the clipboard — and get back the image, its mask and the 5 custom
+StarMetaData values stored by ⭐ Star Save Image+. Drop-in replacement for the
+original ⭐ Star Load Image+ — old workflows keep working.
 
-- __Category__: `⭐StarNodes/IO`
-- __Class__: `StarLoadImagePlus`
-- __File__: `image_tools/star_load_image_plus.py`
+## On-node controls
 
-## Overview
-
-This node extracts the following metadata keys from the loaded image:
-- `StarMetaData 1`
-- `StarMetaData 2`
-- `StarMetaData 3`
-- `StarMetaData 4`
-- `StarMetaData 5`
-
-If a key is not present, the output is an empty string.
-
----
+- **📋 Paste Image** — paste an image directly from the clipboard (also available in the node's right-click menu). The pasted image is uploaded to the input folder automatically.
+- **Metadata badge** — after running, shows how many metadata entries were found in the file.
 
 ## Inputs
 
-- __image__ (STRING / image upload, required): Image file from your ComfyUI input folder.
+- **image** — pick a file from the **input folder** *or* the **output folder** (entries ending with `[output]`, including subfolders like the date folders ⭐ Star Save Image+ creates), or use *Choose file to upload*. PNG, JPG, WEBP, BMP and GIF are supported.
+- **invert_mask** — flip the mask extracted from the alpha channel (e.g. switch between inpaint-area and keep-area).
 
 ## Outputs
 
-- __image__ (IMAGE): Loaded image tensor.
-- __mask__ (MASK): Alpha mask if present, otherwise empty mask.
+- **image** — the loaded image.
+- **mask** — the alpha channel as a mask (empty mask when there is no alpha). Restores masks embedded by ⭐ Star Save Image+; flip it with **invert_mask**.
+- **StarMetaData 1–5** — the 5 custom metadata values (same output slots as the original node).
+- **metadata** — *all* metadata found in the file (STAR_METADATA). Connect this to **⭐ Star Image Loader Options** to see the full list and use single entries.
 
-### Star metadata fields
+## Tips
 
-- __StarMetaData 1__ (STRING)
-- __StarMetaData 2__ (STRING)
-- __StarMetaData 3__ (STRING)
-- __StarMetaData 4__ (STRING)
-- __StarMetaData 5__ (STRING)
-
-## Notes
-
-- Works best with images saved by **Star Save Image+**, but will also output values if any other tool stored these keys in metadata.
+- To read back embedded metadata, load the file from the **output** folder — *not* a temporary preview image. Temp previews don't contain the StarMetaData fields.
+- The loader detects file changes automatically (re-runs when the file on disk changes).
+- Legacy `StarMetaData 1…5` entries written by the original node are read exactly the same way.
 
 ## Related Nodes
 
 - ⭐ Star Save Image+ (`StarSaveImagePlus`)
-- ⭐ Star Meta Injector (`StarMetaInjector`)
+- ⭐ Star Image Loader Options (`StarImageLoaderOptions`)
+- ⭐ Star Metadata Saver Option (`StarMetadataSaverOption`)

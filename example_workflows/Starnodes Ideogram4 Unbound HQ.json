@@ -1,8 +1,8 @@
 {
   "id": "ae396505-d46b-4745-9aeb-545203d7064e",
   "revision": 0,
-  "last_node_id": 65,
-  "last_link_id": 99,
+  "last_node_id": 69,
+  "last_link_id": 106,
   "nodes": [
     {
       "id": 6,
@@ -42,70 +42,6 @@
       "widgets_values": [
         "ideogram4_instant-nvfp4.safetensors",
         "default"
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 56,
-      "type": "StarOllamaPromptHelper",
-      "pos": [
-        -10,
-        810
-      ],
-      "size": [
-        400,
-        380
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "prompt",
-          "type": "STRING",
-          "widget": {
-            "name": "prompt"
-          },
-          "link": 98
-        }
-      ],
-      "outputs": [
-        {
-          "name": "result",
-          "type": "STRING",
-          "links": [
-            78
-          ]
-        },
-        {
-          "name": "think_output",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "StarOllamaPromptHelper"
-      },
-      "widgets_values": [
-        "http://127.0.0.1:11434",
-        "huihui_ai/gemma-4-abliterated:12b",
-        "0",
-        "Ideogram4 Image Prompt Refiner (JSON)",
-        "",
-        "",
-        false,
-        0.8,
-        1805681987,
-        "randomize"
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -191,45 +127,6 @@
       "widgets_values": [
         "flux2-vae.safetensors"
       ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 57,
-      "type": "PreviewAny",
-      "pos": [
-        0,
-        1250
-      ],
-      "size": [
-        390,
-        380
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 78
-        }
-      ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            79
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.28.0",
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
     },
@@ -323,7 +220,7 @@
           "widget": {
             "name": "text"
           },
-          "link": 79
+          "link": 101
         }
       ],
       "outputs": [
@@ -461,13 +358,13 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 83
+          "link": 105
         },
         {
           "name": "color_match_image",
           "shape": 7,
           "type": "IMAGE",
-          "link": null
+          "link": 106
         }
       ],
       "outputs": [
@@ -497,57 +394,6 @@
         8,
         100,
         "None"
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 44,
-      "type": "StarTiledSeedVRUpscaler",
-      "pos": [
-        1410,
-        790
-      ],
-      "size": [
-        290,
-        210
-      ],
-      "flags": {},
-      "order": 20,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 94
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            83
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.1.3",
-        "Node name for S&R": "StarTiledSeedVRUpscaler",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "seedvr2_7b-int8_convrot.safetensors",
-        "ema_vae_fp16.safetensors",
-        1.6,
-        2,
-        2,
-        ""
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -696,7 +542,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            93
+            103
           ]
         },
         {
@@ -725,7 +571,7 @@
         "masterpiece, best quality, highres",
         "(worst quality, low quality, normal quality:1.5)",
         "No",
-        1023296779387888,
+        569748001049880,
         "randomize",
         10,
         0.25,
@@ -869,7 +715,7 @@
           "type": "IMAGE",
           "links": [
             95,
-            99
+            102
           ]
         },
         {
@@ -904,7 +750,7 @@
         }
       },
       "widgets_values": [
-        942892931187227,
+        581018583766178,
         "randomize",
         12,
         1,
@@ -916,139 +762,6 @@
         1.15,
         0.5,
         ""
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 61,
-      "type": "⭐ Star Save Image+",
-      "pos": [
-        890,
-        1500
-      ],
-      "size": [
-        470,
-        750
-      ],
-      "flags": {},
-      "order": 19,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 99
-        },
-        {
-          "name": "StarMetaData 1",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 2",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 3",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 4",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 5",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "path",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "⭐ Star Save Image+",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "None",
-        true,
-        "first",
-        "SMALL",
-        "",
-        "Off",
-        "Ideogram4 ",
-        false,
-        "_",
-        true,
-        95
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 60,
-      "type": "StarStopAndGo",
-      "pos": [
-        900,
-        770
-      ],
-      "size": [
-        450,
-        650
-      ],
-      "flags": {},
-      "order": 18,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "any_input",
-          "shape": 7,
-          "type": "*",
-          "link": 95
-        }
-      ],
-      "outputs": [
-        {
-          "name": "output",
-          "type": "*",
-          "links": [
-            94
-          ]
-        }
-      ],
-      "title": "⭐ Star Stop And Go [User Select]",
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "StarStopAndGo"
-      },
-      "widgets_values": [
-        "User Select",
-        5,
-        20,
-        true,
-        true,
-        null,
-        null
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -1161,90 +874,6 @@
       "bgcolor": "#653"
     },
     {
-      "id": 21,
-      "type": "⭐ Star Save Image+",
-      "pos": [
-        2320,
-        730
-      ],
-      "size": [
-        620,
-        1030
-      ],
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 93
-        },
-        {
-          "name": "StarMetaData 1",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 2",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 3",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 4",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 5",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "path",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "2.0.1",
-        "Node name for S&R": "⭐ Star Save Image+",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "None",
-        true,
-        "first",
-        "BIG HQ",
-        "",
-        "Off",
-        "Ideogram4Krea2",
-        false,
-        "_",
-        true,
-        95
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
       "id": 5,
       "type": "Text Multiline",
       "pos": [
@@ -1280,6 +909,345 @@
       },
       "widgets_values": [
         "create a high detailed fashion photography of a human otter chimera with purple fur and mohawk in stylish fashion. close up (just the part of upper body) in paris. cute big google eyes but in ultra realistic 3d render style . the image is background of a modern \"STARNODES\" cover, so add a cover story and also add a few text boxes with fashion article texts. one article says \"NEW: STARNODES TEMPLATE WORKFLOWS!\" subline \"For an easy and fast start!\" another text box \"Flux2, LTXV, KREA2, Inpaint, SeedVR, Ideogram4, AceStepXL\""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 56,
+      "type": "StarOllamaPromptHelper",
+      "pos": [
+        -10,
+        810
+      ],
+      "size": [
+        400,
+        380
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 98
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "type": "STRING",
+          "links": [
+            100
+          ]
+        },
+        {
+          "name": "think_output",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarOllamaPromptHelper"
+      },
+      "widgets_values": [
+        "http://127.0.0.1:11434",
+        "huihui_ai/gemma-4-abliterated:12b",
+        "0",
+        "Ideogram4 Image Prompt Refiner (JSON)",
+        "",
+        "",
+        false,
+        0.8,
+        1287048368,
+        "randomize"
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 66,
+      "type": "StarShowEverything",
+      "pos": [
+        -10,
+        1250
+      ],
+      "size": [
+        390,
+        410
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "anything",
+          "type": "*",
+          "link": 100
+        }
+      ],
+      "outputs": [
+        {
+          "name": "anything",
+          "type": "*",
+          "links": [
+            101
+          ]
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "name",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "StarShowEverything"
+      },
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 67,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        900,
+        1490
+      ],
+      "size": [
+        487,
+        880
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 102
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "STAR_SAVE_OPTIONS",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "small",
+        "",
+        "Off",
+        "Ideogram4Krea2",
+        false,
+        "_",
+        95,
+        90,
+        4,
+        "save",
+        "png",
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 68,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        2300,
+        730
+      ],
+      "size": [
+        756,
+        1180
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 103
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "STAR_SAVE_OPTIONS",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "BIG HQ",
+        "",
+        "Off",
+        "Ideogram4Krea2",
+        false,
+        "_",
+        95,
+        90,
+        4,
+        "save",
+        "png,jpg",
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 69,
+      "type": "StarTiledSeedVRUpscaler",
+      "pos": [
+        1410,
+        760
+      ],
+      "size": [
+        290,
+        260
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 104
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            105,
+            106
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "StarTiledSeedVRUpscaler"
+      },
+      "widgets_values": [
+        "seedvr2_7b-int8_convrot.safetensors",
+        "ema_vae_fp16.safetensors",
+        2,
+        2,
+        2,
+        0.25,
+        0.8,
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 60,
+      "type": "StarStopAndGo",
+      "pos": [
+        900,
+        770
+      ],
+      "size": [
+        450,
+        650
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "any_input",
+          "shape": 7,
+          "type": "*",
+          "link": 95
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "*",
+          "links": [
+            104
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "Node name for S&R": "StarStopAndGo"
+      },
+      "widgets_values": [
+        "User Select",
+        5,
+        20,
+        true,
+        true,
+        null,
+        null
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -1375,51 +1343,11 @@
       "VAE"
     ],
     [
-      78,
-      56,
-      0,
-      57,
-      0,
-      "STRING"
-    ],
-    [
-      79,
-      57,
-      0,
-      14,
-      1,
-      "STRING"
-    ],
-    [
-      83,
-      44,
-      0,
-      53,
-      0,
-      "IMAGE"
-    ],
-    [
       86,
       53,
       0,
       45,
       3,
-      "IMAGE"
-    ],
-    [
-      93,
-      45,
-      0,
-      21,
-      0,
-      "IMAGE"
-    ],
-    [
-      94,
-      60,
-      0,
-      44,
-      0,
       "IMAGE"
     ],
     [
@@ -1439,11 +1367,59 @@
       "STRING"
     ],
     [
-      99,
+      100,
+      56,
+      0,
+      66,
+      0,
+      "STRING"
+    ],
+    [
+      101,
+      66,
+      0,
+      14,
+      1,
+      "STRING"
+    ],
+    [
+      102,
       39,
       4,
-      61,
+      67,
       0,
+      "IMAGE"
+    ],
+    [
+      103,
+      45,
+      0,
+      68,
+      0,
+      "IMAGE"
+    ],
+    [
+      104,
+      60,
+      0,
+      69,
+      0,
+      "IMAGE"
+    ],
+    [
+      105,
+      69,
+      0,
+      53,
+      0,
+      "IMAGE"
+    ],
+    [
+      106,
+      69,
+      0,
+      53,
+      1,
       "IMAGE"
     ]
   ],
@@ -1525,14 +1501,14 @@
   "extra": {
     "ue_links": [],
     "ds": {
-      "scale": 0.7400249944259193,
+      "scale": 0.28364790236970316,
       "offset": [
-        -154.56386059907868,
-        -553.6076309895705
+        1930.419428435631,
+        119.87421645372092
       ]
     },
     "links_added_by_ue": [],
-    "frontendVersion": "1.45.21",
+    "frontendVersion": "1.47.10",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

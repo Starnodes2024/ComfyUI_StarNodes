@@ -217,12 +217,14 @@ class StarTiledSeedVRUpscaler:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
+                "image": ("IMAGE", {"tooltip": "The image to upscale."}),
                 "model_name": (folder_paths.get_filename_list("diffusion_models"), {"tooltip": "The SeedVR2 diffusion model."}),
                 "vae_name": (folder_paths.get_filename_list("vae"), {"tooltip": "The SeedVR2 (EMA) VAE."}),
                 "scale": ("FLOAT", {"default": 2.0, "min": 1.0, "max": 8.0, "step": 0.25, "tooltip": "Upscale factor for the output image."}),
                 "rows": ("INT", {"default": 3, "min": 1, "max": 16, "tooltip": "Number of tile rows. More rows = smaller tiles = less VRAM."}),
                 "cols": ("INT", {"default": 3, "min": 1, "max": 16, "tooltip": "Number of tile columns. More columns = smaller tiles = less VRAM."}),
+                "tile_overlap": ("FLOAT", {"default": 0.25, "min": 0.05, "max": 0.5, "step": 0.05, "tooltip": "Overlap ratio between tiles. Higher values reduce seam artifacts but increase VRAM/time."}),
+                "color_luminance_weight": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 1.0, "step": 0.05, "tooltip": "Color transfer luminance blend weight. Lower = more reference color matching, higher = preserve original brightness."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -232,7 +234,6 @@ class StarTiledSeedVRUpscaler:
     CATEGORY = "⭐StarNodes/Image And Latent"
     DESCRIPTION = "Upscales an image with SeedVR2 by processing it in overlapping tiles to keep VRAM usage low. Tiles are enhanced one by one and blended back together seamlessly."
 
-    TILE_OVERLAP = 0.1
     VAE_TILE = 1024
     VAE_TILE_OVERLAP = 128
     SEED = 0
@@ -261,11 +262,11 @@ class StarTiledSeedVRUpscaler:
         samples = comfy.utils.common_upscale(samples, width, height, "lanczos", "disabled")
         return samples.movedim(1, -1)
 
-    def _tile_coords(self, height, width, rows, cols):
+    def _tile_coords(self, height, width, rows, cols, tile_overlap):
         tile_h = height // rows
         tile_w = width // cols
-        overlap_y = 0 if rows == 1 else min(tile_h // 2, int(tile_h * self.TILE_OVERLAP))
-        overlap_x = 0 if cols == 1 else min(tile_w // 2, int(tile_w * self.TILE_OVERLAP))
+        overlap_y = 0 if rows == 1 else min(tile_h // 2, int(tile_h * tile_overlap))
+        overlap_x = 0 if cols == 1 else min(tile_w // 2, int(tile_w * tile_overlap))
         coords = []
         for i in range(rows):
             for j in range(cols):
@@ -324,7 +325,7 @@ class StarTiledSeedVRUpscaler:
             images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
         return images
 
-    def _process_tile(self, tile, model, vae):
+    def _process_tile(self, tile, model, vae, luminance_weight):
         tile_h, tile_w = tile.shape[1], tile.shape[2]
 
         # SeedVR2 preprocess: pad to 16px multiples and 4n+1 frames as (B, T, H, W, C)
@@ -348,10 +349,10 @@ class StarTiledSeedVRUpscaler:
             decoded = self._lanczos(decoded, tile_w, tile_h)
 
         reference = tile.to(device=decoded.device, dtype=decoded.dtype)
-        fixed = lab_color_transfer(decoded.movedim(-1, 1) * 2.0 - 1.0, reference.movedim(-1, 1) * 2.0 - 1.0)
+        fixed = lab_color_transfer(decoded.movedim(-1, 1) * 2.0 - 1.0, reference.movedim(-1, 1) * 2.0 - 1.0, luminance_weight=luminance_weight)
         return fixed.movedim(1, -1).add(1.0).div(2.0).clamp(0.0, 1.0)
 
-    def upscale(self, image, model_name, vae_name, scale, rows, cols, unique_id=None):
+    def upscale(self, image, model_name, vae_name, scale, rows, cols, tile_overlap, color_luminance_weight, unique_id=None):
         import time
         start_time = time.time()
         model = self._load_model(model_name)
@@ -368,10 +369,10 @@ class StarTiledSeedVRUpscaler:
             target_w = max(16, round(img.shape[2] * scale))
             upscaled = self._lanczos(img, target_w, target_h)
 
-            coords, overlap_x, overlap_y = self._tile_coords(target_h, target_w, rows, cols)
+            coords, overlap_x, overlap_y = self._tile_coords(target_h, target_w, rows, cols, tile_overlap)
             tiles = []
             for (y1, x1, y2, x2, i, j) in coords:
-                tiles.append(self._process_tile(upscaled[:, y1:y2, x1:x2, :], model, vae))
+                tiles.append(self._process_tile(upscaled[:, y1:y2, x1:x2, :], model, vae, color_luminance_weight))
                 pbar.update(1)
                 reporter.report(fraction=0.0, sub=f"tile {len(tiles)}/{len(coords)}")
                 reporter.finish_unit()

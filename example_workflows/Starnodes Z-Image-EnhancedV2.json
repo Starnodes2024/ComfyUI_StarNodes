@@ -1,8 +1,8 @@
 {
   "id": "ad0d92ea-24a4-4e0a-9fd5-a5565fefb5e2-v2",
   "revision": 0,
-  "last_node_id": 35,
-  "last_link_id": 41,
+  "last_node_id": 38,
+  "last_link_id": 45,
   "nodes": [
     {
       "id": 3,
@@ -168,7 +168,7 @@
           "name": "IMAGE",
           "shape": 7,
           "type": "IMAGE",
-          "link": 31
+          "link": 44
         },
         {
           "name": "options",
@@ -182,7 +182,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            32
+            45
           ]
         },
         {
@@ -206,7 +206,7 @@
         "masterpiece, best quality, highres",
         "(worst quality, low quality, normal quality:1.5)",
         "No",
-        281080690017771,
+        365230594752117,
         "randomize",
         12,
         0.3,
@@ -287,47 +287,6 @@
         1,
         null,
         null
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 4,
-      "type": "CLIPTextEncode",
-      "pos": [
-        430,
-        700
-      ],
-      "size": [
-        310,
-        250
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 1
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            2
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.75",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "a cinematic action photo of an ancient warrior purple otter with  purple mohawk, golden star on his chest and war face paint sitting on a mystic purple evil looking war unicorn with golden high detailed eyes. Big title text: \"ZIT HIGH QUALITY\" subline \"Z-IMAGE TURBO\""
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -417,6 +376,170 @@
       "bgcolor": "#653"
     },
     {
+      "id": 23,
+      "type": "Note",
+      "pos": [
+        820,
+        290
+      ],
+      "size": [
+        220,
+        90
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Sampler** — Z-Image Turbo works well with 4-12 steps."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 24,
+      "type": "Note",
+      "pos": [
+        1720,
+        260
+      ],
+      "size": [
+        310,
+        90
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "**ℹ️ Group notes**\n• **Star Stop & Go** — pauses the workflow so you can review the first output before upscaling. Click continue to proceed."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 20,
+      "type": "Note",
+      "pos": [
+        10,
+        -210
+      ],
+      "size": [
+        1600,
+        370
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "# ⭐ Z-Image Enhanced — StarNodes Template\n\n**Pipeline:** ① Load Z-Image Turbo models + optional LoRA ➜ ② Prompt & latent size ➜ ③ Star Sampler ➜ ④ Save image ➜ ⑤ Stop & Go (review) ➜ ⑥ SD Upscale Refiner Advanced ➜ ⑦ Save upscaled\n**Requires:** ComfyUI 0.25+ · StarNodes\n\n## 📥 Model Downloads — Z-Image Enhanced\n\n**Diffusion model** ➜ `models/diffusion_models/`\n• [z_image_turbo_bf16.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors) (BF16)\n• [z_image_turbo_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_int8_convrot.safetensors) (INT8)\n• [z_image_turbo_nvfp4.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_nvfp4.safetensors) (NVFP4)\n• FP8: [PLACEHOLDER] — check HuggingFace for FP8 versions of z-image-turbo\n\n**Text encoder** ➜ `models/text_encoders/`\n• [qwen_3_4b_fp8_mixed.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/text_encoders/qwen_3_4b_fp8_mixed.safetensors) (FP8)\n• [qwen_3_4b.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors) (BF16)\n\n**VAE** ➜ `models/vae/`\n• [ae.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/vae/ae.safetensors)\n• SeedVR2,ema_vae_fp16.safetensors https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/vae/ema_vae_fp16.safetensors\n\n**SeedVR model** ➜ `models/diffusion_models/` https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_fp8_e4m3fn.safetensors\n• [003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x2_PSNR.pth](https://openmodeldb.info/models/003-realSR-BSRGAN-DFO-s64w8-SwinIR-M-x2-PSNR)"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 14,
+      "type": "StarStopAndGo",
+      "pos": [
+        1720,
+        540
+      ],
+      "size": [
+        310,
+        490
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "any_input",
+          "shape": 7,
+          "type": "*",
+          "link": 35
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "*",
+          "links": [
+            43
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "1.9.5",
+        "Node name for S&R": "StarStopAndGo"
+      },
+      "widgets_values": [
+        "User Select",
+        5,
+        20,
+        true,
+        false,
+        null,
+        null
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 4,
+      "type": "CLIPTextEncode",
+      "pos": [
+        430,
+        700
+      ],
+      "size": [
+        310,
+        250
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.75",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "a cinematic action photo of an ancient warrior purple otter with  purple mohawk, golden star on his chest and war face paint sitting on a mystic purple evil looking war unicorn with golden high detailed eyes. Big title text: \"ZIT HIGH QUALITY\" subline \"Z-IMAGE TURBO\""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
       "id": 6,
       "type": "StarSampler",
       "pos": [
@@ -497,8 +620,8 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            25,
-            35
+            35,
+            42
           ]
         },
         {
@@ -530,7 +653,7 @@
         "Node name for S&R": "StarSampler"
       },
       "widgets_values": [
-        888224691156349,
+        509660191378666,
         "randomize",
         12,
         1,
@@ -547,223 +670,15 @@
       "bgcolor": "#0b1220"
     },
     {
-      "id": 23,
-      "type": "Note",
+      "id": 37,
+      "type": "StarTiledSeedVRUpscaler",
       "pos": [
-        820,
-        290
-      ],
-      "size": [
-        220,
-        90
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "Note"
-      },
-      "widgets_values": [
-        "**ℹ️ Group notes**\n• **Star Sampler** — Z-Image Turbo works well with 4-12 steps."
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 27,
-      "type": "⭐ Star Save Image+",
-      "pos": [
-        1120,
-        280
-      ],
-      "size": [
-        450,
-        610
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 25
-        },
-        {
-          "name": "StarMetaData 1",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 2",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 3",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 4",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 5",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "path",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "⭐ Star Save Image+"
-      },
-      "widgets_values": [
-        "None",
-        true,
-        "first",
-        "Z-Image-Turbo",
-        "",
-        "Off",
-        "ZIT",
-        false,
-        "_",
-        false,
-        95
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 24,
-      "type": "Note",
-      "pos": [
-        1720,
+        2150,
         260
       ],
       "size": [
-        310,
-        90
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "Note"
-      },
-      "widgets_values": [
-        "**ℹ️ Group notes**\n• **Star Stop & Go** — pauses the workflow so you can review the first output before upscaling. Click continue to proceed."
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 30,
-      "type": "⭐ Star Save Image+",
-      "pos": [
-        2620,
-        550
-      ],
-      "size": [
-        430,
-        640
-      ],
-      "flags": {},
-      "order": 17,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 32
-        },
-        {
-          "name": "StarMetaData 1",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 2",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 3",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 4",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "StarMetaData 5",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "path",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "⭐ Star Save Image+"
-      },
-      "widgets_values": [
-        "None",
-        true,
-        "first",
-        "Z-Image-Turbo",
-        "",
-        "Off",
-        "ZIT_HQ",
-        false,
-        "_",
-        true,
-        95
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 28,
-      "type": "StarTiledSeedVRUpscaler",
-      "pos": [
-        2170,
-        280
-      ],
-      "size": [
-        250,
-        210
+        300,
+        260
       ],
       "flags": {},
       "order": 15,
@@ -772,7 +687,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 26
+          "link": 43
         }
       ],
       "outputs": [
@@ -780,13 +695,13 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            31
+            44
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
+        "ver": "2.4.2",
         "Node name for S&R": "StarTiledSeedVRUpscaler"
       },
       "widgets_values": [
@@ -795,80 +710,9 @@
         2,
         3,
         3,
+        0.25,
+        0.8,
         ""
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 20,
-      "type": "Note",
-      "pos": [
-        10,
-        -210
-      ],
-      "size": [
-        1600,
-        370
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "Note"
-      },
-      "widgets_values": [
-        "# ⭐ Z-Image Enhanced — StarNodes Template\n\n**Pipeline:** ① Load Z-Image Turbo models + optional LoRA ➜ ② Prompt & latent size ➜ ③ Star Sampler ➜ ④ Save image ➜ ⑤ Stop & Go (review) ➜ ⑥ SD Upscale Refiner Advanced ➜ ⑦ Save upscaled\n**Requires:** ComfyUI 0.25+ · StarNodes\n\n## 📥 Model Downloads — Z-Image Enhanced\n\n**Diffusion model** ➜ `models/diffusion_models/`\n• [z_image_turbo_bf16.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors) (BF16)\n• [z_image_turbo_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_int8_convrot.safetensors) (INT8)\n• [z_image_turbo_nvfp4.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_nvfp4.safetensors) (NVFP4)\n• FP8: [PLACEHOLDER] — check HuggingFace for FP8 versions of z-image-turbo\n\n**Text encoder** ➜ `models/text_encoders/`\n• [qwen_3_4b_fp8_mixed.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/text_encoders/qwen_3_4b_fp8_mixed.safetensors) (FP8)\n• [qwen_3_4b.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors) (BF16)\n\n**VAE** ➜ `models/vae/`\n• [ae.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/vae/ae.safetensors)\n• SeedVR2,ema_vae_fp16.safetensors https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/vae/ema_vae_fp16.safetensors\n\n**SeedVR model** ➜ `models/diffusion_models/` https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_fp8_e4m3fn.safetensors\n• [003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x2_PSNR.pth](https://openmodeldb.info/models/003-realSR-BSRGAN-DFO-s64w8-SwinIR-M-x2-PSNR)"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
-      "id": 14,
-      "type": "StarStopAndGo",
-      "pos": [
-        1720,
-        540
-      ],
-      "size": [
-        310,
-        490
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "any_input",
-          "shape": 7,
-          "type": "*",
-          "link": 35
-        }
-      ],
-      "outputs": [
-        {
-          "name": "output",
-          "type": "*",
-          "links": [
-            26
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "1.9.5",
-        "Node name for S&R": "StarStopAndGo"
-      },
-      "widgets_values": [
-        "User Select",
-        5,
-        20,
-        true,
-        false,
-        null,
-        null
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -878,7 +722,7 @@
       "type": "StarDistilledOptimizerZIT",
       "pos": [
         1120,
-        1030
+        1090
       ],
       "size": [
         440,
@@ -913,6 +757,136 @@
         2.55,
         1,
         1
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 36,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        1080,
+        270
+      ],
+      "size": [
+        527,
+        779
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 42
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "STAR_SAVE_OPTIONS",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Z-Image-Turbo",
+        "",
+        "Off",
+        "ZIT",
+        false,
+        "_",
+        95,
+        90,
+        4,
+        "save",
+        "png",
+        ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 38,
+      "type": "⭐ Star Save Image+",
+      "pos": [
+        2580,
+        290
+      ],
+      "size": [
+        547,
+        920
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 45
+        },
+        {
+          "name": "options",
+          "shape": 7,
+          "type": "STAR_SAVE_OPTIONS",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_starnodes",
+        "ver": "2.4.2",
+        "Node name for S&R": "⭐ Star Save Image+"
+      },
+      "widgets_values": [
+        "None",
+        true,
+        "first",
+        "Z-Image-Turbo",
+        "",
+        "Off",
+        "ZIT_HQ",
+        false,
+        "_",
+        95,
+        90,
+        4,
+        "save",
+        "png,jpg",
+        ""
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -968,22 +942,6 @@
       "MODEL"
     ],
     [
-      25,
-      6,
-      4,
-      27,
-      0,
-      "IMAGE"
-    ],
-    [
-      26,
-      14,
-      0,
-      28,
-      0,
-      "IMAGE"
-    ],
-    [
       28,
       6,
       0,
@@ -1008,22 +966,6 @@
       "VAE"
     ],
     [
-      31,
-      28,
-      0,
-      29,
-      3,
-      "IMAGE"
-    ],
-    [
-      32,
-      29,
-      0,
-      30,
-      0,
-      "IMAGE"
-    ],
-    [
       35,
       6,
       4,
@@ -1038,6 +980,38 @@
       6,
       6,
       "*"
+    ],
+    [
+      42,
+      6,
+      4,
+      36,
+      0,
+      "IMAGE"
+    ],
+    [
+      43,
+      14,
+      0,
+      37,
+      0,
+      "IMAGE"
+    ],
+    [
+      44,
+      37,
+      0,
+      29,
+      3,
+      "IMAGE"
+    ],
+    [
+      45,
+      29,
+      0,
+      38,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [
@@ -1129,13 +1103,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.318630817710357,
+      "scale": 0.5131581182307067,
       "offset": [
-        1190.4641191399521,
-        492.776506387604
+        101.07657237654144,
+        -11.412673033144358
       ]
     },
-    "frontendVersion": "1.45.21",
+    "frontendVersion": "1.47.10",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

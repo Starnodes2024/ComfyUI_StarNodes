@@ -1,62 +1,47 @@
 # ⭐ Star Save Image+
 
-Save images like ComfyUI's default **Save Image** node, but with:
-- **5 connector-only string inputs** that get embedded into the image metadata
-- built-in folder/filename settings (like the "Star Save Folder String" node)
+Save your images like the classic ComfyUI Save Image node — but modernized:
+pick **Save or Preview** right on the node, save to **multiple formats at once**
+(PNG, JPG, WEBP, PSD), embed an optional **mask**, and attach up to **5 custom
+metadata fields**. This node is a drop-in replacement for the original
+⭐ Star Save Image+ — old workflows keep working.
 
-- __Category__: `⭐StarNodes/IO`
-- __Class__: `StarSaveImagePlus`
-- __File__: `image_tools/star_save_image_plus.py`
+## On-node controls
 
-## Overview
-
-This node is meant for workflows where you want to save an image and also store extra workflow-related strings inside the image file.
-
-It writes the following PNG metadata keys:
-- `StarMetaData 1`
-- `StarMetaData 2`
-- `StarMetaData 3`
-- `StarMetaData 4`
-- `StarMetaData 5`
-
-These can later be retrieved using **Star Load Image+**.
-
----
+- **💾 Save / 👁 Preview** — segmented control at the top of the node.
+  - *Save* writes the files into your ComfyUI `output` folder (with all folder/naming options below).
+  - *Preview* writes a temporary PNG (like the Preview Image node) — nothing is stored permanently and no metadata is embedded.
+- **Format chips (PNG · JPG · WEBP · PSD)** — click to toggle. You can activate **several at once**; every active format is written with the same name and folder. At least one format always stays active. (PSD requires `pip install psd-tools`.)
+- **Status line** — after running, shows exactly which files were written (hover for the full list).
 
 ## Inputs
 
-- __images__ (IMAGE, required): The images to save.
+- **images** — the image batch to save.
+- **options** *(optional)* — connect a **⭐ Star Metadata Saver Option** node. Its 5 StarMetaData fields are embedded into every saved image.
+- **mask** *(optional)* — embedded as alpha channel (**PNG/WEBP**) so **⭐ Star Load Image+** restores it automatically; **JPG** gets a `..._mask.png` sidecar; **PSD** gets a real layer mask.
 
-### Folder / filename settings
+## Widgets
 
-- __preset_folder__ (STRING): Preset base folder
-- __date_folder__ (BOOLEAN): Put outputs into a date folder
-- __date_folder_position__ (STRING): Where to place the date folder
-- __custom_folder__ (STRING): Custom base folder
-- __custom_subfolder__ (STRING): Custom subfolder
-- __date_in_filename__ (STRING): Add date to filename (prefix/suffix)
-- __filename__ (STRING): Base filename
-- __add_timestamp__ (BOOLEAN): Add time stamp to filename
-- __separator__ (STRING): Separator used for timestamp
-
-### Star metadata fields (connector-only)
-
-- __StarMetaData 1__ (STRING): Saved as `StarMetaData 1`
-- __StarMetaData 2__ (STRING): Saved as `StarMetaData 2`
-- __StarMetaData 3__ (STRING): Saved as `StarMetaData 3`
-- __StarMetaData 4__ (STRING): Saved as `StarMetaData 4`
-- __StarMetaData 5__ (STRING): Saved as `StarMetaData 5`
+- **preset_folder** — preset save folder from `presets.json` (overrides custom folder).
+- **date_folder / date_folder_position** — add today's date as a folder, either as the first folder or as a subfolder.
+- **custom_folder / custom_subfolder** — free-text folders.
+- **date_in_filename** — add the date as filename prefix or suffix.
+- **filename / add_timestamp / separator** — base filename, optional time stamp, and the separator used between parts.
+- **jpg_quality / webp_quality / png_compress** — per-format quality settings.
 
 ## Outputs
 
-This is an output node that saves images directly and shows them in the UI.
+- **path** — the save folder path relative to the ComfyUI output directory.
 
 ## Notes
 
-- The StarMetaData values are stored as plain text metadata.
-- If ComfyUI metadata is enabled, the image will also contain the default ComfyUI metadata (prompt/workflow), just like the normal Save Image node.
+- **No workflow data is embedded anymore** — only your 5 custom StarMetaData fields (PNG text chunks, EXIF for JPG/WEBP). PSD files do not carry metadata.
+- Workflows saved with the original node migrate automatically: the old *save_jpg* switch turns into active PNG+JPG format chips.
+- The 5 StarMetaData inputs are now on the **⭐ Star Metadata Saver Option** node — connect it to the **options** input to embed metadata.
+- Read the metadata back with **⭐ Star Load Image+** + **⭐ Star Image Loader Options**.
 
 ## Related Nodes
 
 - ⭐ Star Load Image+ (`StarLoadImagePlus`)
-- ⭐ Star Meta Injector (`StarMetaInjector`)
+- ⭐ Star Metadata Saver Option (`StarMetadataSaverOption`)
+- ⭐ Star Image Loader Options (`StarImageLoaderOptions`)

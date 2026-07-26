@@ -18,6 +18,7 @@ const PROGRESS_NODES = [
     "StarSDUpscaleRefinerAdvanced",
     "LTXVSulphurAllInOne",
     "StarTiledSeedVRUpscaler",
+    "StarTiledPiDUpscaler",
     "StarPanoramaViewerPro",
 ];
 

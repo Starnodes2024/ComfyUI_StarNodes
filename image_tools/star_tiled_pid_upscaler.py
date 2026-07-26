@@ -280,7 +280,7 @@ class StarTiledPiDUpscaler:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
+                "image": ("IMAGE", {"tooltip": "The image to upscale."}),
                 "model_name": (folder_paths.get_filename_list("diffusion_models"), {"tooltip": "The PiD / PixelDiT diffusion model, e.g. pid_qwenimage_1024_to_4096_4step_bf16.safetensors."}),
                 "clip_name": (folder_paths.get_filename_list("text_encoders"), {"tooltip": "Gemma 2 2B text encoder for PixelDiT (gemma_2_2b_it_elm). PiD uses an empty prompt, but the model still needs the text encoder loaded."}),
                 "vae_name": (folder_paths.get_filename_list("vae"), {"tooltip": "VAE matching the PiD backbone, used to encode the input image (e.g. qwen_image_vae for qwenimage, ae.safetensors for flux)."}),
@@ -288,6 +288,7 @@ class StarTiledPiDUpscaler:
                 "scale": ("FLOAT", {"default": 4.0, "min": 1.0, "max": 8.0, "step": 0.25, "tooltip": "Upscale factor for the output image. PiD models are trained for 4x."}),
                 "rows": ("INT", {"default": 2, "min": 1, "max": 16, "tooltip": "Number of tile rows. More rows = smaller tiles = less VRAM."}),
                 "cols": ("INT", {"default": 2, "min": 1, "max": 16, "tooltip": "Number of tile columns. More columns = smaller tiles = less VRAM."}),
+                "tile_overlap": ("FLOAT", {"default": 0.25, "min": 0.05, "max": 0.5, "step": 0.05, "tooltip": "Overlap ratio between tiles. Higher values reduce seam artifacts but increase VRAM/time."}),
             },
             # NOTE: degrade_sigma / sigmas / color_bias_fix are intentionally
             # NOT in INPUT_TYPES. ComfyUI only passes "hidden" inputs for its
@@ -303,8 +304,9 @@ class StarTiledPiDUpscaler:
     CATEGORY = "⭐StarNodes/Image And Latent"
     DESCRIPTION = "Upscales an image with a PiD / PixelDiT model by processing it in overlapping tiles to keep VRAM usage low. Each tile is re-rendered in pixel space (4 LCM steps) and blended back seamlessly, with per-tile color matching."
 
-    TILE_OVERLAP = 0.1
     SEED = 3
+    VAE_TILE = 1024
+    VAE_TILE_OVERLAP = 128
 
     # ─── model / clip / vae loading (cached) ──────────────────────────────
     def _load_model(self, model_name):
@@ -356,11 +358,11 @@ class StarTiledPiDUpscaler:
         samples = comfy.utils.common_upscale(samples, width, height, "lanczos", "disabled")
         return samples.movedim(1, -1)
 
-    def _tile_coords(self, height, width, rows, cols):
+    def _tile_coords(self, height, width, rows, cols, tile_overlap):
         tile_h = height // rows
         tile_w = width // cols
-        overlap_y = 0 if rows == 1 else min(tile_h // 2, int(tile_h * self.TILE_OVERLAP))
-        overlap_x = 0 if cols == 1 else min(tile_w // 2, int(tile_w * self.TILE_OVERLAP))
+        overlap_y = 0 if rows == 1 else min(tile_h // 2, int(tile_h * tile_overlap))
+        overlap_x = 0 if cols == 1 else min(tile_w // 2, int(tile_w * tile_overlap))
         coords = []
         for i in range(rows):
             for j in range(cols):
@@ -412,7 +414,8 @@ class StarTiledPiDUpscaler:
         native_w = max(16, tile_w * factor)
 
         # 1. Encode the low-res tile with the backbone VAE (like VAEEncode).
-        samples = vae.encode(tile[:, :, :, :3])
+        samples = vae.encode_tiled(tile[:, :, :, :3], tile_x=self.VAE_TILE,
+                                   tile_y=self.VAE_TILE, overlap=self.VAE_TILE_OVERLAP)
 
         # 2. PiDConditioning: attach processed lq_latent + degrade_sigma.
         fmt_cls = self._latent_format_cls(latent_format, samples)
@@ -431,14 +434,15 @@ class StarTiledPiDUpscaler:
         # 4. Sample 4 distilled steps with the LCM sampler + manual sigmas
         #    (like KSamplerSelect + ManualSigmas + SamplerCustom, cfg=1).
         noise = comfy.sample.prepare_noise(latent_image, self.SEED)
-        disable_pbar = not getattr(comfy.utils, "PROGRESS_BAR_ENABLED", True)
         sampled = comfy.sample.sample_custom(model, noise, 1.0, sampler, sigmas_t,
                                              positive, empty_cond, latent_image,
-                                             disable_pbar=disable_pbar, seed=self.SEED)
+                                             disable_pbar=True, seed=self.SEED)
         del noise, latent_image, positive
 
         # 5. Pixel-space "decode": identity + remap [-1, 1] -> [0, 1].
-        decoded = pixel_vae.decode(sampled)
+        decoded = pixel_vae.decode_tiled(sampled, tile_x=self.VAE_TILE,
+                                         tile_y=self.VAE_TILE,
+                                         overlap=self.VAE_TILE_OVERLAP)
         del sampled
 
         # 6. Bring the native (2x/4x) tile to its final slot size on the
@@ -459,7 +463,7 @@ class StarTiledPiDUpscaler:
 
     # ─── main entry ────────────────────────────────────────────────────────
     def upscale(self, image, model_name, clip_name, vae_name, latent_format, scale,
-                rows, cols, unique_id=None,
+                rows, cols, tile_overlap, unique_id=None,
                 # Hidden advanced settings — used internally, not shown as widgets.
                 degrade_sigma=0.1, sigmas="0.999, 0.866, 0.634, 0.342, 0", color_bias_fix=1.0):
         import time
@@ -501,7 +505,7 @@ class StarTiledPiDUpscaler:
 
             # Tiles are laid out on the *target* canvas; the matching region
             # of the original (low-res) image conditions each tile.
-            coords, overlap_x, overlap_y = self._tile_coords(target_h, target_w, rows, cols)
+            coords, overlap_x, overlap_y = self._tile_coords(target_h, target_w, rows, cols, tile_overlap)
             tiles = []
             for (y1, x1, y2, x2, i, j) in coords:
                 iy1 = max(0, min(int(round(y1 / scale)), src_h - 8))

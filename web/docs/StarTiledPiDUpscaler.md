@@ -18,12 +18,13 @@ This node replicates the reference ComfyUI workflow (UNETLoader + CLIPLoader(pix
 - **scale**: Upscale factor for the output image (default: 4.0, range 1.0-8.0). PiD models are trained for 4x
 - **rows**: Number of tile rows (default: 2, range 1-16). More rows = smaller tiles = less VRAM
 - **cols**: Number of tile columns (default: 2, range 1-16). More columns = smaller tiles = less VRAM
+- **tile_overlap**: Overlap ratio between tiles (default: 0.25, range 0.05-0.5). Higher values reduce seam artifacts but increase VRAM/time
 
 ## Outputs
 - **IMAGE**: The upscaled image
 
 ## How It Works
-1. The input image is divided into **rows** x **cols** tiles with 10% overlap
+1. The input image is divided into **rows** x **cols** tiles with **tile_overlap** overlap
 2. Each tile runs through the PiD pipeline:
    - VAE encoding with the backbone VAE (qwen_image_vae, ae.safetensors, etc.)
    - PiD conditioning built from the tile latent (lq_latent + degrade_sigma)
@@ -36,6 +37,7 @@ This node replicates the reference ComfyUI workflow (UNETLoader + CLIPLoader(pix
 ## Tips
 - More rows/columns = smaller tiles = less VRAM per step (but more steps)
 - For panoramas or very wide images, increase **cols** more than **rows**
+- Increase **tile_overlap** (e.g. 0.3-0.4) if you see seams between tiles; decrease it (e.g. 0.1) to save VRAM/time
 - The node automatically handles different PiD backbones (qwenimage, flux, sd3, sdxl) based on the **latent_format** setting
 - Batch inputs are supported; each image is processed separately
 - Tiles are color-matched to the source image using wavelet + LAB histogram transfer, which replaces both the PiD color bias patch and the final ColorTransfer node of the manual workflow

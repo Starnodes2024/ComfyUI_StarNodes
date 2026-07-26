@@ -6,11 +6,37 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.4.0
+**Current Version:** 2.4.2
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.4.2 - StarNodes IO V2 (Save+ / Load+)
+
+### 🔄 Updated Nodes:
+
+#### ⭐ Star Save Image+ (V2)
+Complete rewrite of the classic Save Image+ node. Now supports **multi-format saving** (PNG, JPG, WEBP, PSD) with on-node format chips, a **Save/Preview** toggle, optional **mask embedding** (alpha channel for PNG/WEBP, sidecar for JPG, layer mask for PSD), and an optional **⭐ Star Metadata Saver Option** companion node for labeled custom fields. No workflow/prompt data is embedded anymore — only your 5 custom StarMetaData fields. Old workflows migrate automatically.
+
+#### ⭐ Star Load Image+ (V2)
+Now loads images from both the **input and output folders**, supports **clipboard paste**, and includes an **invert_mask** toggle. Outputs the 5 custom StarMetaData values (same slots as before) plus a new **metadata** output (STAR_METADATA) for the new ⭐ Star Image Loader Options node.
+
+### 🆕 New Nodes:
+
+#### ⭐ Star Metadata Saver Option
+Optional companion to Star Save Image+. Define up to 5 custom metadata fields (key + value) with labels. Connects to the `options` input of Star Save Image+.
+
+#### ⭐ Star Image Loader Options
+Connect the `metadata` output of Star Load Image+ to display all metadata entries in a scrollable on-node list with copy buttons. Outputs the 5 StarMetaData values, a lookup_value (by key), and raw JSON.
+
+#### ⭐ Star Show Everything
+Universal debug and inspection node. Connect **any** output (MODEL, IMAGE, LATENT, CONDITIONING, STRING, INT, FLOAT, MASK, etc.) to see a human-readable summary — type, shape, dtype, device, model names, tensor stats, and more. Image tensors are previewed inline. The value is passed through unchanged, so you can drop it anywhere in your workflow without breaking the data flow. Also appears as a drag-link suggestion when pulling a new connection from any output slot.
+
+### 📦 Optional Dependency:
+`psd-tools` is only needed for PSD saving. The nodes load and work fine without it — PSD format simply raises a runtime error if selected without the package installed.
+
+---
 
 ## 🎉 Version 2.4.0 - Star Tiled PiD Upscaler & Node Improvements
 
@@ -158,8 +184,10 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 ## New in 1.9.5
 
 ### IO & Metadata
-- ⭐ **Star Save Image+** (`StarSaveImagePlus`) — Save images with built-in folder/filename settings and store 5 extra metadata strings (`StarMetaData 1-5`) into the PNG.
-- ⭐ **Star Load Image+** (`StarLoadImagePlus`) — Load images and read out the 5 extra metadata strings (`StarMetaData 1-5`) as separate outputs.
+- ⭐ **Star Save Image+** (`StarSaveImagePlus`) — Save images as PNG/JPG/WEBP/PSD with on-node format chips, Save/Preview toggle, optional mask embedding, and 5 custom metadata fields (via ⭐ Star Metadata Saver Option or direct inputs). Drop-in replacement — old workflows keep working.
+- ⭐ **Star Load Image+** (`StarLoadImagePlus`) — Load images from input or output folder (or clipboard paste), read out the 5 custom metadata strings and the full metadata dict. Includes invert_mask toggle.
+- ⭐ **Star Metadata Saver Option** (`StarMetadataSaverOption`) — Optional companion for Star Save Image+: 5 labeled key/value fields embedded into saved images.
+- ⭐ **Star Image Loader Options** (`StarImageLoaderOptions`) — Display all metadata from Star Load Image+ in a scrollable list with copy buttons. Outputs StarMetaData 1-5, lookup_value, and raw JSON.
 
 ### Appearance
 - ⭐ **New Node Appearance Options** — Right click a node to change its background and title bar colors.
@@ -324,8 +352,10 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 - ⭐ Star Save Panorama JPEG: Save JPEGs with embedded XMP panorama metadata for 360° viewers
 - ⭐ Star Frame From Video: Pick first/last/specific frame from an image batch (e.g., video)
 - ⭐ Star Icon Exporter: Export multi-size PNGs and ICO with shaping, stroke, and shadow options
-- ⭐ Star Save Image+: Save images like ComfyUI Save Image, but with 5 extra text inputs stored as StarMetaData 1-5 in the PNG metadata
-- ⭐ Star Load Image+: Load images like ComfyUI Load Image, but with 5 extra text outputs read from StarMetaData 1-5 in the image metadata
+- ⭐ Star Save Image+: Save images as PNG/JPG/WEBP/PSD with on-node format chips, Save/Preview toggle, optional mask embedding, and 5 custom metadata fields
+- ⭐ Star Load Image+: Load images from input or output folder, read 5 custom metadata fields plus full metadata dict, with invert_mask toggle
+- ⭐ Star Metadata Saver Option: Define 5 labeled key/value metadata fields for Star Save Image+
+- ⭐ Star Image Loader Options: Display all metadata from Star Load Image+ in a scrollable list with copy buttons
 
 ### ⭐StarNodes/InfiniteYou
 - ⭐ Star InfiniteYou Apply: Apply face identity from a reference image to generated images
@@ -350,6 +380,7 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 - ⭐ Star Divisible Dimension: Ensures image dimensions are divisible by a specific value (useful for VAE compatibility)
 - ⭐ Starnodes Aspect Video Ratio: Select a video aspect ratio from a dropdown, input width, and receive width/height as int/string plus formatted size (e.g., 750x422). Calculates height automatically from width and selected ratio.
 - ⭐ Star Random Lora Loader: Randomly selects a LoRA from your library with subfolder/name filters and optional direct application to MODEL/CLIP or string output
+- ⭐ Star Show Everything: Universal debug/inspection node — connect any output to see type, shape, model name, tensor stats and image previews. Passes the value through unchanged
 
 ### ⭐StarNodes/Color
 - ⭐ Star Palette Extractor: Extracts dominant color palette from an image with various color format options
