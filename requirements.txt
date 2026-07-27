@@ -9,4 +9,3 @@ color-matcher
 soundfile>=0.12.0
 imageio-ffmpeg
 ollama>=0.4.0
-pymatting
