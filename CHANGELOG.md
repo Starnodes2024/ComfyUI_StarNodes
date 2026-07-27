@@ -1,5 +1,11 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 2.4.3
+
+### 🆕 New Node
+
+- ⭐ **Star Face Detailer+** (`StarFaceDetailerPlus`) — Self-contained face detailing node under `⭐StarNodes/Sampler`. Picks bbox/segm detectors from dropdowns (`models/ultralytics/bbox`, `models/ultralytics/segm`), supports a max-face limit for group photos, up to 5 per-face LoRA slots, and a live DOM progress bar with face preview. Requires the `ultralytics` package; if it isn't installed, the node is skipped and the rest of StarNodes loads normally.
+
 ## Version 2.1.1 (2026-07-10)
 
 ### ✨ Enhancements

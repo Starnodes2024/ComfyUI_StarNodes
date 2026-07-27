@@ -6,11 +6,18 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.4.2
+**Current Version:** 2.4.3
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## 🎉 Version 2.4.3 - Star Face Detailer+
+
+### 🆕 New Node:
+
+#### ⭐ Star Face Detailer+
+Self-contained face detailing node — detects faces and re-renders each one at higher quality in a single pass. Built-in Ultralytics bbox/segm detector dropdowns (no separate loader nodes), a `max_faces` limit with priority ordering for group photos, up to 5 per-face LoRA slots, and a live DOM preview + progress bar while it runs. Requires the `ultralytics` package; if it isn't installed, only this node is skipped and the rest of StarNodes loads normally. See [StarFaceDetailerPlus.md](web/docs/StarFaceDetailerPlus.md).
 
 ## 🎉 Version 2.4.2 - StarNodes IO V2 (Save+ / Load+)
 
@@ -299,6 +306,7 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 - ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
 - ⭐ Star Flux2/Qwen-Image-Edit Inpainter: All-in-one inpainting node for Flux2 (Dev/Klein) and Qwen-Image-Edit models with built-in crop-and-stitch, reference image support and Differential Diffusion
+- ⭐ Star Face Detailer+: Self-contained face detailing node with built-in Ultralytics bbox/segm detector dropdowns, max-face limit for group photos, per-face LoRA slots and a live DOM preview/progress bar. Requires the `ultralytics` package (see [StarFaceDetailerPlus.md](web/docs/StarFaceDetailerPlus.md)).
 - ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
 
 ### ⭐StarNodes/Qwen & Image Editing
