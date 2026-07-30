@@ -6,11 +6,27 @@ Little Helper Nodes For ComfyUI
 
 You can now choose ready-to-use color themes for nodes in ComfyUI settings and apply theme presets via a node right-click menu (also supports multi-select). See: `STARNODES THEME SYSTEM.md`
 
-**Current Version:** 2.4.2
+**Current Version:** 2.4.5
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+# Release 2.4.5 — 16-bit PNG Support for ⭐ Star Save Image+ & Star Slideshow Maker
+
+## What's New
+
+### ⭐ Star Slideshow Maker (New Node)
+
+Renders and encodes an image slideshow straight to FFmpeg, without allocating a large ComfyUI `IMAGE` batch. Accepts dynamic `image_N` inputs and/or an `image_folder`, with aspect ratio/resolution presets, fixed or audio-matched duration, per-image timing, transitions (fade, morph, slide, wipe, zoom, pixelate, or `random` for a different transition per image), motion effects (pan/zoom, or `random` for a different effect per image), and quality- or target-size-based encoding to H.264, H.265, VP9, or AV1. A `seed` widget controls the random picks (`0` re-rolls every run). Requires FFmpeg and FFprobe on the system path. See `web/docs/StarSlideshowMaker.md`.
+
+### ⭐ Star Save Image+ — 16-bit PNG Support
+
+new **png_bit_depth** widget with two options:
+
+- **8bit** (default) — standard 8-bit-per-channel PNG, same as before.
+- **16bit** — writes 16-bit-per-channel PNGs (0–65535 per channel) preserving full precision from the source tensor.
+Fixed an issue, that the workflow wasnt saved within .PNG files.
 
 ## 🎉 Version 2.4.2 - StarNodes IO V2 (Save+ / Load+)
 
@@ -299,6 +315,7 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 - ⭐ Detail Star Daemon: Enhances image details, compatible with Flux and all SD Models (Adapted from [original sources](https://github.com/muerrilla/sd-webui-detail-daemon))
 - ⭐ Star FluxFill Inpainter: Specialized inpainting node for Flux models with optimized conditioning and noise mask handling
 - ⭐ Star Flux2/Qwen-Image-Edit Inpainter: All-in-one inpainting node for Flux2 (Dev/Klein) and Qwen-Image-Edit models with built-in crop-and-stitch, reference image support and Differential Diffusion
+- ⭐ Star Face Detailer+: Self-contained face detailing node with built-in Ultralytics bbox/segm detector dropdowns, max-face limit for group photos, per-face LoRA slots and a live DOM preview/progress bar. Requires the `ultralytics` package (see [StarFaceDetailerPlus.md](web/docs/StarFaceDetailerPlus.md)).
 - ⭐ Star 3 LoRAs: Applies up to three LoRAs simultaneously to a model with individual weight controls for each
 
 ### ⭐StarNodes/Qwen & Image Editing
@@ -342,6 +359,7 @@ Interactive 360° panorama viewer with mouse-driven parallax, auto-rotation, ful
 ### ⭐StarNodes/Video
 - ⭐ Star Image Loop: Creates seamless looping video frames from panoramic images with dynamic multi-image input support
 - ⭐ Star Video Loop: Creates seamless looping video frames from video inputs with dynamic multi-video input support
+- ⭐ Star Slideshow Maker: Renders and encodes an image slideshow (dynamic image inputs and/or an image folder) directly to FFmpeg with transitions, motion effects (both with a `random` per-image option and `seed` control), and optional audio, streaming frames one by one to keep RAM usage low. Requires FFmpeg and FFprobe on the system path. See [StarSlideshowMaker.md](web/docs/StarSlideshowMaker.md).
 
 ### ⭐StarNodes/IO
 - ⭐ Star Meta Injector: Transfers PNG metadata (workflow, prompts, parameters) from source to target image and saves directly

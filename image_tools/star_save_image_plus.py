@@ -7,6 +7,7 @@ Drop-in replacement for the classic ⭐ Star Save Image+ node:
   - optional MASK input, embedded as alpha channel (PNG/WEBP) or PSD layer mask
   - metadata: ONLY the 5 custom StarMetaData fields, coming from the optional
     "⭐ Star Metadata Saver Option" node. No workflow/prompt is embedded anymore.
+    (NOTE: workflow/prompt IS now embedded for PNG so drag-and-drop works.)
 
 Old workflows made with the original ⭐ Star Save Image+ keep working.
 """
@@ -14,6 +15,8 @@ Old workflows made with the original ⭐ Star Save Image+ keep working.
 import json
 import os
 import re
+import struct
+import zlib
 from datetime import datetime
 
 import numpy as np
@@ -131,6 +134,53 @@ def _parse_formats(raw):
     return formats or ["png"]
 
 
+def _png_chunk(tag, data):
+    c = tag + data
+    return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+
+
+def save_png_16bit(path, arr_uint16, compress_level=4, text_metadata=None):
+    """Write a 16-bit-per-channel PNG (grayscale/RGB/RGBA) without relying on
+    Pillow, which does not support saving multi-channel 16-bit PNGs.
+
+    arr_uint16: numpy array, dtype uint16, shape (H, W) / (H, W, 3) / (H, W, 4).
+    """
+    if arr_uint16.ndim == 2:
+        height, width = arr_uint16.shape
+        channels = 1
+    else:
+        height, width, channels = arr_uint16.shape
+
+    color_type = {1: 0, 3: 2, 4: 6}.get(channels)
+    if color_type is None:
+        raise ValueError(f"Unsupported channel count for 16-bit PNG: {channels}")
+
+    # PNG requires big-endian sample order.
+    arr_be = np.ascontiguousarray(arr_uint16.astype(">u2"))
+    row_bytes = arr_be.reshape(height, -1).tobytes()
+    stride = width * channels * 2
+
+    raw = bytearray()
+    for y in range(height):
+        raw.append(0)  # filter type 0 (None) per scanline
+        raw += row_bytes[y * stride:(y + 1) * stride]
+
+    compressed = zlib.compress(bytes(raw), max(0, min(9, int(compress_level))))
+
+    ihdr = struct.pack(">IIBBBBB", width, height, 16, color_type, 0, 0, 0)
+
+    with open(path, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n")
+        f.write(_png_chunk(b"IHDR", ihdr))
+        if text_metadata:
+            for key, value in text_metadata.items():
+                key_b = str(key).encode("latin-1", errors="replace")[:79]
+                val_b = str(value).encode("latin-1", errors="replace")
+                f.write(_png_chunk(b"tEXt", key_b + b"\x00" + val_b))
+        f.write(_png_chunk(b"IDAT", compressed))
+        f.write(_png_chunk(b"IEND", b""))
+
+
 class StarSaveImagePlus:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
@@ -161,6 +211,7 @@ class StarSaveImagePlus:
                 "jpg_quality": ("INT", {"default": 95, "min": 1, "max": 100, "step": 1, "tooltip": "JPEG quality (1-100)."}),
                 "webp_quality": ("INT", {"default": 90, "min": 1, "max": 100, "step": 1, "tooltip": "WEBP quality (1-100)."}),
                 "png_compress": ("INT", {"default": 4, "min": 0, "max": 9, "step": 1, "tooltip": "PNG compression level (0-9)."}),
+                "png_bit_depth": (["8bit", "16bit"], {"default": "8bit", "tooltip": "Bit depth for saved PNG files. 16bit preserves more precision from the source tensor (larger files, no EXIF, only tEXt metadata)."}),
                 # Driven by the DOM widgets (hidden on the node):
                 "mode": ("STRING", {"default": "save", "tooltip": "save or preview (controlled by the on-node buttons)."}),
                 "formats": ("STRING", {"default": "png", "tooltip": "Comma separated formats: png,jpg,webp,psd (controlled by the on-node chips)."}),
@@ -173,6 +224,11 @@ class StarSaveImagePlus:
                         "tooltip": "Optional mask - embedded as alpha channel (PNG/WEBP) so ⭐ Star Load Image+ can restore it. For JPG a separate _mask.png sidecar is written. For PSD it is embedded as a layer mask."
                     },
                 ),
+            },
+            # ─── NEW: hidden inputs injected by ComfyUI ───
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
             },
         }
 
@@ -212,6 +268,28 @@ class StarSaveImagePlus:
         return alpha_img
 
     @staticmethod
+    def _mask_for_index_16(mask, index, size):
+        """Same as _mask_for_index but returns a full-precision uint16 (H, W)
+        alpha array, for embedding in 16-bit PNGs."""
+        if mask is None:
+            return None
+
+        if mask.dim() == 3:
+            entry = mask[index] if index < mask.shape[0] else mask[-1]
+        else:
+            entry = mask
+
+        alpha = np.clip((1.0 - entry).cpu().numpy(), 0, 1).astype(np.float32)
+
+        if (alpha.shape[1], alpha.shape[0]) != size:
+            alpha_img = Image.fromarray(alpha, mode="F")
+            resampling = getattr(Image, "Resampling", Image)
+            alpha_img = alpha_img.resize(size, resampling.BILINEAR)
+            alpha = np.array(alpha_img, dtype=np.float32)
+
+        return np.clip(alpha * 65535.0, 0, 65535).astype(np.uint16)
+
+    @staticmethod
     def _resolve_metadata(options):
         """Extract the 5 custom StarMetaData fields from the options node."""
         if not isinstance(options, dict):
@@ -239,10 +317,14 @@ class StarSaveImagePlus:
         jpg_quality=95,
         webp_quality=90,
         png_compress=4,
+        png_bit_depth="8bit",
         mode="save",
         formats="png",
         options=None,
         mask=None,
+        # ─── NEW ───
+        prompt=None,
+        extra_pnginfo=None,
     ):
         if images is None or len(images) == 0:
             return {
@@ -279,6 +361,8 @@ class StarSaveImagePlus:
         results = []
         saved_files = []
 
+        save_png_16 = (not preview) and str(png_bit_depth).strip().lower() == "16bit"
+
         for batch_number, image in enumerate(images):
             tensor = 255.0 * image.cpu().numpy()
             img = Image.fromarray(np.clip(tensor, 0, 255).astype(np.uint8))
@@ -289,15 +373,43 @@ class StarSaveImagePlus:
                 img = img.convert("RGBA")
                 img.putalpha(alpha_img)
 
+            # 16-bit PNG needs the full-precision float source (Pillow can only
+            # save 8-bit multi-channel PNGs), so build a separate uint16 array.
+            arr16 = None
+            if "png" in selected_formats and save_png_16:
+                rgb16 = np.clip(image.cpu().numpy() * 65535.0, 0, 65535).astype(np.uint16)
+                alpha16 = self._mask_for_index_16(mask, batch_number, img.size)
+                if alpha16 is not None:
+                    arr16 = np.dstack([rgb16, alpha16])
+                else:
+                    arr16 = rgb16
+
             metadata = {}
             exif_bytes = None
             png_info = None
 
             if not preview:
                 metadata = self._resolve_metadata(options)
+
+                # ─── NEW: build PNG info with workflow/prompt data ───
+                from PIL.PngImagePlugin import PngInfo
+                png_info = PngInfo()
+
+                if prompt is not None:
+                    png_info.add_text("prompt", json.dumps(prompt))
+
+                if extra_pnginfo is not None:
+                    for key, value in extra_pnginfo.items():
+                        png_info.add_text(key, json.dumps(value))
+
+                # Add custom StarMetaData on top
+                for key, value in metadata.items():
+                    png_info.add_text(key, str(value))
+
+                # EXIF for JPG/WEBP (custom metadata only, same as before)
                 if metadata:
-                    png_info = build_png_info(metadata)
                     exif_bytes = build_exif_bytes(metadata)
+                # ─── END NEW ───
 
             filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
             first_file = None
@@ -307,7 +419,18 @@ class StarSaveImagePlus:
                 path = os.path.join(full_output_folder, file)
 
                 if fmt == "png":
-                    img.save(path, pnginfo=png_info, compress_level=int(png_compress))
+                    if save_png_16 and arr16 is not None:
+                        # ─── NEW: merge workflow data into 16-bit PNG text chunks ───
+                        text_metadata = dict(metadata)
+                        if prompt is not None:
+                            text_metadata["prompt"] = json.dumps(prompt)
+                        if extra_pnginfo is not None:
+                            for key, value in extra_pnginfo.items():
+                                text_metadata[key] = json.dumps(value)
+                        # ─── END NEW ───
+                        save_png_16bit(path, arr16, compress_level=int(png_compress), text_metadata=text_metadata)
+                    else:
+                        img.save(path, pnginfo=png_info, compress_level=int(png_compress))
 
                 elif fmt == "jpg":
                     save_kwargs = {"quality": int(jpg_quality)}

@@ -28,6 +28,7 @@ metadata fields**. This node is a drop-in replacement for the original
 - **date_in_filename** — add the date as filename prefix or suffix.
 - **filename / add_timestamp / separator** — base filename, optional time stamp, and the separator used between parts.
 - **jpg_quality / webp_quality / png_compress** — per-format quality settings.
+- **png_bit_depth** — choose **8bit** (default) or **16bit**. 16-bit PNGs preserve full precision from the source tensor (0–65535 per channel instead of 0–255). Files are larger, EXIF is not embedded (only tEXt metadata chunks). Only affects PNG format; ignored in Preview mode.
 
 ## Outputs
 
