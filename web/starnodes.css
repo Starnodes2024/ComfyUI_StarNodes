@@ -1,0 +1,23 @@
+/* Custom styling for StarNodes */
+/* Target all nodes in the StarNodes category */
+.comfy-node[data-category="⭐StarNodes"] {
+    background-color: #3d124d !important;
+    color: #051b34 !important;
+}
+
+/* Make the title bar more visible with the specified color */
+.comfy-node[data-category="⭐StarNodes"] .comfy-node-title {
+    color: #19124d !important;
+    font-weight: bold;
+}
+
+/* Specific node styling if needed */
+.comfy-node.FluxFillSampler {
+    background-color: #3d124d !important;
+    color: #051b34 !important;
+}
+
+.comfy-node.FluxFillSampler .comfy-node-title {
+    color: #19124d !important;
+    font-weight: bold;
+}

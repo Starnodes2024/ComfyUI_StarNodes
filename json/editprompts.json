@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "models": {
+    "Qwen Image Edit": {
+      "tasks": {
+        "Own Prompt (Empty)": {
+          "description": "",
+          "template": "."
+         },
+         "Image Restore": {
+          "description": "Restore old photos",
+          "template": "restore the photo, remove scratches, restore missing parts, colorize, sharpen"
+        },
+        "Change Color": {
+          "description": "Change the color of a specific object or region.",
+          "template": "Change the {subject}'s color to {color}.",
+          "params": ["subject", "color"]
+        },
+        "Replace Background": {
+          "description": "Replace the background while keeping the main subject.",
+          "template": "Replace the background with {background}, keep the {subject} unchanged.",
+          "params": ["background", "subject"]
+        },
+        "Add Object": {
+          "description": "Add an object into the scene.",
+          "template": "Add a {object} {location}. Keep lighting and perspective consistent.",
+          "params": ["object", "location"]
+        },
+        "Remove Object": {
+          "description": "Remove an unwanted object.",
+          "template": "Remove the {object} and fill in the background naturally.",
+          "params": ["object"]
+        },
+        "Style Transfer": {
+          "description": "Transform the overall style while preserving identity/composition.",
+          "template": "Transform the image into {style} style, keep the main subject and composition unchanged.",
+          "params": ["style"]
+        },
+        "Edit Text In Image": {
+          "description": "Replace text on a sign, label, or UI.",
+          "template": "Replace the text on the {surface} with \"{text}\".",
+          "params": ["surface", "text"]
+        },
+        "Change Lighting": {
+          "description": "Adjust lighting conditions.",
+          "template": "Change the lighting to {lighting}.",
+          "params": ["lighting"]
+        },
+        "Change Expression": {
+          "description": "Adjust a person's facial expression.",
+          "template": "Make the {subject} have a {expression} expression while keeping identity.",
+          "params": ["subject", "expression"]
+        },
+        "Change Clothing": {
+          "description": "Alter clothing item while keeping person identity.",
+          "template": "Change the {subject}'s {clothing_item} to {style_or_color}. Keep the person's face and identity unchanged.",
+          "params": ["subject", "clothing_item", "style_or_color"]
+        }
+      },
+      "negatives": {
+        "default": ""
+      }
+    },
+    "FLUX.1 Kontext": {
+      "tips": [
+        "Use direct action verbs: Change, Replace, Add, Remove, Make, Turn, Transform.",
+        "Be specific about the subject (e.g., 'the woman in the red dress') and what to keep unchanged.",
+        "Avoid pronouns like 'it' or 'her'; refer to objects explicitly.",
+        "For text, specify the surface and the exact replacement text in quotes."
+      ],
+      "tasks": {
+        "Own Prompt (Empty)": {
+          "description": "",
+          "template": "."
+         },
+         "Image Restore": {
+          "description": "Restore old photos",
+          "template": "restore the photo, remove scratches, restore missing parts, colorize, sharpen"
+        },
+        "Change Color": {
+          "description": "Change object color with explicit subject.",
+          "template": "Change the {subject}'s color to {color}. Keep everything else unchanged.",
+          "params": ["subject", "color"]
+        },
+        "Replace Background": {
+          "description": "Replace background while preserving the subject.",
+          "template": "Replace the background with {background}. Keep the {subject} unchanged and in the same position.",
+          "params": ["background", "subject"]
+        },
+        "Add Object": {
+          "description": "Insert object with placement.",
+          "template": "Add a {object} {location}. Match lighting and perspective; keep the {subject} unchanged.",
+          "params": ["object", "location", "subject"]
+        },
+        "Remove Object": {
+          "description": "Remove object and inpaint.",
+          "template": "Remove the {object} and reconstruct the background naturally. Keep other elements unchanged.",
+          "params": ["object"]
+        },
+        "Style Transfer": {
+          "description": "Change style without changing identity.",
+          "template": "Transform the image into {style} style. Keep the {subject} unchanged (identity, pose, and features).",
+          "params": ["style", "subject"]
+        },
+        "Edit Text In Image": {
+          "description": "Replace text on a sign/label/UI.",
+          "template": "Replace the text on the {surface} with \"{text}\". Keep font style consistent if possible.",
+          "params": ["surface", "text"]
+        },
+        "Change Lighting": {
+          "description": "Lighting change with intent.",
+          "template": "Make the lighting {lighting}. Keep colors and subject identity unchanged.",
+          "params": ["lighting"]
+        },
+        "Change Expression": {
+          "description": "Adjust a person's facial expression.",
+          "template": "Make the {subject} have a {expression} expression while keeping identity.",
+          "params": ["subject", "expression"]
+        },
+        "Change Clothing": {
+          "description": "Alter clothing item while keeping person identity.",
+          "template": "Change the {clothing_item} to {style_or_color} on the {subject}. Keep the person's face and identity unchanged.",
+          "params": ["clothing_item", "style_or_color", "subject"]
+        }
+      },
+      "negatives": {
+        "default": "deformed, distorted hands, extra limbs, artifacts"
+      }
+    }
+  }
+}
