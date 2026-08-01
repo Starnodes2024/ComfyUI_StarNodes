@@ -40,7 +40,7 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 <td width="50%">
 
 ### 🆕 ⭐ Star SD Upscale Refiner Advanced
-**SD1.5 upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
+**Upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.
