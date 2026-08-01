@@ -23,7 +23,9 @@ except ImportError:
     SERVER_AVAILABLE = False
     print("[StarOllamaPromptHelper] Warning: ComfyUI server not available.")
 
-_PROMPTS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "systemprompts.json")
+# Shared with the Star Easy-Text-Storage node: both read the same JSON so
+# entries added/edited there are immediately available as presets here.
+_STORAGE_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "json", "startext.json")
 
 # Downscale images sent to vision models so prompt processing is faster.
 # Set to None to disable and always send full resolution.
@@ -32,15 +34,11 @@ _MAX_IMAGE_SIZE = 768
 
 def _load_presets():
     try:
-        with open(_PROMPTS_FILE, "r", encoding="utf-8") as f:
+        with open(_STORAGE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         return dict(sorted(data.items()))
     except Exception:
         return {}
-
-
-_PRESETS = _load_presets()
-_PRESET_NAMES = list(_PRESETS.keys())
 
 
 if SERVER_AVAILABLE and OLLAMA_AVAILABLE:
@@ -74,9 +72,9 @@ class StarOllamaPromptHelper:
                     "default": "5m",
                     "tooltip": "How long the model stays loaded in memory after generation. '-1' = forever, '0' = unload immediately (slow on repeat runs).",
                 }),
-                "system_prompt_preset": (["Custom"] + _PRESET_NAMES, {
+                "system_prompt_preset": (["Custom"] + list(_load_presets().keys()), {
                     "default": "Custom",
-                    "tooltip": "Choose a preset system prompt or 'Custom' to write your own.",
+                    "tooltip": "Choose a preset system prompt or 'Custom' to write your own. Presets are loaded from the shared text storage (json/startext.json).",
                 }),
                 "system_prompt": ("STRING", {
                     "default": "",
@@ -123,8 +121,9 @@ class StarOllamaPromptHelper:
     def generate(self, local_address, model, keep_alive, system_prompt_preset,
                  system_prompt, prompt, allow_thinking, temperature, seed, image=None):
 
-        if system_prompt_preset != "Custom" and system_prompt_preset in _PRESETS:
-            sys_text = _PRESETS[system_prompt_preset]
+        presets = _load_presets()
+        if system_prompt_preset != "Custom" and system_prompt_preset in presets:
+            sys_text = presets[system_prompt_preset]
         else:
             sys_text = system_prompt
 

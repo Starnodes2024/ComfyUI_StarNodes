@@ -82,6 +82,25 @@ app.registerExtension({
                     }
                 }
             };
+
+            const onRemoved = nodeType.prototype.onRemoved;
+            nodeType.prototype.onRemoved = function() {
+                if (this.panoramaWidget && this.panoramaWidget.viewerState) {
+                    const old = this.panoramaWidget.viewerState;
+                    cancelAnimationFrame(old.frameId);
+                    old.abort.abort();
+                    if (old.controls && old.controls.parentNode) {
+                        old.controls.remove();
+                    }
+                    if (old.renderer) {
+                        old.renderer.dispose();
+                    }
+                    this.panoramaWidget.viewerState = null;
+                }
+                if (onRemoved) {
+                    onRemoved.apply(this, arguments);
+                }
+            };
         }
     }
 });

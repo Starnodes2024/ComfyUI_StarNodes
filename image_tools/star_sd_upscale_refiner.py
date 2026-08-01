@@ -848,12 +848,12 @@ class StarSDUpscaleRefinerAdvanced:
                     "max": 0xffffffffffffffff,
                 }),
                 "refine_steps": ("INT", {
-                    "default": 25,
+                    "default": 9,
                     "min": 1,
                     "max": 500,
                 }),
                 "refine_denoise": ("FLOAT", {
-                    "default": 0.30,
+                    "default": 0.20,
                     "min": 0.0,
                     "max": 1.0,
                     "step": 0.01,
@@ -865,16 +865,16 @@ class StarSDUpscaleRefinerAdvanced:
                     "max": 16384,
                 }),
                 "sampler_name": (sampler_list, {
-                    "default": "dpmpp_3m_sde_gpu" if "dpmpp_3m_sde_gpu" in sampler_list else sampler_list[0],
+                    "default": "euler" if "euler" in sampler_list else sampler_list[0],
                 }),
                 "scheduler_name": (scheduler_list, {
-                    "default": "karras" if "karras" in scheduler_list else scheduler_list[0],
+                    "default": "simple" if "simple" in scheduler_list else scheduler_list[0],
                 }),
             },
             "optional": {
                 "IMAGE": ("IMAGE",),
-                "controlnet_name": (controlnets, {"default": "control_v11f1e_sd15_tile.pth"}),
-                "UPSCALE_IMAGE": ("BOOLEAN", {"default": True}),
+                "controlnet_name": (controlnets, {"default": "None"}),
+                "UPSCALE_IMAGE": ("BOOLEAN", {"default": False}),
                 "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "4x_NMKD-Siax_200k.pth"}),
                 "OUTPUT_LONGEST_SIDE": (
                     "INT",

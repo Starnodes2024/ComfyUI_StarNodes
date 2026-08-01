@@ -5,46 +5,6 @@
   "last_link_id": 158,
   "nodes": [
     {
-      "id": 89,
-      "type": "PreviewAny",
-      "pos": [
-        530,
-        -100
-      ],
-      "size": [
-        430,
-        250
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 153
-        }
-      ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            155
-          ]
-        }
-      ],
-      "title": "Music Style",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.28.0",
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
       "id": 79,
       "type": "StarTextFilter",
       "pos": [
@@ -58,7 +18,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 11,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -80,9 +40,9 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "StarTextFilter",
         "cnr_id": "comfyui_starnodes",
         "ver": "2.0.0",
-        "Node name for S&R": "StarTextFilter",
         "ue_properties": {
           "widget_ue_connectable": {},
           "input_ue_unconnectable": {},
@@ -112,7 +72,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 12,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -134,9 +94,9 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "StarTextFilter",
         "cnr_id": "comfyui_starnodes",
         "ver": "2.0.0",
-        "Node name for S&R": "StarTextFilter",
         "ue_properties": {
           "widget_ue_connectable": {},
           "input_ue_unconnectable": {},
@@ -210,7 +170,7 @@
         90
       ],
       "flags": {},
-      "order": 13,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -376,9 +336,9 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "StarSaveFolderString",
         "cnr_id": "comfyui_starnodes",
         "ver": "1.9.7",
-        "Node name for S&R": "StarSaveFolderString",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.7",
@@ -495,6 +455,7 @@
           ]
         }
       ],
+      "title": "⚡TextEncodeAceStepAudio1.5⚡",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.11.1",
@@ -524,47 +485,7 @@
         0,
         0
       ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
-    },
-    {
-      "id": 90,
-      "type": "PreviewAny",
-      "pos": [
-        530,
-        200
-      ],
-      "size": [
-        430,
-        380
-      ],
-      "flags": {},
-      "order": 15,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "source",
-          "type": "*",
-          "link": 154
-        }
-      ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            156
-          ]
-        }
-      ],
-      "title": "Lyrics",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.28.0",
-        "Node name for S&R": "PreviewAny"
-      },
-      "widgets_values": [],
-      "color": "#0f2a5f",
+      "color": "#009933",
       "bgcolor": "#0b1220"
     },
     {
@@ -755,9 +676,9 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "StarSampler",
         "cnr_id": "comfyui_starnodes",
         "ver": "2.0.0",
-        "Node name for S&R": "StarSampler",
         "ue_properties": {
           "widget_ue_connectable": {},
           "input_ue_unconnectable": {},
@@ -765,7 +686,7 @@
         }
       },
       "widgets_values": [
-        533106046194386,
+        444422881176393,
         "randomize",
         10,
         1.4,
@@ -803,63 +724,6 @@
       ],
       "color": "#222",
       "bgcolor": "#000"
-    },
-    {
-      "id": 85,
-      "type": "StarOllamaPromptHelper",
-      "pos": [
-        -110,
-        -80
-      ],
-      "size": [
-        440,
-        550
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "result",
-          "type": "STRING",
-          "links": [
-            143,
-            144
-          ]
-        },
-        {
-          "name": "think_output",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "StarOllamaPromptHelper"
-      },
-      "widgets_values": [
-        "http://127.0.0.1:11434",
-        "huihui_ai/gemma-4-abliterated:12b",
-        "0",
-        "AceStep Music Marker LLM",
-        "",
-        "create a synthwave pop song with female voice singing about Starnodes a custom node pack for ComfyUI made for creativity and everything you need.",
-        false,
-        0.8,
-        1576717987,
-        "randomize"
-      ],
-      "color": "#0f2a5f",
-      "bgcolor": "#0b1220"
     },
     {
       "id": 53,
@@ -928,7 +792,7 @@
         60
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -965,7 +829,7 @@
         360
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -989,7 +853,7 @@
         100
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -1013,7 +877,7 @@
         160
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 4,
       "inputs": [],
       "outputs": [
@@ -1024,15 +888,152 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "StarEasyTextStorage",
         "cnr_id": "comfyui_starnodes",
-        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e",
-        "Node name for S&R": "StarEasyTextStorage"
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e"
       },
       "widgets_values": [
         "Load Text",
         "My Text",
         "AceStep1.5 System Prompt",
         ""
+      ],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 90,
+      "type": "PreviewAny",
+      "pos": [
+        530,
+        200
+      ],
+      "size": [
+        430,
+        380
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 154
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            156
+          ]
+        }
+      ],
+      "title": "Lyrics",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 89,
+      "type": "PreviewAny",
+      "pos": [
+        530,
+        -100
+      ],
+      "size": [
+        430,
+        250
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 153
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            155
+          ]
+        }
+      ],
+      "title": "Music Style",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "color": "#0f2a5f",
+      "bgcolor": "#0b1220"
+    },
+    {
+      "id": 85,
+      "type": "StarOllamaPromptHelper",
+      "pos": [
+        -110,
+        -80
+      ],
+      "size": [
+        440,
+        550
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "type": "STRING",
+          "links": [
+            143,
+            144
+          ]
+        },
+        {
+          "name": "think_output",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StarOllamaPromptHelper",
+        "cnr_id": "comfyui_starnodes",
+        "ver": "eb56f2c64d4a7c4db9f3845c5b62902f5f51cc8e"
+      },
+      "widgets_values": [
+        "http://127.0.0.1:11434",
+        "huihui_ai/gemma-4-abliterated:12b",
+        "0",
+        "AceStep_Musik Maker LLM",
+        "",
+        "create a synthwave pop song with female voice singing about Starnodes a custom node pack for ComfyUI made for creativity and everything you need.",
+        false,
+        0.8,
+        1578249965,
+        "randomize"
       ],
       "color": "#0f2a5f",
       "bgcolor": "#0b1220"
@@ -1241,10 +1242,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.1,
+      "scale": 0.5796502467092854,
       "offset": [
-        -55.804107285104806,
-        -329.4542211813716
+        852.2842988756621,
+        326.2307378020064
       ]
     },
     "frontendVersion": "1.45.21",

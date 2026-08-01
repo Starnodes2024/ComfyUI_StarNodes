@@ -338,7 +338,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES["Star_Show_Last_Frame"],
 }
 
-__version__ = "2.4.9"
+__version__ = "2.5.0"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"
@@ -410,17 +410,7 @@ try:
     from server import PromptServer
     from aiohttp import web
 
-    _OTTERS_DIR = os.path.join(os.path.dirname(__file__), 'web', 'js', 'otters')
     _EDITPROMPTS_PATH = os.path.join(os.path.dirname(__file__), 'json', 'editprompts.json')
-
-    @PromptServer.instance.routes.get("/starnodes/otters/{filename:path}")
-    async def starnodes_serve_otter_sprite(request):
-        filename = request.match_info['filename']
-        safe_name = os.path.basename(filename)
-        target = os.path.join(_OTTERS_DIR, safe_name)
-        if os.path.isfile(target):
-            return web.FileResponse(target)
-        return web.Response(status=404)
 
     @PromptServer.instance.routes.get("/starnodes/editprompts")
     async def starnodes_editprompts(request):

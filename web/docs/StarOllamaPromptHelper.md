@@ -21,22 +21,7 @@ A user-friendly single node that connects to a local Ollama instance to create o
   - **Off**: Model stays loaded in memory for 5 minutes after generation (`keep_alive=5m`)
 - **System Prompt Preset**: Dropdown of preset system prompts
   - **Custom** (default, first option): Use your own system prompt text
-  - 15 preset prompts sorted alphabetically, each optimized for a specific model or task:
-    - AceStep 1.5 System Prompt
-    - AceStep Music Marker LLM
-    - BOOGU Image Prompt Refiner
-    - Ernie Image Prompt Architect
-    - Flux Klein Edit
-    - Flux2 Klein HQ Photo System Prompt
-    - Flux2 Klein System Prompt
-    - Gemma4 Refiner Chinese
-    - Ideogram4 Image Prompt Refiner (JSON)
-    - Krea2 360 Pano Maker
-    - Krea2 Image Prompt Refiner
-    - LLM Z-Image Prompt
-    - LTX2 System Prompt
-    - LTX2.3 Prompt Refiner
-    - LTXV 2.3 I2V System Prompt
+  - Presets are loaded dynamically from the shared text storage (`json/startext.json`), sorted alphabetically. Use the **Star Easy-Text-Storage** node to add, edit, or remove entries — they appear here after refreshing the page.
 - **System Prompt**: Custom system prompt text (only visible when preset is "Custom")
   - Defines the role and behavior of the model
 - **Prompt**: Your user prompt text
@@ -86,7 +71,7 @@ A user-friendly single node that connects to a local Ollama instance to create o
 - Turn **Free Ram** off if you're running multiple generations in sequence (avoids reload overhead)
 
 ## System Prompts File
-Preset system prompts are loaded from `image_tools/systemprompts.json`. You can edit this file to add, modify, or remove presets. The file is sorted alphabetically by key name.
+Preset system prompts are loaded from the shared text storage file `json/startext.json`, the same file used by the **Star Easy-Text-Storage** node. Add, edit, or remove entries with that node and they become available as presets here after a page refresh.
 
 ## Notes
 - The node uses the Ollama Chat API (not Generate API)

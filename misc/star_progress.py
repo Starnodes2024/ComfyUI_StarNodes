@@ -133,13 +133,19 @@ class ProgressReporter:
                 except Exception:
                     pass
 
-    def finish_unit(self):
+    def finish_unit(self, sub=""):
         """Call after a unit (pass/file/step) is fully done."""
         self.done_units += 1.0
         if self.pbar is not None:
             try:
                 self.pbar.update_absolute(min(self.done_units,
                                               self.total_units))
+            except Exception:
+                pass
+        if self.event_cb is not None:
+            overall = self.done_units / self.total_units
+            try:
+                self.event_cb(overall, f"{overall * 100:.0f}%", sub)
             except Exception:
                 pass
 

@@ -17,7 +17,7 @@
 
 ---
 
-## 🌟 What is StarNodes? (Version 2.4.9)
+## 🌟 What is StarNodes? (Version 2.5.0)
 
 StarNodes is a **swiss-army-knife node pack** for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
 It fills the gaps you hit every day: starting a workflow with one node instead of five,
