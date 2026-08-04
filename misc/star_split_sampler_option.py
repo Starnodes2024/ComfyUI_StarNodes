@@ -3,7 +3,7 @@ import comfy.samplers
 
 class StarSplitSamplerOption:
     """
-    Star Split Sampler Option.
+    Star Split Sampler Option. Update 2.6.1
 
     Lets the user pick two different samplers and a step count for each.
     Connected to the "options" input of ⭐ StarSampler (Unified) or

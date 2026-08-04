@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.6.0-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.6.1-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -26,7 +26,7 @@
 
 ---
 
-## 🌟 What is StarNodes 2.6.0?
+## 🌟 What is StarNodes 2.6.1 ?
 
 StarNodes is a **swiss-army-knife node pack** for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
 It fills the gaps you hit every day: starting a workflow with one node instead of five,

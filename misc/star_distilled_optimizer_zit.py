@@ -1,7 +1,7 @@
 import math
 
 import comfy.samplers
-
+# update 2.6.1
 
 class StarDistilledOptimizerZIT:
     BGCOLOR = "#3d124d"
