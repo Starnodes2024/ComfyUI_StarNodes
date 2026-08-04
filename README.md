@@ -74,11 +74,11 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 ### 🔄 ⭐ Star Output Cleaner
 **Your output folder, finally under control.** Browse thumbnails, select and delete old generations without ever leaving ComfyUI.
 
-### 🔄 ⭐ Star Image Compare
-**Judge your results like a pro.** Interactive before/after wipe slider right inside ComfyUI — drag to compare two images pixel by pixel. Perfect for checking upscales, refiners and filter tweaks.
-
 </td>
 <td width="50%">
+
+### 🔄 ⭐ Star Image Compare
+**Judge your results like a pro.** Interactive before/after wipe slider right inside ComfyUI — drag to compare two images pixel by pixel. Perfect for checking upscales, refiners and filter tweaks.
 
 ### 🔄 ⭐ Star Panorama Tools
 **Create, save and explore 360° worlds.** The 360 Parallax Viewer (and Pro) let you look around panoramas interactively with mouse parallax, overlays and depth maps — while Save Panorama JPEG/+ embeds proper XMP metadata, including stereoscopic 3D output.
