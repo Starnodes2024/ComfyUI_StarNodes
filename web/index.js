@@ -11,4 +11,5 @@ import "./js/star_video_compressor.js";
 import "./js/star_output_cleaner.js";
 import "./js/star_show_everything.js";
 import "./js/star_slideshow_maker.js";
+import "./js/star_minimax_aio.js";
 

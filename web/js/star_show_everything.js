@@ -267,10 +267,10 @@ app.registerExtension({
             const container = document.createElement("div");
             container.className = "star-show-everything-container";
             container.style.cssText = [
-                "width:100%", "min-height:40px", "max-height:400px", "overflow-y:auto",
+                "width:100%", "min-height:40px", "max-height:500px", "overflow-y:auto",
                 "background:#1a1a2e", "border:1px solid #3d124d", "border-radius:4px",
                 "padding:8px", "box-sizing:border-box", "font-family:monospace",
-                "font-size:11px", "white-space:pre-wrap", "word-break:break-all",
+                "font-size:11px", "white-space:pre-wrap", "word-break:break-word",
                 "color:#c8c8c8", "line-height:1.5",
             ].join(";");
 
@@ -302,7 +302,7 @@ app.registerExtension({
             if (text) {
                 widget.container.innerHTML = "";
                 const pre = document.createElement("pre");
-                pre.style.cssText = "margin:0;padding:0;white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:inherit;color:inherit;line-height:inherit;";
+                pre.style.cssText = "margin:0;padding:0;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:inherit;color:inherit;line-height:inherit;";
                 pre.textContent = text;
                 widget.container.appendChild(pre);
                 widget.container.scrollTop = 0;

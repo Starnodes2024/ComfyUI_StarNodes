@@ -48,7 +48,7 @@ class AnyType(str):
 ANY = AnyType("*")
 
 TEMP_SUBFOLDER = "star_show_everything"
-MAX_TEXT = 4000
+MAX_TEXT = 200000
 MAX_PREVIEW_IMAGES = 4
 
 NAME_ATTRS = [
@@ -470,16 +470,15 @@ def _build_info_text(value):
         lines.append(f"Value: {value}")
 
     elif isinstance(value, str):
-        if len(value) <= 200:
-            lines.append(f"Value: {value}")
-        else:
-            lines.append(f"Value: {value[:200]}... ({len(value)} chars)")
+        lines.append(f"Value: {value}")
+        if len(value) > 200:
+            lines.append(f"({len(value)} chars)")
 
     elif value is None:
         lines.append("Value: None")
 
     else:
-        text = _safe_attr_text(value, 300)
+        text = _safe_attr_text(value, 200000)
         lines.append(f"Repr: {text}")
 
         if torch:

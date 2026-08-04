@@ -85,7 +85,7 @@ class StarSampler:
                 "max_shift": ("FLOAT", {"default": 1.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Max shift for Flux models (ignored for SD models)"}),
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
-                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
+                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -312,6 +312,93 @@ class StarSampler:
                 return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
             except Exception as e:
                 logging.warning(f"StarSampler: ZIT options ignored due to error: {e}")
+
+        # ⭐ Star Split Sampler Option: run the first steps_1 steps with
+        # sampler_1, then continue the SAME run with sampler_2 starting at
+        # step steps_1 + 1 (e.g. euler 6 + ddim 6 -> 12 steps, switch at step 7).
+        if isinstance(options, dict) and options.get("starnodes_type") == "SPLIT_SAMPLER" and bool(options.get("enabled", True)):
+            try:
+                sampler_1 = options.get("sampler_1", sampler_name)
+                sampler_2 = options.get("sampler_2", sampler_1)
+                if sampler_1 not in comfy.samplers.KSampler.SAMPLERS:
+                    sampler_1 = sampler_name
+                if sampler_2 not in comfy.samplers.KSampler.SAMPLERS:
+                    sampler_2 = sampler_1
+
+                steps_1 = max(1, int(options.get("steps_1", 6)))
+                steps_2 = max(1, int(options.get("steps_2", 6)))
+                total_steps = steps_1 + steps_2
+
+                is_flux_split = self.is_flux_model(model)
+
+                logging.info(
+                    f"StarSampler (Split): {sampler_1} x{steps_1} steps -> {sampler_2} x{steps_2} steps "
+                    f"(total {total_steps} steps, switching at step {steps_1 + 1})"
+                )
+
+                # Flux models need guidance embedded in the conditioning and
+                # don't use a negative prompt; mirror the detail-schedule path.
+                pos = positive
+                neg = negative
+                if is_flux_split:
+                    pos = conditioning_set_values(positive, {"guidance": cfg})
+                    neg = pos
+                elif neg is None:
+                    neg = conditioning_zero_out(positive)
+
+                # Patch model for fancy DOM progress bar (total = both passes)
+                _sp_reporter = None
+                _sp_cleanup = None
+                work_model = model
+                if event_cb is not None:
+                    work_model, _sp_reporter, _sp_cleanup = patch_model_for_progress(
+                        model, total_steps, event_cb,
+                        is_flux=is_flux_split, label="split sampling")
+
+                # Pass 1: sampler_1 for the first steps_1 steps (keep the noise).
+                latent_1 = common_ksampler(
+                    work_model, seed, total_steps, cfg, sampler_1, scheduler,
+                    pos, neg, latent, denoise=denoise,
+                    last_step=steps_1, force_full_denoise=False)[0]
+
+                # Pass 2: continue with sampler_2 from step steps_1 + 1 to the end.
+                out_latent = common_ksampler(
+                    work_model, seed, total_steps, cfg, sampler_2, scheduler,
+                    pos, neg, latent_1, denoise=denoise,
+                    disable_noise=True, start_step=steps_1, force_full_denoise=True)[0]
+
+                image = None
+                if decode_image:
+                    if tiled_vae_decoding:
+                        logging.info("StarSampler (Split): Start Tiled VAE Decoding (tile_x=64, tile_y=64, overlap=8) to save VRAM...")
+                        try:
+                            images = vae.decode_tiled(out_latent["samples"], tile_x=64, tile_y=64, overlap=8)
+                            logging.info("StarSampler (Split): Tiled VAE Decoding successful.")
+                        except AttributeError:
+                            logging.warning("StarSampler (Split): VAE has no 'decode_tiled' method. Falling back to standard decoding.")
+                            images = vae.decode(out_latent["samples"])
+                    else:
+                        logging.info("StarSampler (Split): Start standard VAE Decoding...")
+                        images = vae.decode(out_latent["samples"])
+                        logging.info("StarSampler (Split): Standard VAE Decoding finished.")
+
+                    if len(images.shape) == 5:
+                        images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+                    image = images
+
+                processing_time = time.time() - start_time
+                sampler_desc = f"{sampler_1} ({steps_1}) -> {sampler_2} ({steps_2})"
+                info = self._create_info_output(processing_time, model, vae, sampler_desc, scheduler, denoise, total_steps, cfg)
+                split_info = self._create_split_info(processing_time, model, vae, sampler_desc, scheduler, denoise, total_steps, cfg)
+
+                if _sp_cleanup is not None:
+                    _sp_cleanup()
+                if _sp_reporter is not None:
+                    _sp_reporter.finish_all(processing_time)
+
+                return (model, positive, negative if negative is not None else pos, out_latent, image, vae, seed, info, split_info)
+            except Exception as e:
+                logging.warning(f"StarSampler: Split sampler options ignored due to error: {e}")
 
         # Detect model type
         is_flux = self.is_flux_model(model)

@@ -3,6 +3,7 @@
 import math
 import time
 import inspect
+import logging
 from copy import deepcopy
 
 import torch
@@ -885,9 +886,10 @@ class StarSDUpscaleRefinerAdvanced:
                         "max": 99968,
                     },
                 ),
-                # Optional FlowMatch/StarSampler-style sigma schedule override
-                # (e.g. from â­ Star FlowMatch Option)
-                "options": ("SIGMAS", {}),
+                # Generic StarNodes options connector
+                # (e.g. ⭐ Star Split Sampler Option, or a SIGMAS tensor
+                # from ⭐ Star FlowMatch Option)
+                "options": ("*", {"tooltip": "Optional refine options. Connect ⭐ Star Split Sampler Option to split the refine pass between two samplers, or ⭐ Star FlowMatch Option (SIGMAS) to override the sigma schedule."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -1042,10 +1044,24 @@ class StarSDUpscaleRefinerAdvanced:
         if any(x is None for x in (KSamplerSelect, SamplerCustom, AlignYourStepsScheduler)):
             return (upscaled_image if upscaled_image is not None else IMAGE, latent)
 
-        # Build sigma schedule: use external options (e.g. Star FlowMatch Option)
+        # Parse the generic "options" connector:
+        # - dict payload from ⭐ Star Split Sampler Option -> split the refine
+        #   pass between two samplers
+        # - SIGMAS tensor (e.g. ⭐ Star FlowMatch Option) -> sigma override
+        split_opts = None
+        sigmas_override = None
+        if isinstance(options, dict):
+            if options.get("starnodes_type") == "SPLIT_SAMPLER" and bool(options.get("enabled", True)):
+                split_opts = options
+            else:
+                logging.info("StarSDUpscaleRefiner: Connected options payload is not applicable here and will be ignored.")
+        elif options is not None:
+            sigmas_override = options
+
+        # Build sigma schedule: use external sigmas (e.g. Star FlowMatch Option)
         # if provided, otherwise fall back to AlignYourStepsScheduler.
-        if options is not None:
-            sigmas = options
+        if sigmas_override is not None:
+            sigmas = sigmas_override
             # Honor refine_denoise by shortening the sigma schedule proportionally,
             # similar in spirit to how ComfyUI schedulers treat denoise.
             try:
@@ -1078,11 +1094,14 @@ class StarSDUpscaleRefinerAdvanced:
         sampler_selector = KSamplerSelect()
         get_sampler = sampler_selector.get_sampler
         g_arg_names = inspect.getfullargspec(get_sampler).args[1:]
-        g_kwargs = {}
-        for name in g_arg_names:
-            if name in ("sampler", "sampler_name"):
-                g_kwargs[name] = sampler_name
-        (sampler_obj,) = get_sampler(**g_kwargs)
+
+        def _select_sampler(name):
+            g_kwargs = {}
+            for arg in g_arg_names:
+                if arg in ("sampler", "sampler_name"):
+                    g_kwargs[arg] = name
+            (sampler_obj_,) = get_sampler(**g_kwargs)
+            return sampler_obj_
 
         sampler_custom = SamplerCustom()
 
@@ -1107,42 +1126,84 @@ class StarSDUpscaleRefinerAdvanced:
                     negative_cond = [[empty_tensor, meta]]
 
         arg_names = inspect.getfullargspec(sampler_custom.sample).args[1:]
-        kwargs = {}
-        for name in arg_names:
-            if name in ("model",):
-                kwargs[name] = model
-            elif name in ("positive", "pos_cond", "pos"):
-                kwargs[name] = positive_cond
-            elif name in ("negative", "neg_cond", "neg"):
-                kwargs[name] = negative_cond
-            elif name in ("latent", "latent_image", "latent_in"):
-                kwargs[name] = latent
-            elif name in ("sampler", "sampler_name", "sampler_obj"):
-                kwargs[name] = sampler_obj
-            elif name in ("sigmas",):
-                kwargs[name] = sigmas
-            elif name in ("add_noise",):
-                kwargs[name] = True
-            elif name in ("noise_seed", "seed"):
-                kwargs[name] = int(seed)
-            elif name in ("noise_type",):
-                kwargs[name] = "fixed"
-            elif name in ("cfg", "cfg_scale", "cfg_value"):
-                kwargs[name] = float(8.0)
 
-        out = sampler_custom.sample(**kwargs)
-        if isinstance(out, tuple) and len(out) >= 1:
-            out_latent = out[0]
+        def _run_custom_sample(latent_in, sampler_name_in, sigmas_in, add_noise_in):
+            """Run one SamplerCustom pass and return the resulting latent dict."""
+            sampler_obj_in = _select_sampler(sampler_name_in)
+            kwargs = {}
+            for name in arg_names:
+                if name in ("model",):
+                    kwargs[name] = model
+                elif name in ("positive", "pos_cond", "pos"):
+                    kwargs[name] = positive_cond
+                elif name in ("negative", "neg_cond", "neg"):
+                    kwargs[name] = negative_cond
+                elif name in ("latent", "latent_image", "latent_in"):
+                    kwargs[name] = latent_in
+                elif name in ("sampler", "sampler_name", "sampler_obj"):
+                    kwargs[name] = sampler_obj_in
+                elif name in ("sigmas",):
+                    kwargs[name] = sigmas_in
+                elif name in ("add_noise",):
+                    kwargs[name] = add_noise_in
+                elif name in ("noise_seed", "seed"):
+                    kwargs[name] = int(seed)
+                elif name in ("noise_type",):
+                    kwargs[name] = "fixed"
+                elif name in ("cfg", "cfg_scale", "cfg_value"):
+                    kwargs[name] = float(8.0)
+
+            out = sampler_custom.sample(**kwargs)
+            if isinstance(out, tuple) and len(out) >= 1:
+                result = out[0]
+            else:
+                result = out
+
+            try:
+                if not isinstance(result, dict):
+                    candidate = result[0]
+                    if isinstance(candidate, dict) and "samples" in candidate:
+                        result = candidate
+            except Exception:
+                pass
+            return result
+
+        if split_opts is not None:
+            # ⭐ Star Split Sampler Option: split the refine pass between two
+            # samplers. The split ratio of the option's step counts decides
+            # where inside the refine schedule the sampler is switched.
+            sampler_1 = split_opts.get("sampler_1", sampler_name)
+            sampler_2 = split_opts.get("sampler_2", sampler_1)
+            valid_samplers = getattr(comfy_samplers.KSampler, "SAMPLERS", [])
+            if sampler_1 not in valid_samplers:
+                sampler_1 = sampler_name
+            if sampler_2 not in valid_samplers:
+                sampler_2 = sampler_1
+
+            steps_1 = max(1, int(split_opts.get("steps_1", 1)))
+            steps_2 = max(1, int(split_opts.get("steps_2", 1)))
+
+            try:
+                total_sched_steps = int(sigmas.shape[0]) - 1 if hasattr(sigmas, "shape") and len(sigmas.shape) > 0 else int(refine_steps)
+            except Exception:
+                total_sched_steps = int(refine_steps)
+
+            if total_sched_steps < 2:
+                logging.info("StarSDUpscaleRefiner (Split): Schedule too short to split, using sampler_1 for the whole pass.")
+                out_latent = _run_custom_sample(latent, sampler_1, sigmas, True)
+            else:
+                cut = int(round(total_sched_steps * steps_1 / float(steps_1 + steps_2)))
+                cut = max(1, min(total_sched_steps - 1, cut))
+                logging.info(
+                    f"StarSDUpscaleRefiner (Split): {sampler_1} x{cut} steps -> {sampler_2} x{total_sched_steps - cut} steps "
+                    f"(of {total_sched_steps} refine steps, switching at step {cut + 1})"
+                )
+                sigmas_1 = sigmas[: cut + 1]
+                sigmas_2 = sigmas[cut:]
+                latent_1 = _run_custom_sample(latent, sampler_1, sigmas_1, True)
+                out_latent = _run_custom_sample(latent_1, sampler_2, sigmas_2, False)
         else:
-            out_latent = out
-
-        try:
-            if not isinstance(out_latent, dict):
-                candidate = out_latent[0]
-                if isinstance(candidate, dict) and "samples" in candidate:
-                    out_latent = candidate
-        except Exception:
-            pass
+            out_latent = _run_custom_sample(latent, sampler_name, sigmas, True)
 
         image = None
         if VAEDecodeTiled is not None:

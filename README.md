@@ -1,6 +1,15 @@
 <div align="center">
 
-![StarNodes Hero Banner](assets/01banner.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 1 — HERO BANNER
+   File: docs/images/hero-banner.png  |  Size: 1920 x 640 px (3:1 banner)
+   Prompt for your image model:
+   "Wide futuristic banner illustration for an AI art toolbox called 'StarNodes'.
+   A glowing night sky full of connected golden stars forming a node-graph
+   constellation, flowing lines of light linking the stars like a neural network.
+   Deep indigo and violet background, warm gold accents, soft bokeh, clean modern
+   flat-illustration style, high detail, no text."
+============================================================================= -->
 
 # ⭐ ComfyUI StarNodes
 
@@ -8,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.5.0-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.6.0-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -17,7 +26,7 @@
 
 ---
 
-## 🌟 What is StarNodes? (Version 2.5.0)
+## 🌟 What is StarNodes 2.6.0?
 
 StarNodes is a **swiss-army-knife node pack** for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
 It fills the gaps you hit every day: starting a workflow with one node instead of five,
@@ -27,7 +36,15 @@ plus a full set of **Qwen / Flux / LTX-Video** helpers.
 
 > 💡 **In one sentence:** fewer wires, fewer clicks, better defaults — everything lives under one **⭐StarNodes** menu.
 
-![StarNodes Feature Collage](assets/02feature.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 2 — FEATURE COLLAGE
+   File: docs/images/feature-collage.png  |  Size: 1600 x 900 px (16:9)
+   Prompt for your image model:
+   "Modern software feature collage, 2x3 grid of six rounded cards floating on a
+   dark indigo background: a paintbrush with sparkles, a film reel, a photo stack,
+   a layered PSD document icon, a 360-degree panorama sphere, and a magic wand.
+   Flat design, golden and violet accent colors, soft shadows, minimal, no text."
+============================================================================= -->
 
 ---
 
@@ -40,10 +57,16 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 <td width="50%">
 
 ### 🆕 ⭐ Star SD Upscale Refiner Advanced
-**Upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
+**SD1.5 upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
+
+### 🆕 ⭐ Star Minimax All In One
+**The whole MiniMax H3 reference-to-video pipeline in a single node.** Load the diffusion model, MiniMax text encoder and both VAEs, feed up to 9 reference images, 3 reference videos (with paired audio) and 3 standalone audios, then sample and decode video + audio — all internally, no sub-graph. Reference slots auto-expand like the stock node, plus a live resolution readout and an animated in-node progress bar.
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.
+
+### 🆕 ⭐ Star Split Sampler Option
+**Two samplers, one run.** Plug into the `options` input of ⭐ StarSampler or ⭐ Star SD Upscale Refiner to run the first N steps with one sampler and the rest with another — e.g. `euler` for 6 steps then `ddim` for 6, for 12 steps total. Mix sampler strengths without rewiring anything.
 
 ### 🆕 ⭐ Star Advanced Ratio/Latent
 **Aspect ratio + megapixels, done for you.** Pick a ratio and a target size — get perfect dimensions and a ready-to-use empty latent, no calculator needed.
@@ -75,7 +98,16 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 
 > 🆕 = recently added &nbsp;•&nbsp; 🔄 = recently updated
 
-![Spotlight Showcase](assets/03spottlightshowcase.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 2b — SPOTLIGHT SHOWCASE
+   File: docs/images/spotlight-showcase.png  |  Size: 1600 x 900 px (16:9)
+   Prompt for your image model:
+   "Dramatic before/after AI image enhancement showcase, split composition:
+   left side a small blurry low-resolution fantasy landscape, right side the
+   same landscape upscaled to crisp stunning detail with vibrant HDR colors.
+   A glowing vertical divider line in the middle, subtle film grain texture,
+   dark background, cinematic, high contrast, no text."
+============================================================================= -->
 
 ---
 
@@ -91,7 +123,7 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone [https://github.com/Starnodes2024/ComfyUI_StarNodes](https://github.com/Starnodes2024/ComfyUI_StarNodes)
+git clone https://github.com/Starnodes2024/ComfyUI_StarNodes
 cd ComfyUI_StarNodes
 pip install -r requirements.txt
 ```
@@ -101,7 +133,12 @@ Restart ComfyUI. Done. 🎉
 > **Where are the nodes?** Press **double-click** on the canvas and search **`star`** —
 > or open the **⭐StarNodes** category in the node browser.
 
-![Node Search](assets/node-search.jpg)
+<!-- ============================================================================
+📸 IMAGE SLOT 3 — SCREENSHOT (take this one yourself, no prompt needed)
+   File: docs/images/node-search.png  |  Size: ~1200 x 700 px
+   Content: ComfyUI canvas with the node search open, typing "star", showing the
+   ⭐StarNodes category list. Tip: use the dark theme for a consistent look.
+============================================================================= -->
 
 ---
 
@@ -141,6 +178,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | Node | What it does |
 |------|--------------|
 | ⭐ StarSampler (Unified) | Advanced all-in-one sampler with tiled VAE decode for low VRAM |
+| ⭐ Star Split Sampler Option | Run two different samplers in one pass — e.g. euler 6 steps + ddim 6 steps |
 | ⭐ Star Split Sampler Info | Split sampler info into its individual components |
 | ⭐ Star 3 LoRAs | Apply up to 3 LoRAs with individual weights |
 | ⭐ Star Dynamic LoRA | Flexible multi-LoRA node with dynamic slots |
@@ -194,7 +232,16 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 
 </details>
 
-![PSD Saver Showcase](assets/04psdsavershowcase.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 4 — PSD SAVER SHOWCASE
+   File: docs/images/psd-saver-demo.png  |  Size: 1400 x 800 px
+   Prompt for your image model:
+   "Clean software showcase illustration: on the left a ComfyUI-style node graph
+   with glowing connected nodes, on the right an Adobe Photoshop layers panel
+   showing neatly separated layers (background, subject, lighting, text). An arrow
+   of golden light flows from the nodes into the layer stack. Dark indigo
+   background, flat modern style, no text."
+============================================================================= -->
 
 <details>
 <summary><b>🎬 Video</b> — LTX-Video, loops, compression, slideshows</summary>
@@ -301,7 +348,16 @@ a photo of __animal__ in __place__, {golden hour|blue hour|midnight}, __style__
 - `{a|b|c}` → quick random choice
 - Nesting works up to 10 levels deep 🪆
 
-![Wildcard Moodboard](assets/05moodboardWC.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 5 — WILDCARD MOODBOARD
+   File: docs/images/wildcard-moodboard.png  |  Size: 1600 x 900 px
+   Prompt for your image model:
+   "A 2x2 moodboard of four AI-generated fantasy portraits of the same fox
+   character in different styles: watercolor, cyberpunk neon, oil painting,
+   pixel art. Each panel clearly distinct in mood and color. Thin white borders
+   between panels, vibrant, high quality."
+   (Idea: generate it WITH the wildcard node itself — perfect demo!)
+============================================================================= -->
 
 ---
 
@@ -359,7 +415,14 @@ its **help panel** — StarNodes ships a doc page for every node (`web/docs/`).
 
 <div align="center">
 
-![StarNodes Footer](assets/06footer.jpg)
+<!-- ============================================================================
+🖼️ IMAGE SLOT 6 — FOOTER ART (optional, small)
+   File: docs/images/footer-stars.png  |  Size: 1200 x 300 px (4:1 slim banner)
+   Prompt for your image model:
+   "Minimal slim footer banner, a gentle wave of tiny golden stars fading from
+   left to right on a deep indigo background, lots of empty space, elegant,
+   flat design, no text."
+============================================================================= -->
 
 **Made with ⭐ by [Starnodes2024](https://github.com/Starnodes2024/ComfyUI_StarNodes)**
 
