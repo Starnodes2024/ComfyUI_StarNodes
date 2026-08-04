@@ -103,7 +103,7 @@ class StarDistilledOptimizerZIT:
             }
         }
 
-    RETURN_TYPES = ("*",)
+    RETURN_TYPES = ("STARNODES_OPTIONS",)
     RETURN_NAMES = ("options",)
     FUNCTION = "create"
     CATEGORY = "⭐StarNodes/Sampler"
