@@ -120,6 +120,9 @@ MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5
 
 OUTPUT_FPS = 24.0
 
+IMAGE_MODE_FRAMES = 9    # stills: 9 frames fully rendered, frame index 8 is the output
+IMAGE_MODE_LATENT = 32   # fixed 32x32 latent (512x512 px) for image mode
+
 WEIGHT_DTYPES = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
 
@@ -166,9 +169,18 @@ def _encode_ref_audio(audio_vae, audio):
 
 
 def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
-                        ref_image_size, ref_images, ref_videos, ref_video_audios, ref_audios):
+                        ref_image_size, ref_images, ref_videos, ref_video_audios, ref_audios,
+                        image_mode=False):
     """In-node replica of MiniMaxH3ReferenceToVideo.execute (ref2va task)."""
-    latent, frame_count = _empty_av_latent(width, height, length)
+    if image_mode:
+        # fixed 32x32 still latent, exactly 9 frames (off the 17k+5 video grid)
+        device = comfy.model_management.intermediate_device()
+        video = torch.zeros([1, 24, 3, IMAGE_MODE_LATENT, IMAGE_MODE_LATENT], device=device)
+        audio = torch.zeros([1, 32, 2, round(IMAGE_MODE_FRAMES / FPS * AUDIO_LATENT_FPS)], device=device)
+        latent = {"samples": comfy.nested_tensor.NestedTensor((video, audio))}
+        frame_count = IMAGE_MODE_FRAMES
+    else:
+        latent, frame_count = _empty_av_latent(width, height, length)
 
     ref_items = []   # for the tokenizer presentation, in request order
     ref_blocks = []  # for the DiT payload, same order
@@ -261,6 +273,9 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 "automatically, exactly like the core MiniMax H3 Reference to Video node."
             ),
             inputs=[
+                # ---------------- Mode ----------------
+                io.Combo.Input("mode", options=["video", "image"], default="video",
+                               tooltip="'video' renders the full clip with audio. 'image' renders 9 frames on a fixed 32x32 latent (512x512 px) and outputs only frame index 8 as a still image (best-quality frame); aspect/megapixels/duration and audio decoding are skipped. Reference inputs work exactly like in video mode."),
                 # ---------------- Prompt & user inputs ----------------
                 io.String.Input("prompt", multiline=True, dynamic_prompts=True,
                                 tooltip="Reference inputs by tag in connection order, e.g. <Picture 1>, <Video 1>, <Audio 1>, then describe scene, motion and audio."),
@@ -440,11 +455,13 @@ class StarMinimaxAllInOne(io.ComfyNode):
         return samples.to(comfy.model_management.intermediate_device())
 
     @staticmethod
-    def _decode_video(vae, samples):
+    def _decode_video(vae, samples, image_mode=False):
         latent = samples.unbind()[0] if samples.is_nested else samples
         images = vae.decode(latent)
         if len(images.shape) == 5:  # combine batches
             images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
+        if image_mode:
+            images = images[min(IMAGE_MODE_FRAMES - 1, images.shape[0] - 1):][:1]
         return images
 
     @staticmethod
@@ -460,7 +477,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
 
     # ------------------------------------------------------------------
     @classmethod
-    def execute(cls, prompt, aspect_ratio, megapixels, match_ratio_from_image, duration,
+    def execute(cls, mode, prompt, aspect_ratio, megapixels, match_ratio_from_image, duration,
                 ref_image_size, seed, steps, sampler_name, scheduler, denoise,
                 diffusion_model, weight_dtype, clip_name, clip_type, clip_device,
                 vae_name, audio_vae_name, audio_vae_precision, audio_vae_device,
@@ -468,11 +485,17 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
 
         # 1. Resolution (ResolutionSelector, multiple = 32, optional image ratio match)
-        width, height, matched = _resolve_dimensions(
-            aspect_ratio, megapixels, match_ratio_from_image, ref_images)
-        length = _duration_to_length(duration)
-        logging.info("[Star Minimax AIO] canvas %dx%d%s, %d frames (%.2fs @ 24fps)",
-                     width, height, " (ratio matched from image)" if matched else "",
+        #    image mode: fixed 32x32 latent (512x512 px), 9 frames
+        if mode == "image":
+            width = height = IMAGE_MODE_LATENT * 16
+            matched = False
+            length = IMAGE_MODE_FRAMES
+        else:
+            width, height, matched = _resolve_dimensions(
+                aspect_ratio, megapixels, match_ratio_from_image, ref_images)
+            length = _duration_to_length(duration)
+        logging.info("[Star Minimax AIO] %s mode | canvas %dx%d%s, %d frames (%.2fs @ 24fps)",
+                     mode, width, height, " (ratio matched from image)" if matched else "",
                      length, length / FPS)
 
         # 2. Models — external MODEL wins over the internal dropdown
@@ -484,12 +507,16 @@ class StarMinimaxAllInOne(io.ComfyNode):
             model = cls._load_model(diffusion_model, weight_dtype)
         clip = cls._load_clip(clip_name, clip_type, clip_device)
         vae = cls._load_video_vae(vae_name)
-        audio_vae = cls._load_audio_vae(audio_vae_name, audio_vae_precision, audio_vae_device)
+        has_audio_refs = (any(a is not None for a in (ref_video_audios or {}).values())
+                          or any(a is not None for a in (ref_audios or {}).values()))
+        audio_vae = (cls._load_audio_vae(audio_vae_name, audio_vae_precision, audio_vae_device)
+                     if mode == "video" or has_audio_refs else None)
 
         # 3. Reference conditioning + empty AV latent (MiniMaxH3ReferenceToVideo)
         cond, latent = _build_conditioning(
             clip, vae, audio_vae, prompt, width, height, length, ref_image_size,
-            ref_images, ref_videos, ref_video_audios, ref_audios)
+            ref_images, ref_videos, ref_video_audios, ref_audios,
+            image_mode=(mode == "image"))
 
         # 4. Sampling (RandomNoise + BasicGuider + KSamplerSelect +
         #    BasicScheduler + SamplerCustomAdvanced)
@@ -497,8 +524,12 @@ class StarMinimaxAllInOne(io.ComfyNode):
         samples = cls._sample(model, cond, latent, seed, sampler_name, sigmas)
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
-        images = cls._decode_video(vae, samples)
-        audio = cls._decode_audio(audio_vae, samples)
+        #    image mode: decode all 9 frames, return frame index 8 as the still
+        images = cls._decode_video(vae, samples, image_mode=(mode == "image"))
+        if mode == "image":
+            audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
+        else:
+            audio = cls._decode_audio(audio_vae, samples)
 
         return io.NodeOutput(images, audio, OUTPUT_FPS)
 

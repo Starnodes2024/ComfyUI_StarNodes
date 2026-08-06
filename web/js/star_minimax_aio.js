@@ -157,11 +157,20 @@ app.registerExtension({
 
             node._starUpdateInfo = () => {
                 const get = (name) => node.widgets?.find((w) => w.name === name)?.value;
+                const mode = get("mode") ?? "video";
                 const ratio = get("aspect_ratio") ?? "16:9 (Widescreen)";
                 const mp = Number(get("megapixels") ?? 0.5);
                 const match = Boolean(get("match_ratio_from_image"));
-                const dur = Number(get("duration") ?? 5);
+                for (const name of ["aspect_ratio", "megapixels", "match_ratio_from_image", "duration"]) {
+                    const wdg = node.widgets?.find((w) => w.name === name);
+                    if (wdg) wdg.disabled = mode === "image";
+                }
+                if (mode === "image") {
+                    info.textContent = "512 x 512  •  still image (9 frames \u2192 #9)";
+                    return;
+                }
                 const [w, h] = computeSize(ratio, mp);
+                const dur = Number(get("duration") ?? 5);
                 const len = durationToLength(dur);
                 info.textContent = match
                     ? `auto-ratio @ ${mp} MP  •  ~${w}x${h} if 16:9  •  ${len} frames`
@@ -188,7 +197,8 @@ app.registerExtension({
                     bar.shimmer.style.display = "none";
                     bar.fill.style.opacity = "1";
                     bar.fill.style.width = "100%";
-                    bar.label.textContent = "decoding video + audio…";
+                    const mode = node.widgets?.find((w) => w.name === "mode")?.value;
+                    bar.label.textContent = mode === "image" ? "decoding frame 9…" : "decoding video + audio…";
                     setTimeout(() => {
                         bar.wrap.style.display = "none";
                         bar.fill.style.width = "0%";
@@ -203,7 +213,7 @@ app.registerExtension({
 
             // update readout whenever a relevant widget changes
             for (const w of node.widgets || []) {
-                if (["aspect_ratio", "megapixels", "duration", "match_ratio_from_image"].includes(w.name)) {
+                if (["mode", "aspect_ratio", "megapixels", "duration", "match_ratio_from_image"].includes(w.name)) {
                     const orig = w.callback;
                     w.callback = function () {
                         node._starUpdateInfo();

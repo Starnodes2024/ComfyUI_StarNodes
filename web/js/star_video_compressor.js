@@ -10,7 +10,7 @@ import { app } from "../../../../scripts/app.js";
 // update widget.computedHeight and re-run node.setSize(node.computeSize()),
 // otherwise later widgets are drawn on top of the video (overlap bug).
 const PREVIEW_NODES = ["StarVideoCompressor"];
-const PROGRESS_NODES = ["StarVideoCompressor", "StarVideoLoader"];
+const PROGRESS_NODES = ["StarVideoCompressor", "StarVideoLoader", "StarVideoLoaderLowRAM"];
 
 const PREVIEW_MIN_H = 80;
 const PREVIEW_MAX_H = 480;

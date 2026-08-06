@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Star Video Joiner** node allows you to combine multiple image batches and audio inputs into a single unified output. This is particularly useful for preparing content for video creation nodes like VHS Video Combine.
+The **Star Video Joiner** node allows you to combine multiple image batches, videos and audio inputs into a single unified output. This is particularly useful for preparing content for video creation nodes like VHS Video Combine.
 
 ## Features
 
