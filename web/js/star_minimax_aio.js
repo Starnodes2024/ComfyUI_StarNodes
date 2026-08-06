@@ -158,18 +158,19 @@ app.registerExtension({
             node._starUpdateInfo = () => {
                 const get = (name) => node.widgets?.find((w) => w.name === name)?.value;
                 const mode = get("mode") ?? "video";
+                // image mode: duration is unused, everything else stays the same
+                const durWidget = node.widgets?.find((w) => w.name === "duration");
+                if (durWidget) durWidget.disabled = mode === "image";
                 const ratio = get("aspect_ratio") ?? "16:9 (Widescreen)";
                 const mp = Number(get("megapixels") ?? 0.5);
                 const match = Boolean(get("match_ratio_from_image"));
-                for (const name of ["aspect_ratio", "megapixels", "match_ratio_from_image", "duration"]) {
-                    const wdg = node.widgets?.find((w) => w.name === name);
-                    if (wdg) wdg.disabled = mode === "image";
-                }
+                const [w, h] = computeSize(ratio, mp);
                 if (mode === "image") {
-                    info.textContent = "512 x 512  •  still image (9 frames \u2192 #9)";
+                    info.textContent = match
+                        ? `auto-ratio @ ${mp} MP  •  ~${w}x${h} if 16:9  •  still image (9 frames \u2192 #9)`
+                        : `${w} x ${h}  •  ${mp} MP  •  still image (9 frames \u2192 #9)`;
                     return;
                 }
-                const [w, h] = computeSize(ratio, mp);
                 const dur = Number(get("duration") ?? 5);
                 const len = durationToLength(dur);
                 info.textContent = match

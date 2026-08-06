@@ -121,7 +121,6 @@ MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5
 OUTPUT_FPS = 24.0
 
 IMAGE_MODE_FRAMES = 9    # stills: 9 frames fully rendered, frame index 8 is the output
-IMAGE_MODE_LATENT = 32   # fixed 32x32 latent (512x512 px) for image mode
 
 WEIGHT_DTYPES = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
@@ -173,9 +172,9 @@ def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
                         image_mode=False):
     """In-node replica of MiniMaxH3ReferenceToVideo.execute (ref2va task)."""
     if image_mode:
-        # fixed 32x32 still latent, exactly 9 frames (off the 17k+5 video grid)
+        # still latent, exactly 9 frames (off the 17k+5 video grid)
         device = comfy.model_management.intermediate_device()
-        video = torch.zeros([1, 24, 3, IMAGE_MODE_LATENT, IMAGE_MODE_LATENT], device=device)
+        video = torch.zeros([1, 24, 3, height // 16, width // 16], device=device)
         audio = torch.zeros([1, 32, 2, round(IMAGE_MODE_FRAMES / FPS * AUDIO_LATENT_FPS)], device=device)
         latent = {"samples": comfy.nested_tensor.NestedTensor((video, audio))}
         frame_count = IMAGE_MODE_FRAMES
@@ -275,7 +274,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
             inputs=[
                 # ---------------- Mode ----------------
                 io.Combo.Input("mode", options=["video", "image"], default="video",
-                               tooltip="'video' renders the full clip with audio. 'image' renders 9 frames on a fixed 32x32 latent (512x512 px) and outputs only frame index 8 as a still image (best-quality frame); aspect/megapixels/duration and audio decoding are skipped. Reference inputs work exactly like in video mode."),
+                               tooltip="'video' renders the full clip with audio. 'image' renders 9 frames at the selected ratio and size and outputs only frame index 8 as a still image (best-quality frame); duration and audio decoding are skipped. Reference inputs work exactly like in video mode."),
                 # ---------------- Prompt & user inputs ----------------
                 io.String.Input("prompt", multiline=True, dynamic_prompts=True,
                                 tooltip="Reference inputs by tag in connection order, e.g. <Picture 1>, <Video 1>, <Audio 1>, then describe scene, motion and audio."),
@@ -485,15 +484,10 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
 
         # 1. Resolution (ResolutionSelector, multiple = 32, optional image ratio match)
-        #    image mode: fixed 32x32 latent (512x512 px), 9 frames
-        if mode == "image":
-            width = height = IMAGE_MODE_LATENT * 16
-            matched = False
-            length = IMAGE_MODE_FRAMES
-        else:
-            width, height, matched = _resolve_dimensions(
-                aspect_ratio, megapixels, match_ratio_from_image, ref_images)
-            length = _duration_to_length(duration)
+        #    same size logic in both modes
+        width, height, matched = _resolve_dimensions(
+            aspect_ratio, megapixels, match_ratio_from_image, ref_images)
+        length = IMAGE_MODE_FRAMES if mode == "image" else _duration_to_length(duration)
         logging.info("[Star Minimax AIO] %s mode | canvas %dx%d%s, %d frames (%.2fs @ 24fps)",
                      mode, width, height, " (ratio matched from image)" if matched else "",
                      length, length / FPS)

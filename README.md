@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.6.2-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.6.3-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -26,7 +26,7 @@
 
 ---
 
-## 🌟 What is StarNodes 2.6.2 ?
+## 🌟 What is StarNodes?
 
 StarNodes is a **swiss-army-knife node pack** for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
 It fills the gaps you hit every day: starting a workflow with one node instead of five,
@@ -61,7 +61,6 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 
 ### 🆕 ⭐ Star Minimax All In One
 **The whole MiniMax H3 reference-to-video pipeline in a single node.** Load the diffusion model, MiniMax text encoder and both VAEs, feed up to 9 reference images, 3 reference videos (with paired audio) and 3 standalone audios, then sample and decode video + audio — all internally, no sub-graph. Reference slots auto-expand like the stock node, plus a live resolution readout and an animated in-node progress bar.
-NEW: Added Image and Image Edit mode
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.
