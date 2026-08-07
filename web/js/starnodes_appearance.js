@@ -254,6 +254,7 @@ app.registerExtension({
             mono: { bg: "#1a1a1a", title: "#333333", frame: "#bdbdbd" },
             coffee: { bg: "#1a0f0a", title: "#7c3f1d", frame: "#e7c6a5" }
         };
+        globalThis.StarNodesThemeMap = THEMES;
 
         const getThemeState = () => {
             let themeId = "starnodes_purple";
@@ -261,6 +262,7 @@ app.registerExtension({
             const theme = THEMES[themeId] || THEMES.starnodes_purple;
             return { themeId, theme };
         };
+        globalThis.StarNodesGetTheme = getThemeState;
 
         // Check if this is a StarNode by looking at the category or if global override is enabled
         if (applyToAll || (nodeData.category && nodeData.category.startsWith("⭐"))) {
