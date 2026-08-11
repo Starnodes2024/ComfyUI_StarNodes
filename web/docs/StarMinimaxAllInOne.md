@@ -87,11 +87,12 @@ one appears.
 - **prompt** — use `<Picture i>` / `<Video k>` / `<Audio j>` tags in connection
   order, then describe scene, motion and audio.
 - **aspect_ratio** — `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`,
-  **`16:9` (default)**, `21:9`.
+  **`16:9` (default)**, `2:1`, `21:9`.
 - **megapixels** — dropdown with the template's size presets
   (0.2 / 0.3 / 0.4 / **0.5 default** / 0.6 / 0.7 / 0.8 / 0.9 / 0.98 / 1.0 / 1.2
-  / 1.5 / 1.8 / 2.0);
+  / 1.5 / 1.8 / 2.0 / **audio only**);
   0.5 MP ≈ 960×544 at 16:9, 2.0 MP ≈ 1920×1088.
+  Select **audio only** for a fixed 32×32 canvas when you only need audio output.
   Same presets in both modes.
 - **match_ratio_from_image** — when ON and a reference image is connected, the
   closest matching ratio of the first reference image is picked at the

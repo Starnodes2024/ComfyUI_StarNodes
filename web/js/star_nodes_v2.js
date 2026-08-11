@@ -53,12 +53,13 @@ function addPanel(node, className, minWidth = 340) {
     return el;
 }
 
-// Grow the node so the whole DOM panel fits inside it. The element is not
-// laid out yet when onNodeCreated runs, so measure over a few frames.
+// Adjust node size so the DOM panel fits.  Width is sticky — only grows to
+// minWidth on first creation, never auto-grows from content afterwards.
+// Height tracks content (rows, status lines) so nothing is clipped.
 function fitNodeToContent(node, el, minWidth = 340) {
     const apply = () => {
         try {
-            const neededW = Math.max(minWidth, el.scrollWidth + 30, node.size[0]);
+            const neededW = Math.max(minWidth, node.size[0]);
             const sz = node.computeSize();
             const neededH = Math.max(sz[1] + 6, node.size[1]);
             if (neededW > node.size[0] || neededH > node.size[1]) {

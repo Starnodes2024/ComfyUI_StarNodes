@@ -50,10 +50,12 @@ function setDirty(node) {
     app.graph?.setDirtyCanvas?.(true, true);
 }
 
+// Width is sticky — only grows to minWidth on first creation, never
+// auto-grows from content.  Height tracks content so rows are not clipped.
 function fitNodeToContent(node, el, minWidth = 340) {
     const apply = () => {
         try {
-            const neededW = Math.max(minWidth, el.scrollWidth + 30, node.size[0]);
+            const neededW = Math.max(minWidth, node.size[0]);
             const sz = node.computeSize();
             const neededH = Math.max(sz[1] + 6, node.size[1]);
             if (neededW > node.size[0] || neededH > node.size[1]) {

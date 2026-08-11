@@ -11,13 +11,13 @@
    flat-illustration style, high detail, no text."
 ============================================================================= -->
 
-# ⭐ ComfyUI StarNodes Version 2.6.4
+# ⭐ ComfyUI StarNodes
 
 **A big, friendly toolbox of 100 custom nodes that make ComfyUI easier, faster and more fun.**
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.6.4-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.6.5-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -60,7 +60,7 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 **SD1.5 upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
 
 ### 🆕 ⭐ Star Minimax All In One
-**The whole MiniMax H3 reference-to-video pipeline in a single node.** Load the diffusion model, MiniMax text encoder and both VAEs, feed up to 9 reference images, 3 reference videos (with paired audio) and 3 standalone audios, then sample and decode video + audio — all internally, no sub-graph. Reference slots auto-expand like the stock node, plus a live resolution readout and an animated in-node progress bar.
+**The whole MiniMax H3 reference-to-video pipeline in a single node.** Load the diffusion model, MiniMax text encoder and both VAEs, feed up to 9 reference images, 3 reference videos (with paired audio) and 3 standalone audios, then sample and decode video + audio — all internally, no sub-graph. Reference slots auto-expand like the stock node, plus a live resolution readout and an animated in-node progress bar. Aspect-ratio presets include the new **2:1 (Panorama)** for cinematic wide framing.
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.

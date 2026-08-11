@@ -143,6 +143,13 @@ are contradictory goals, so the target takes precedence.
 | `video/h265-mp4` | .mp4 | H.265/HEVC | ~25–50 % smaller at equal quality, slower. `hvc1` tag for Apple. |
 | `video/vp9-webm` | .webm | VP9 | Open format, browser/Discord friendly, audio = Opus. |
 | `video/av1-mp4` | .mp4 | AV1 (SVT-AV1) | Best compression, slow; needs recent ffmpeg. Target mode = single-pass VBR. |
+| `video/h264-mkv` | .mkv | H.264 | MKV container — multiple audio/subtitle tracks, robust for odd sources. |
+| `video/h265-mkv` | .mkv | H.265/HEVC | Same MKV benefits, smaller files. |
+| `video/av1-webm` | .webm | AV1 (SVT-AV1) | AV1 in a web-friendly WebM container, audio = Opus. |
+| `video/webp` | .webp | Animated WebP | Short loops / memes, transparency-capable, smaller than GIF. **No audio** (audio is always stripped). Quality slider maps directly to `-q:v` (0–100). |
+| `video/gif` | .gif | GIF | Universal animated format for social/Discord. **No audio**. Quality slider is not used (GIF has no quality parameter). |
+| `video/h264-mov` | .mov | H.264 | Apple/QuickTime-friendly delivery container. Same codec as h264-mp4. |
+| `video/prores-mov` | .mov | ProRes | Video editing intermediate — lossless-ish, huge files. Quality slider maps to profile: 0–24=Proxy, 25–49=LT, 50–74=Standard, 75–100=HQ. |
 
 ---
 
@@ -223,3 +230,9 @@ The node needs an ffmpeg binary. Resolution order at runtime:
   loader audio is extracted as WAV and returned as a core AUDIO dict.
 - Filenames are sanitized (`..` stripped); output always stays inside the
   ComfyUI output/temp directory. Two-pass logs are cleaned automatically.
+- **Workflow metadata** is embedded in every output file via an ffmetadata
+  file (`-i metadata.txt` + `-map_metadata` + `-movflags use_metadata_tags`),
+  the same approach VideoHelperSuite uses. The `prompt` and `workflow` keys
+  contain the same data the ⭐ Star Save Image+ node stores in PNG `tEXt`
+  chunks — drag a compressed video back into ComfyUI to restore the full
+  workflow.

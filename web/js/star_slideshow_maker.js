@@ -63,8 +63,10 @@ function ensureStyle() {
     document.head.appendChild(st);
 }
 
+// Preserve the user's width — only adjust height to fit content.
 function relayout(node) {
-    node.setSize(node.computeSize());
+    const sz = node.computeSize();
+    node.setSize([Math.max(node.size[0], sz[0]), sz[1]]);
     node.graph?.setDirtyCanvas?.(true, true);
 }
 

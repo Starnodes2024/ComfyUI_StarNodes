@@ -11,7 +11,9 @@ Mode priority: if target_size_mb > 0 it ALWAYS wins and the quality
 slider is ignored; quality (CRF) is only used when target_size_mb is 0.
 """
 
+import json
 import os
+import tempfile
 import time
 
 import numpy as np
@@ -113,7 +115,9 @@ class StarVideoCompressor:
                           "audio, e.g. from the 'LoadAudio' node or the "
                           "Star Video Loader)."}),
             },
-            "hidden": {"unique_id": "UNIQUE_ID"},
+            "hidden": {"unique_id": "UNIQUE_ID",
+                       "prompt": "PROMPT",
+                       "extra_pnginfo": "EXTRA_PNGINFO"},
         }
 
     RETURN_TYPES = ("STAR_FILENAMES", "STRING")
@@ -131,7 +135,8 @@ class StarVideoCompressor:
     def compress(self, quality, format, preset, filename_prefix,
                  target_size_mb, video_path, frame_rate, save_audio,
                  save_output, drop_first_frames=0, drop_last_frames=0,
-                 video=None, images=None, audio=None, unique_id=None):
+                 video=None, images=None, audio=None, unique_id=None,
+                 prompt=None, extra_pnginfo=None):
 
         drop_first_frames = max(0, min(1000, int(drop_first_frames)))
         drop_last_frames = max(0, min(1000, int(drop_last_frames)))
@@ -147,6 +152,10 @@ class StarVideoCompressor:
                 f"Star Video Compressor: your ffmpeg build does not include "
                 f"the encoder '{fmt['vcodec']}'. Pick another format or "
                 f"install a full ffmpeg build.")
+
+        # Formats like animated WebP have no audio stream — force it off.
+        if fmt.get("no_audio"):
+            save_audio = False
 
         base_dir = folder_paths.get_output_directory() if save_output \
             else folder_paths.get_temp_directory()
@@ -173,6 +182,30 @@ class StarVideoCompressor:
             raise ValueError(
                 "Star Video Compressor: provide a 'video' input (Star Video "
                 "Loader), fill 'video_path', or connect 'images'.")
+
+        # Write workflow/prompt data to a temporary ffmetadata file so ffmpeg
+        # can embed it (same approach as VideoHelperSuite — ComfyUI's
+        # drag-and-drop workflow restore reads this format).
+        meta_path = None
+        if prompt is not None or extra_pnginfo is not None:
+            def _escape_meta(key, value):
+                value = str(value)
+                value = value.replace("\\", "\\\\")
+                value = value.replace(";", "\\;")
+                value = value.replace("#", "\\#")
+                value = value.replace("=", "\\=")
+                value = value.replace("\n", "\\\n")
+                return f"{key}={value}"
+
+            meta_path = os.path.join(
+                tempfile.mkdtemp(prefix="star_meta_"), "metadata.txt")
+            with open(meta_path, "w", encoding="utf-8") as f:
+                f.write(";FFMETADATA1\n")
+                if prompt is not None:
+                    f.write(_escape_meta("prompt", json.dumps(prompt)) + "\n")
+                if extra_pnginfo is not None:
+                    for key, value in extra_pnginfo.items():
+                        f.write(_escape_meta(key, json.dumps(value)) + "\n")
 
         use_target = bool(target_size_mb) and target_size_mb > 0
         passes = 2 if (use_target and fmt["two_pass"]) else 1
@@ -259,7 +292,7 @@ class StarVideoCompressor:
 
             self._encode(fmt, quality, preset, target_size_mb, duration,
                          a_args, source_args, out_path, map_args, filter_args,
-                         payload, reporter)
+                         payload, reporter, meta_path)
 
             elapsed = time.time() - t0
             out_info = probe_media(out_path)
@@ -277,9 +310,16 @@ class StarVideoCompressor:
                 in_size_mb=(probe_media(src)["size_mb"]
                             if kind == "file" else None)))
 
+        # Clean up temp files
         if audio_file and os.path.exists(audio_file):
             try:
                 os.remove(audio_file)
+            except OSError:
+                pass
+        if meta_path:
+            try:
+                import shutil
+                shutil.rmtree(os.path.dirname(meta_path), ignore_errors=True)
             except OSError:
                 pass
 
@@ -368,7 +408,17 @@ class StarVideoCompressor:
 
     def _encode(self, fmt, quality, preset, target_size_mb, duration,
                 a_args, source_args, out_path, map_args, filter_args,
-                input_bytes, reporter):
+                input_bytes, reporter, meta_path=None):
+        # Insert the ffmetadata file as an extra input alongside the existing
+        # source inputs, and keep only the output-side metadata flags in
+        # meta_args (same as VideoHelperSuite).
+        meta_args = []
+        if meta_path:
+            n_inputs = source_args.count("-i")
+            source_args = source_args + ["-i", meta_path]
+            meta_args = (["-map_metadata", str(n_inputs)]
+                         + ["-metadata", "creation_time=now"]
+                         + ["-movflags", "use_metadata_tags"])
         extra = fmt["extra_args"]
         vcodec = fmt["vcodec"]
         use_target = bool(target_size_mb) and target_size_mb > 0
@@ -387,8 +437,11 @@ class StarVideoCompressor:
                   f"duration {duration:.2f}s -> video bitrate "
                   f"{v_bps / 1000:.0f} kbps")
             v_args = ["-c:v", vcodec, "-b:v", str(v_bps)]
-            v_args += (["-preset", SVTAV1_PRESET_MAP.get(preset, "6")]
-                       if vcodec == "libsvtav1" else ["-preset", preset])
+            if vcodec == "libsvtav1":
+                v_args += ["-preset", SVTAV1_PRESET_MAP.get(preset, "6")]
+            elif vcodec != "libwebp":  # libwebp presets are
+                # picture/photo/drawing/icon/text, not x264-style names
+                v_args += ["-preset", preset]
 
             if fmt["two_pass"]:
                 import tempfile
@@ -408,31 +461,48 @@ class StarVideoCompressor:
                     run_ffmpeg(source_args + v_args
                                + ["-pass", "2", "-passlogfile", passlog]
                                + map_args + filter_args + a_args + extra
-                               + [out_path],
+                               + meta_args + [out_path],
                                duration=duration, input_bytes=input_bytes,
                                reporter=reporter, pass_label="pass 2/2")
                     reporter.finish_unit()
             else:  # libsvtav1: single-pass VBR
                 run_ffmpeg(source_args + v_args + map_args + filter_args
-                           + a_args + extra + [out_path],
+                           + a_args + extra + meta_args + [out_path],
                            duration=duration, input_bytes=input_bytes,
                            reporter=reporter, pass_label="av1 vbr")
                 reporter.finish_unit()
         else:
-            crf = quality_to_crf(quality, fmt["max_crf"])
-            if vcodec == "libsvtav1":
-                v_args = ["-c:v", vcodec, "-preset",
-                          SVTAV1_PRESET_MAP.get(preset, "6"),
-                          "-crf", str(crf)]
+            qflag = fmt.get("quality_flag", "crf")
+            if qflag == "none":
+                # GIF: no quality parameter — just the codec
+                v_args = ["-c:v", vcodec]
+                print(f"[StarVideoCompressor] {vcodec} (no quality parameter)")
+            elif qflag == "q:v":
+                # libwebp: -q:v 0-100, higher = better (same direction as slider)
+                v_args = ["-c:v", vcodec, "-q:v", str(int(quality))]
+                print(f"[StarVideoCompressor] quality {quality} -> -q:v "
+                      f"{int(quality)} ({vcodec})")
+            elif qflag == "prores_profile":
+                # ProRes: quality slider maps to profile 0-3 (Proxy/LT/Std/HQ)
+                profile = min(3, max(0, int(quality) // 25))
+                v_args = ["-c:v", vcodec, "-profile:v", str(profile)]
+                print(f"[StarVideoCompressor] quality {quality} -> ProRes "
+                      f"profile {profile} ({vcodec})")
             else:
-                v_args = ["-c:v", vcodec, "-preset", preset,
-                          "-crf", str(crf)]
-            if vcodec == "libvpx-vp9":
-                v_args += ["-b:v", "0"]  # required for VP9 CRF mode
-            print(f"[StarVideoCompressor] quality {quality} -> CRF {crf} "
-                  f"({vcodec})")
+                crf = quality_to_crf(quality, fmt["max_crf"])
+                if vcodec == "libsvtav1":
+                    v_args = ["-c:v", vcodec, "-preset",
+                              SVTAV1_PRESET_MAP.get(preset, "6"),
+                              "-crf", str(crf)]
+                else:
+                    v_args = ["-c:v", vcodec, "-preset", preset,
+                              "-crf", str(crf)]
+                if vcodec == "libvpx-vp9":
+                    v_args += ["-b:v", "0"]  # required for VP9 CRF mode
+                print(f"[StarVideoCompressor] quality {quality} -> CRF {crf} "
+                      f"({vcodec})")
             run_ffmpeg(source_args + v_args + map_args + filter_args
-                       + a_args + extra + [out_path],
+                       + a_args + extra + meta_args + [out_path],
                        duration=duration, input_bytes=input_bytes,
                        reporter=reporter, pass_label="crf")
             reporter.finish_unit()

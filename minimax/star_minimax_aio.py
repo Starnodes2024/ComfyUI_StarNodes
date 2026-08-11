@@ -103,6 +103,7 @@ ASPECT_RATIOS = {
     "4:3 (Standard)": (4, 3),
     "9:16 (Portrait Widescreen)": (9, 16),
     "16:9 (Widescreen)": (16, 9),
+    "2:1 (Panorama)": (2, 1),
     "21:9 (Ultrawide)": (21, 9),
 }
 
@@ -116,7 +117,7 @@ CLIP_TYPES = ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "moch
               "qwen_image", "hunyuan_image", "flux2", "ovis", "longcat_image", "cogvideox",
               "lens", "pixeldit", "ideogram4", "boogu", "krea2", "joyimage", "mage", "minimax"]
 
-MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0]
+MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0, "audio only"]
 
 OUTPUT_FPS = 24.0
 
@@ -134,6 +135,8 @@ def _first_present(options, preferred):
 def _resolve_dimensions(aspect_ratio, megapixels, match_ratio_from_image, ref_images):
     """ResolutionSelector math (multiple = 32), optionally ratio-matched to the
     first connected reference image at the selected pixel size."""
+    if megapixels == "audio only":
+        return 32, 32, False
     wr, hr = ASPECT_RATIOS.get(aspect_ratio, ASPECT_RATIOS["16:9 (Widescreen)"])
     matched = False
     if match_ratio_from_image and ref_images:
@@ -282,7 +285,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
                                default="16:9 (Widescreen)",
                                tooltip="Aspect ratio for the output dimensions."),
                 io.Combo.Input("megapixels", options=MEGAPIXEL_OPTIONS, default=0.5,
-                               tooltip="Target total megapixels (output pixel size). 0.5 MP ≈ 960x544 at 16:9; 2.0 MP ≈ 1920x1088."),
+                               tooltip='Target total megapixels (output pixel size). 0.5 MP ~ 960x544 at 16:9; 2.0 MP ~ 1920x1088. Select "audio only" for a fixed 32x32 canvas when you only need audio output.'),
                 io.Boolean.Input("match_ratio_from_image", default=False,
                                  label_on="match image ratio", label_off="use selected ratio",
                                  tooltip="If enabled and a reference image is connected, the closest aspect ratio of the first reference image is used at the selected pixel size."),
@@ -483,6 +486,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 model_override=None, ref_images=None, ref_videos=None,
                 ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
 
+        audio_only = (megapixels == "audio only")
+
         # 1. Resolution (ResolutionSelector, multiple = 32, optional image ratio match)
         #    same size logic in both modes
         width, height, matched = _resolve_dimensions(
@@ -504,7 +509,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
         has_audio_refs = (any(a is not None for a in (ref_video_audios or {}).values())
                           or any(a is not None for a in (ref_audios or {}).values()))
         audio_vae = (cls._load_audio_vae(audio_vae_name, audio_vae_precision, audio_vae_device)
-                     if mode == "video" or has_audio_refs else None)
+                     if mode == "video" or has_audio_refs or audio_only else None)
 
         # 3. Reference conditioning + empty AV latent (MiniMaxH3ReferenceToVideo)
         cond, latent = _build_conditioning(
@@ -520,7 +525,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
         # 5. Decode (VAEDecode + VAEDecodeAudio)
         #    image mode: decode all 9 frames, return frame index 8 as the still
         images = cls._decode_video(vae, samples, image_mode=(mode == "image"))
-        if mode == "image":
+        if mode == "image" and not audio_only:
             audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
         else:
             audio = cls._decode_audio(audio_vae, samples)
