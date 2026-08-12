@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.6.5-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.7.0-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -56,11 +56,20 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 <tr>
 <td width="50%">
 
+### 🆕 ⭐ Star LTXV 2.5 All-in-One
+**The complete LTX-2.5 pipeline in a single node.** Text-to-video, image-to-video, image+audio, first/last-frame and audio-only modes — two-pass upscale rendering, baked sigma or plain-step schedules, model/LoRA/CLIP/VAE caching, and sound decoded from the high-step pass.
+
+### 🆕 ⭐ Star Video Sound Enricher
+**Fix the scratchy AI-video soundtrack.** De-harsh bell, deep-bass and warmth boost, high-fizz taming and gentle analog saturation — four tuned presets plus a full Custom mode, always delivered at 44.1 kHz.
+
+### 🆕 ⭐ Star Video Sound Enricher Option
+**Same sound magic, zero extra wires.** Outputs the enricher settings as a `sound_settings` bundle — plug it into the LTXV 2.5 All-in-One and the soundtrack comes out cleaned and enriched internally.
+
 ### 🆕 ⭐ Star SD Upscale Refiner Advanced
 **SD1.5 upscaling + refinement in one node.** Built-in LoRA support, tiled diffusion for low VRAM, and optional ControlNet tile guidance — a complete "make it big and beautiful" pipeline.
 
 ### 🆕 ⭐ Star Minimax All In One
-**The whole MiniMax H3 reference-to-video pipeline in a single node.** Load the diffusion model, MiniMax text encoder and both VAEs, feed up to 9 reference images, 3 reference videos (with paired audio) and 3 standalone audios, then sample and decode video + audio — all internally, no sub-graph. Reference slots auto-expand like the stock node, plus a live resolution readout and an animated in-node progress bar. Aspect-ratio presets include the new **2:1 (Panorama)** for cinematic wide framing.
+**The whole MiniMax H3 reference-to-video pipeline in a single node.** Models, text encoder and both VAEs load internally; feed reference images, videos and audios, then sample and decode video + audio — no sub-graph. Includes the new **2:1 (Panorama)** preset.
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.
@@ -68,14 +77,14 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 ### 🆕 ⭐ Star Split Sampler Option
 **Two samplers, one run.** Plug into the `options` input of ⭐ StarSampler or ⭐ Star SD Upscale Refiner to run the first N steps with one sampler and the rest with another — e.g. `euler` for 6 steps then `ddim` for 6, for 12 steps total. Mix sampler strengths without rewiring anything.
 
+</td>
+<td width="50%">
+
 ### 🆕 ⭐ Star Advanced Ratio/Latent
 **Aspect ratio + megapixels, done for you.** Pick a ratio and a target size — get perfect dimensions and a ready-to-use empty latent, no calculator needed.
 
 ### 🔄 ⭐ Star Output Cleaner
 **Your output folder, finally under control.** Browse thumbnails, select and delete old generations without ever leaving ComfyUI.
-
-</td>
-<td width="50%">
 
 ### 🔄 ⭐ Star Image Compare
 **Judge your results like a pro.** Interactive before/after wipe slider right inside ComfyUI — drag to compare two images pixel by pixel. Perfect for checking upscales, refiners and filter tweaks.

@@ -226,6 +226,9 @@ class StarTiledSeedVRUpscaler:
                 "tile_overlap": ("FLOAT", {"default": 0.25, "min": 0.05, "max": 0.5, "step": 0.05, "tooltip": "Overlap ratio between tiles. Higher values reduce seam artifacts but increase VRAM/time."}),
                 "color_luminance_weight": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 1.0, "step": 0.05, "tooltip": "Color transfer luminance blend weight. Lower = more reference color matching, higher = preserve original brightness."}),
             },
+            "optional": {
+                "model_override": ("MODEL", {"tooltip": "Optional model override. When connected, this model will be used instead of the one selected in model_name dropdown. Useful for patched models or custom loaders."}),
+            },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
@@ -352,10 +355,10 @@ class StarTiledSeedVRUpscaler:
         fixed = lab_color_transfer(decoded.movedim(-1, 1) * 2.0 - 1.0, reference.movedim(-1, 1) * 2.0 - 1.0, luminance_weight=luminance_weight)
         return fixed.movedim(1, -1).add(1.0).div(2.0).clamp(0.0, 1.0)
 
-    def upscale(self, image, model_name, vae_name, scale, rows, cols, tile_overlap, color_luminance_weight, unique_id=None):
+    def upscale(self, image, model_name, vae_name, scale, rows, cols, tile_overlap, color_luminance_weight, unique_id=None, model_override=None):
         import time
         start_time = time.time()
-        model = self._load_model(model_name)
+        model = model_override if model_override is not None else self._load_model(model_name)
         vae = self._load_vae(vae_name)
 
         total_tiles = image.shape[0] * rows * cols

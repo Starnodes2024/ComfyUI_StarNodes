@@ -352,6 +352,16 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 io.Audio.Output(display_name="AUDIO"),
                 io.Float.Output(display_name="FPS",
                                 tooltip="Fixed frame rate of the generated video (24.0). Connect straight into your video combine/save node."),
+                io.Latent.Output(display_name="LATENT",
+                                 tooltip="The combined processed latent from the sampler (NestedTensor with video+audio), before VAE decoding."),
+                io.Model.Output(display_name="MODEL",
+                                tooltip="The diffusion model used for sampling."),
+                io.Clip.Output(display_name="CLIP",
+                               tooltip="The loaded text encoder."),
+                io.Vae.Output(display_name="VAE",
+                              tooltip="The video VAE."),
+                io.Vae.Output(display_name="AUDIO_VAE",
+                              tooltip="The audio VAE (None in image mode without audio references)."),
             ],
         )
 
@@ -516,7 +526,6 @@ class StarMinimaxAllInOne(io.ComfyNode):
             clip, vae, audio_vae, prompt, width, height, length, ref_image_size,
             ref_images, ref_videos, ref_video_audios, ref_audios,
             image_mode=(mode == "image"))
-
         # 4. Sampling (RandomNoise + BasicGuider + KSamplerSelect +
         #    BasicScheduler + SamplerCustomAdvanced)
         sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
@@ -530,7 +539,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
         else:
             audio = cls._decode_audio(audio_vae, samples)
 
-        return io.NodeOutput(images, audio, OUTPUT_FPS)
+        return io.NodeOutput(images, audio, OUTPUT_FPS, {"samples": samples}, model, clip, vae, audio_vae)
 
 
 NODE_CLASS_MAPPINGS = {

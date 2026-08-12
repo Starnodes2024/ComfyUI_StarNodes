@@ -73,10 +73,22 @@ function relayout(node) {
 // ---------------------------------------------------------------- progress
 
 function getProgressBar(node) {
-    if (node.starProgress && node.starProgress.wrap.isConnected) {
+    // Reuse the bar while its widget is still registered on the node.
+    // The frontend detaches DOM widget elements between runs (e.g. between
+    // batch items), so wrap.isConnected is not a reliable signal — trusting
+    // it appended a new bar for every batch item instead of resetting.
+    if (node.starProgress && (node.widgets || []).includes(node.starProgress.widget)) {
         return node.starProgress;
     }
     ensureStyle();
+    // Remove stale bars left over from previous runs before adding a new one.
+    for (const w of [...(node.widgets || [])]) {
+        if (w.name === "star_progress") {
+            w.onRemove?.();
+            w.element?.remove?.();
+            node.widgets.splice(node.widgets.indexOf(w), 1);
+        }
+    }
     const wrap = document.createElement("div");
     wrap.className = "star-pb";
     wrap.innerHTML =
