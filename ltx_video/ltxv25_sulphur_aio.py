@@ -25,6 +25,8 @@ i2v modes and your save / upscale nodes downstream.
 import re
 import time
 
+import math
+
 import numpy as np
 import torch
 from PIL import Image
@@ -48,8 +50,58 @@ from comfy_extras.nodes_lt import (
     LTXVPreprocess,
     LTXVConcatAVLatent,
     LTXVSeparateAVLatent,
-    LTXVDualCFGGuider,
 )
+
+try:
+    from comfy_extras.nodes_lt import LTXVDualCFGGuider
+except ImportError:
+    # Older ComfyUI without the LTXV-AV dual-CFG guider node: vendored copy
+    # (identical logic to the core Guider_LTXAVDualCFG).
+    class _GuiderLTXAVDualCFG(comfy.samplers.CFGGuider):
+        """CFG guider with separate scales for the video/audio modalities of
+        a packed LTXV-AV latent."""
+
+        def set_conds(self, positive, negative):
+            self.inner_set_conds({"positive": positive, "negative": negative})
+
+        def set_cfg(self, video_cfg, audio_cfg):
+            self.video_cfg = video_cfg
+            self.audio_cfg = audio_cfg
+            self.cfg = max(video_cfg, audio_cfg)
+
+        def sample(self, noise, latent_image, *args, **kwargs):
+            self._v_numel = None
+            if getattr(latent_image, "is_nested", False):
+                parts = latent_image.unbind()
+                if len(parts) >= 2:
+                    self._v_numel = math.prod(parts[0].shape[1:])
+            return super().sample(noise, latent_image, *args, **kwargs)
+
+        def predict_noise(self, x, timestep, model_options={}, seed=None):
+            v = getattr(self, "_v_numel", None)
+            if v is None or math.isclose(self.video_cfg, self.audio_cfg):
+                self.cfg = self.video_cfg
+                return super().predict_noise(x, timestep, model_options, seed)
+
+            video_cfg, audio_cfg = self.video_cfg, self.audio_cfg
+
+            def dual_cfg(args):
+                cond, uncond = args["cond"], args["uncond"]
+                out = uncond + (cond - uncond) * video_cfg
+                out[..., v:] = uncond[..., v:] + (cond[..., v:] - uncond[..., v:]) * audio_cfg
+                return out
+
+            model_options = {**model_options, "sampler_cfg_function": dual_cfg,
+                             "disable_cfg1_optimization": True}
+            return super().predict_noise(x, timestep, model_options, seed)
+
+    class LTXVDualCFGGuider:
+        @classmethod
+        def execute(cls, model, positive, negative, video_cfg, audio_cfg):
+            guider = _GuiderLTXAVDualCFG(model)
+            guider.set_conds(positive, negative)
+            guider.set_cfg(video_cfg, audio_cfg)
+            return (guider,)
 from comfy_extras.nodes_lt_audio import (
     LTXVEmptyLatentAudio,
     LTXVAudioVAEEncode,
