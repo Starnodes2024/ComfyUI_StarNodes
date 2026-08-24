@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.7.1-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-2.7.2-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -70,6 +70,9 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 
 ### 🆕 ⭐ Star Minimax All In One
 **The whole MiniMax H3 reference-to-video pipeline in a single node.** Models, text encoder and both VAEs load internally; feed reference images, videos and audios, then sample and decode video + audio — no sub-graph. Includes the new **2:1 (Panorama)** preset.
+
+### 🆕 ⭐ Star Minimax Latent Upscaler + Option
+**Second-pass upscale + refine, no extra wiring.** The Option node plugs into the `options` input of ⭐ Star Minimax All In One: the pass-1 video latent is upscaled with a MiniMax H3 3D latent-upscaler model and refined in a short 3/4/5-step pass with the same conditioning, same seed — optionally with a turbo-LoRA-patched model on the node's `model` input, and a toggle for pass-1 or refined audio. The standalone twin does the same upscale + refine + decode in any workflow (connect latent, model, clip, both VAEs and a prompt).
 
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.

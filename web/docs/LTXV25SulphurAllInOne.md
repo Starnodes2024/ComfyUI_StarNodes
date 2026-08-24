@@ -35,8 +35,9 @@ nothing to sound quality.
 Priority order for the `audio` output:
 
 1. `image_audio_to_video` mode → the connected `audio` input is always passed through unchanged.
-2. `override_audio` enabled + `audio` connected → the connected audio is passed through.
-3. otherwise → the model-generated audio from the first pass.
+2. otherwise → the model-generated audio from the first pass.
+
+(The `audio` input is ignored in all modes except `image_audio_to_video`.)
 
 ---
 
@@ -89,6 +90,11 @@ Model links (HuggingFace, access required): <https://huggingface.co/Lightricks/L
 - `images` (IMAGE) — the decoded video frames.
 - `audio` (AUDIO) — see the priority list above.
 - `frame_rate` (FLOAT) — pass straight into your save/compressor nodes.
+- `latent` (LATENT) — the combined sampled A/V latent, before decoding.
+- `model` (MODEL) — the model used for sampling (with the LoRA stack applied),
+  ready for downstream reuse.
+- `clip` (CLIP) — the loaded text encoder.
+- `vae` / `audio_vae` (VAE) — the loaded video and audio VAEs.
 
 ## Sound processing (`sound_settings` input)
 

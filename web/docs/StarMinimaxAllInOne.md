@@ -41,6 +41,17 @@ duration math → `MiniMaxH3ReferenceToVideo` conditioning → `RandomNoise` →
 - **🔌 Optional MODEL override** — connect an external model (e.g. a
   sage-attention-patched MiniMax H3) and the internal `diffusion_model`
   dropdown is ignored.
+- **🎚️ Optional sound enrichment** — connect a ⭐ Star Video Sound Enricher
+  Option node to `sound_settings` and the soundtrack is cleaned up and
+  enriched internally (de-harsh, bass/warmth boost, high-fizz taming),
+  delivered at 44.1 kHz or the source rate, never downsampled.
+- **🔍 Optional second-pass latent upscale** — connect a ⭐ Star Minimax
+  Latent Upscaler Option node to `options`: the pass-1 video latent is
+  upscaled with a MiniMax H3 3D latent-upscaler model and refined in a short
+  second sampling pass (baked 3/4/5-step schedules, same conditioning and
+  same seed — references are resolution-matched automatically). The audio
+  toggle on the option node picks which pass the audio output is decoded
+  from.
 - **📊 Live readout + animated progress bar** — a readout line under the widgets
   shows the resolved `width × height • MP • frames`; an animated DOM progress
   bar appears during execution (indeterminate shimmer while models load and
@@ -65,6 +76,8 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 | Connector | Type | Notes |
 |---|---|---|
 | `model_override` | MODEL | optional — when connected, the internal `diffusion_model` dropdown is ignored. Use it for sage-attention-patched or otherwise modified models. |
+| `sound_settings` | SOUND_SETTINGS | optional — from a ⭐ Star Video Sound Enricher Option node; the generated soundtrack is processed with these settings before it leaves the node. Ignored in `image` mode without audio |
+| `options` | UPSCALE_SETTINGS | optional — from a ⭐ Star Minimax Latent Upscaler Option node; runs a second-pass latent upscale + refine. Ignored when `megapixels` is `audio only` |
 | `ref_image_0…8` | IMAGE | up to 9 reference images, slots expand automatically when connected |
 | `ref_video_0…2` | IMAGE | up to 3 reference videos (frames @ 24 fps) |
 | `ref_video_audio_0…2` | AUDIO | soundtrack paired to the same-numbered reference video |
@@ -150,3 +163,7 @@ one appears.
 - Use the `model_override` input when you want to feed in a MiniMax H3 model
   pre-patched with sage/flash attention — the internal dropdown and
   `weight_dtype` are then ignored.
+- With an upscale options node connected, the **IMAGE** and **LATENT** outputs
+  come from the refined second pass, **AUDIO** comes from the pass selected by
+  the option node's audio toggle (default: pass 1), and **MODEL** remains the
+  pass-1 model.

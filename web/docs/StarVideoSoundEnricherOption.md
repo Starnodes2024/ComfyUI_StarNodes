@@ -5,13 +5,14 @@ same presets and knobs, but instead of processing audio itself it outputs a
 `sound_settings` bundle (`SOUND_SETTINGS`).
 
 Connect it to the **`sound_settings` input** of the **⭐ Star LTXV 2.5
-All-in-One** node — the generated soundtrack is then cleaned up and enriched
-**inside** the LTXV node, right before it reaches the `audio` output
-(at least 44.1 kHz — a 48 kHz source stays 48 kHz, never downsampled).
-No extra audio wiring needed.
+All-in-One** or the **⭐ Star Minimax All In One** node — the generated
+soundtrack is then cleaned up and enriched **inside** the video node, right
+before it reaches the `audio` output (at least 44.1 kHz — a 48 kHz source
+stays 48 kHz, never downsampled). No extra audio wiring needed.
 
 ```
 [Star Video Sound Enricher Option] ──sound_settings──> [Star LTXV 2.5 All-in-One] ──> audio (processed)
+                                                     └> [Star Minimax All In One]     ──> audio (processed)
 ```
 
 The processing is identical to the standalone node — same chain, same

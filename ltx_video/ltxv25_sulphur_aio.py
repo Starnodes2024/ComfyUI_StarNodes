@@ -398,8 +398,9 @@ def _run_audio_pass(model, pos, neg, frames, frame_rate, seed, cfg,
     """Single 64x64 A/V pass on a plain 30-step schedule - best-effort soundtrack.
 
     Used by the audio_only mode, always with the same model as the video so
-    the soundtrack matches. Returns (decoded_audio, video_latent) so the
-    caller can still decode the tiny video as a visual reference.
+    the soundtrack matches. Returns (decoded_audio, video_latent, av_latent)
+    so the caller can still decode the tiny video as a visual reference and
+    expose the sampled latent as an output.
     """
     video_latent = _res(EmptyLTXVLatentVideo.execute(
         AUDIO_ONLY_SIZE, AUDIO_ONLY_SIZE, frames, 1))[0]
@@ -424,7 +425,7 @@ def _run_audio_pass(model, pos, neg, frames, frame_rate, seed, cfg,
     audio = _res(LTXVAudioVAEDecode.execute(aud, audio_vae_model))[0]
     if rep is not None:
         rep.finish_all(time.time() - start_time)
-    return audio, vid
+    return audio, vid, out
 
 
 # ---------------------------------------------------------------------------
@@ -434,8 +435,8 @@ def _run_audio_pass(model, pos, neg, frames, frame_rate, seed, cfg,
 class LTXV25SulphurAllInOne:
     CATEGORY = "⭐StarNodes/Video"
     FUNCTION = "generate"
-    RETURN_TYPES = ("IMAGE", "AUDIO", "FLOAT")
-    RETURN_NAMES = ("images", "audio", "frame_rate")
+    RETURN_TYPES = ("IMAGE", "AUDIO", "FLOAT", "LATENT", "MODEL", "CLIP", "VAE", "VAE")
+    RETURN_NAMES = ("images", "audio", "frame_rate", "latent", "model", "clip", "vae", "audio_vae")
     DESCRIPTION = (
         "All-in-one LTXV 2.5 sampler (official template port). T2V / I2V / "
         "I2V+Audio run two passes (half res -> 2x latent upscale -> full res), "
@@ -443,7 +444,8 @@ class LTXV25SulphurAllInOne:
         "Audio Only renders just the soundtrack (64x64, 30 steps). Generated "
         "audio is always decoded from the first (high-step) pass. "
         "Model+LoRA+CLIP+VAE caching built in. Uses a single ltxv text "
-        "encoder (LTXV 2.5)."
+        "encoder (LTXV 2.5). Also outputs the sampled latent and the loaded "
+        "model, clip and both VAEs for downstream reuse."
     )
 
     @classmethod
@@ -519,16 +521,9 @@ class LTXV25SulphurAllInOne:
                                 "image_audio_to_video and first_last_frame_to_video modes)."}),
                 "last_frame": ("IMAGE", {"tooltip": "Last frame (first_last_frame_to_video mode only). "
                                "Center-crop resized to the video size and added as the final keyframe."}),
-                "audio": ("AUDIO", {"tooltip": "Voice / music track (image_audio_to_video mode). "
-                                               "Trimmed to the video length and preserved as-is."}),
-                "override_audio": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled",
-                                    "tooltip": "text_to_video / image_to_video / first_last_frame_to_video "
-                                               "only: when disabled (default), the connected 'audio' input is "
-                                               "ignored and the model-generated audio is sent to the audio "
-                                               "output. When enabled, the connected 'audio' input is passed "
-                                               "straight to the audio output instead. Ignored in "
-                                               "image_audio_to_video mode, where the connected audio is "
-                                               "always passed through to the output."}),
+                "audio": ("AUDIO", {"tooltip": "Voice / music track (image_audio_to_video mode only). "
+                                               "Trimmed to the video length and preserved as-is. "
+                                               "Ignored in all other modes."}),
 
                 "lora_1": (lora_list, {"tooltip": "Optional LoRA stack, applied in order 1 -> 3."}),
                 "lora_1_strength": ("FLOAT", {"default": 0.6, "min": -100.0, "max": 100.0, "step": 0.01,
@@ -583,7 +578,6 @@ class LTXV25SulphurAllInOne:
         first_frame=None,
         last_frame=None,
         audio=None,
-        override_audio=False,
         lora_1="None",
         lora_1_strength=1.0,
         lora_2="None",
@@ -639,6 +633,7 @@ class LTXV25SulphurAllInOne:
             model = _apply_lora_stack(model_override, lora_stack)
         else:
             model = _get_model(base_model, weight_dtype, lora_stack)
+        model_out = model  # keep an unpatched reference for the MODEL output
         clip = _get_clip(clip_1)
         video_vae = _get_vae(vae)
         audio_vae_model = _get_vae(audio_vae)
@@ -661,13 +656,14 @@ class LTXV25SulphurAllInOne:
         if is_audio_only:
             print(f"[LTXV 2.5 AIO] audio-only pass: {AUDIO_STEPS} steps @ "
                   f"{AUDIO_ONLY_SIZE}x{AUDIO_ONLY_SIZE}")
-            audio_out, vid = _run_audio_pass(
+            audio_out, vid, av_out = _run_audio_pass(
                 model, pos, neg, frames, frame_rate, seed, cfg,
                 sampler_pass1, audio_vae_model, event_cb, start_time, "audio only")
             images = nodes.VAEDecodeTiled().decode(video_vae, vid, 768, 64, 4096, 32)[0]
             if sound_settings is not None:
                 audio_out = _enrich_sound(audio_out, sound_settings)
-            return (images, audio_out, float(frame_rate))
+            return (images, audio_out, float(frame_rate), av_out,
+                    model_out, clip, video_vae, audio_vae_model)
 
         if is_flf:
             # ---- first/last frame to video: single full-res pass with guides ---
@@ -705,6 +701,7 @@ class LTXV25SulphurAllInOne:
             _, _, vid1 = _res(LTXVCropGuides.execute(pos_g, neg_g, vid1))
             images = nodes.VAEDecodeTiled().decode(video_vae, vid1, 768, 64, 4096, 64)[0]
             gen_audio = _res(LTXVAudioVAEDecode.execute(aud1, audio_vae_model))[0]
+            final_latent = out1
             main_rep = _rep1
         else:
             # ---- two-pass pipeline (t2v / i2v / i2v+audio) -----------------------
@@ -790,14 +787,13 @@ class LTXV25SulphurAllInOne:
             vid2, _ = _res(LTXVSeparateAVLatent.execute(out2))
             images = nodes.VAEDecodeTiled().decode(video_vae, vid2, 768, 64, 4096, 32)[0]
             gen_audio = _res(LTXVAudioVAEDecode.execute(aud1, audio_vae_model))[0]
+            final_latent = out2
             main_rep = _rep2
 
         # ---- audio output selection ---------------------------------------------
-        # image_audio_to_video: connected audio always passes through.
-        # otherwise: pass through only if override_audio is enabled and audio is
-        # connected, else use the generated audio (decoded from pass 1).
-        passthrough = audio if (use_audio or (override_audio and audio is not None)) else None
-        audio_out = passthrough if passthrough is not None else gen_audio
+        # image_audio_to_video: the connected audio always passes through,
+        # otherwise the generated audio (decoded from pass 1) is used.
+        audio_out = audio if use_audio else gen_audio
 
         if sound_settings is not None:
             print("[LTXV 2.5 AIO] applying sound enricher settings to the audio output")
@@ -806,7 +802,8 @@ class LTXV25SulphurAllInOne:
         if main_rep is not None:
             main_rep.finish_all(time.time() - start_time)
 
-        return (images, audio_out, float(frame_rate))
+        return (images, audio_out, float(frame_rate), final_latent,
+                model_out, clip, video_vae, audio_vae_model)
 
 
 NODE_CLASS_MAPPINGS = {

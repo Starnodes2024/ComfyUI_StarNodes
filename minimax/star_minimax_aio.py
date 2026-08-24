@@ -26,12 +26,14 @@ import nodes
 import node_helpers
 import comfy.model_management
 import comfy.nested_tensor
-import comfy.sample
 import comfy.samplers
 import comfy.sd
 import comfy.utils
-import latent_preview
 from comfy_api.latest import io
+
+from ..ltx_video.star_video_sound_enricher import process_audio as _enrich_sound
+from .minimax_common import IMAGE_MODE_FRAMES, decode_audio, decode_video, run_sample
+from .star_minimax_latent_upscaler import upscale_minimax_conditioning, upscale_video_latent_3d
 
 # ---------------------------------------------------------------------------
 # MiniMax H3 helpers — imported from ComfyUI core, with local fallbacks so the
@@ -120,8 +122,6 @@ CLIP_TYPES = ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "moch
 MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0, "audio only"]
 
 OUTPUT_FPS = 24.0
-
-IMAGE_MODE_FRAMES = 9    # stills: 9 frames fully rendered, frame index 8 is the output
 
 WEIGHT_DTYPES = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
@@ -250,12 +250,6 @@ def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
     return cond, latent
 
 
-class _GuiderBasic(comfy.samplers.CFGGuider):
-    """Same as the core BasicGuider."""
-    def set_conds(self, positive):
-        self.inner_set_conds({"positive": positive})
-
-
 class StarMinimaxAllInOne(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -272,7 +266,10 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 "the minimax text encoder and both VAEs, builds <Picture i> / <Video k> / "
                 "<Audio j> reference conditioning, samples with the chosen sampler/scheduler "
                 "and decodes video + audio. Reference image/video/audio slots grow "
-                "automatically, exactly like the core MiniMax H3 Reference to Video node."
+                "automatically, exactly like the core MiniMax H3 Reference to Video node. "
+                "Connect a Star Video Sound Enricher Option to sound_settings to clean up "
+                "and enrich the soundtrack internally, or a Star Minimax Latent Upscaler "
+                "Option to options for a second-pass latent upscale + refine."
             ),
             inputs=[
                 # ---------------- Mode ----------------
@@ -326,6 +323,10 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 # ---------------- Connectors ----------------
                 io.Model.Input("model_override", optional=True,
                                tooltip="Optional external MODEL (e.g. a sage-attention patched MiniMax H3). When connected, the internal diffusion_model dropdown is ignored."),
+                io.Custom("SOUND_SETTINGS").Input("sound_settings", optional=True,
+                                                  tooltip="Optional sound processing from a 'Star Video Sound Enricher Option' node - the generated soundtrack is cleaned up and enriched with these settings (at least 44.1 kHz, never downsampled) before it leaves the node. Ignored in image mode without audio."),
+                io.Custom("UPSCALE_SETTINGS").Input("options", optional=True,
+                                                    tooltip="Optional second-pass latent upscale from a 'Star Minimax Latent Upscaler Option' node - the pass-1 video latent is upscaled with the selected latent upscaler model and refined in a short second sampling pass with the same conditioning and the same seed (references are resolution-matched). Ignored when megapixels is 'audio only'."),
                 io.Autogrow.Input("ref_images", optional=True,
                                   template=io.Autogrow.TemplatePrefix(
                                       input=io.Image.Input("ref_image",
@@ -353,9 +354,9 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 io.Float.Output(display_name="FPS",
                                 tooltip="Fixed frame rate of the generated video (24.0). Connect straight into your video combine/save node."),
                 io.Latent.Output(display_name="LATENT",
-                                 tooltip="The combined processed latent from the sampler (NestedTensor with video+audio), before VAE decoding."),
+                                 tooltip="The combined processed latent from the sampler (NestedTensor with video+audio), before VAE decoding. When an upscale options node is connected, this is the refined second-pass latent."),
                 io.Model.Output(display_name="MODEL",
-                                tooltip="The diffusion model used for sampling."),
+                                tooltip="The diffusion model used for the main (pass-1) sampling."),
                 io.Clip.Output(display_name="CLIP",
                                tooltip="The loaded text encoder."),
                 io.Vae.Output(display_name="VAE",
@@ -441,51 +442,26 @@ class StarMinimaxAllInOne(io.ComfyNode):
             model.get_model_object("model_sampling"), scheduler, total_steps).cpu()
         return sigmas[-(steps + 1):]
 
-    @staticmethod
-    def _sample(model, cond, latent, seed, sampler_name, sigmas):
-        guider = _GuiderBasic(model)
-        guider.set_conds(cond)
-        sampler = comfy.samplers.sampler_object(sampler_name)
-
-        latent = latent.copy()
-        latent_image = comfy.sample.fix_empty_latent_channels(
-            guider.model_patcher, latent["samples"],
-            latent.get("downscale_ratio_spacial", None),
-            latent.get("downscale_ratio_temporal", None))
-        latent["samples"] = latent_image
-
-        batch_inds = latent["batch_index"] if "batch_index" in latent else None
-        noise = comfy.sample.prepare_noise(latent_image, seed, batch_inds)
-
-        x0_output = {}
-        callback = latent_preview.prepare_callback(
-            guider.model_patcher, sigmas.shape[-1] - 1, x0_output)
-        disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
-        samples = guider.sample(noise, latent_image, sampler, sigmas,
-                                denoise_mask=None, callback=callback,
-                                disable_pbar=disable_pbar, seed=seed)
-        return samples.to(comfy.model_management.intermediate_device())
-
-    @staticmethod
-    def _decode_video(vae, samples, image_mode=False):
-        latent = samples.unbind()[0] if samples.is_nested else samples
-        images = vae.decode(latent)
-        if len(images.shape) == 5:  # combine batches
-            images = images.reshape(-1, images.shape[-3], images.shape[-2], images.shape[-1])
-        if image_mode:
-            images = images[min(IMAGE_MODE_FRAMES - 1, images.shape[0] - 1):][:1]
-        return images
-
-    @staticmethod
-    def _decode_audio(audio_vae, samples):
-        latent = samples.unbind()[-1] if samples.is_nested else samples
-        audio = audio_vae.decode(latent).movedim(-1, 1)
-        std = torch.std(audio, dim=[1, 2], keepdim=True) * 5.0
-        std[std < 1.0] = 1.0
-        audio = audio / std
-        vae_sr = getattr(audio_vae, "audio_sample_rate_output",
-                         getattr(audio_vae, "audio_sample_rate", 44100))
-        return {"waveform": audio, "sample_rate": vae_sr}
+    @classmethod
+    def _run_upscale_pass(cls, model, cond, samples, seed, options):
+        """Second pass from a Star Minimax Latent Upscaler Option bundle:
+        upscale the pass-1 video latent, keep the pass-1 audio latent, refine
+        with the baked sigmas and the same (resolution-matched) conditioning,
+        reusing the pass-1 seed."""
+        model2 = options["model"] if options["model"] is not None else model
+        video, audio = samples.unbind()
+        video_up, scale = upscale_video_latent_3d(
+            video, options["upscale_model"], options["megapixels"], options["align"],
+            options["enable_chunking"], options["device"], options["precision"])
+        logging.info("[Star Minimax AIO] upscale pass: %.2fx to %dx%d latent | %s | sampler %s%s",
+                     scale, video_up.shape[-1], video_up.shape[-2],
+                     options["sigmas_preset"], options["sampler_name"],
+                     "" if options["model"] is not None else " | pass-1 model reused")
+        latent2 = {"samples": comfy.nested_tensor.NestedTensor(
+            (video_up.to(audio.device), audio))}
+        cond2 = upscale_minimax_conditioning(cond, scale)
+        return run_sample(model2, cond2, latent2, seed,
+                          options["sampler_name"], options["sigmas"])
 
     # ------------------------------------------------------------------
     @classmethod
@@ -493,8 +469,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_image_size, seed, steps, sampler_name, scheduler, denoise,
                 diffusion_model, weight_dtype, clip_name, clip_type, clip_device,
                 vae_name, audio_vae_name, audio_vae_precision, audio_vae_device,
-                model_override=None, ref_images=None, ref_videos=None,
-                ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
+                model_override=None, sound_settings=None, options=None, ref_images=None,
+                ref_videos=None, ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
 
         audio_only = (megapixels == "audio only")
 
@@ -529,15 +505,27 @@ class StarMinimaxAllInOne(io.ComfyNode):
         # 4. Sampling (RandomNoise + BasicGuider + KSamplerSelect +
         #    BasicScheduler + SamplerCustomAdvanced)
         sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
-        samples = cls._sample(model, cond, latent, seed, sampler_name, sigmas)
+        samples = run_sample(model, cond, latent, seed, sampler_name, sigmas)
+
+        # 4b. Optional second pass: latent upscale + refine (Star Minimax Latent Upscaler Option)
+        samples_pass1 = samples
+        ran_pass2 = options is not None and not audio_only
+        if options is not None and audio_only:
+            logging.info("[Star Minimax AIO] 'audio only' mode - upscale options ignored")
+        if ran_pass2:
+            samples = cls._run_upscale_pass(model, cond, samples, seed, options)
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
         #    image mode: decode all 9 frames, return frame index 8 as the still
-        images = cls._decode_video(vae, samples, image_mode=(mode == "image"))
+        images = decode_video(vae, samples, image_mode=(mode == "image"))
         if mode == "image" and not audio_only:
             audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
         else:
-            audio = cls._decode_audio(audio_vae, samples)
+            audio_samples = samples_pass1 if (ran_pass2 and not options["upscale_pass_audio"]) else samples
+            audio = decode_audio(audio_vae, audio_samples)
+            if sound_settings is not None:
+                logging.info("[Star Minimax AIO] applying sound enricher settings to the audio output")
+                audio = _enrich_sound(audio, sound_settings)
 
         return io.NodeOutput(images, audio, OUTPUT_FPS, {"samples": samples}, model, clip, vae, audio_vae)
 
