@@ -18,11 +18,11 @@ const PREVIEW_MAX_H = 480;
 const PREVIEW_PLACEHOLDER_H = 200;
 const PREVIEW_PAD = 14;      // padding + border around the video box
 const PROGRESS_H = 58;       // fixed height of the progress bar widget
-const TRIM_ROW_H = 26;       // one trim slider row in the loader
-const LOADER_STAGE_MIN_H = 600;   // preview stage minimum (grows on resize)
-const LOADER_CONTENT_MIN_H = LOADER_STAGE_MIN_H + 18 + TRIM_ROW_H * 2 + 6
-    + PREVIEW_PAD;           // stage + info line + sliders + gaps/padding
-const LOADER_MIN_WIDTH = 660;
+const TRIM_ROW_H = 26;       // the trim range slider row in the loader
+const LOADER_STAGE_MIN_H = 450;   // preview stage minimum (grows on resize)
+const LOADER_CONTENT_MIN_H = LOADER_STAGE_MIN_H + 18 + TRIM_ROW_H + 20
+    + PREVIEW_PAD;           // stage + info + range slider + values + padding
+const LOADER_MIN_WIDTH = 500;
 
 const STYLE_ID = "star-nodes-style";
 
@@ -72,31 +72,33 @@ function ensureStyle() {
                 padding: 3px 2px 0 2px; white-space: nowrap; overflow: hidden;
                 text-overflow: ellipsis; flex: none; }
 .star-trim { font-family: sans-serif; padding: 2px 2px 0 2px; flex: none; }
-.star-vp-fixed { width: min(600px, 100%); height: 100%; margin: 0 auto;
+.star-vp-fixed { width: min(450px, 100%); height: 100%; margin: 0 auto;
                  display: flex; align-items: center; justify-content: center; }
 .star-vp-fixed video { width: 100%; height: 100%; }
 .star-vp-fixed .star-vp-empty { width: 100%; height: 100%; border: none; }
-.star-trim-row { display: flex; align-items: center; gap: 6px;
-                 height: ${TRIM_ROW_H}px; }
-.star-trim-row label { font-size: 10px; color: #8a8a9e; width: 64px;
-                       flex: none; }
-.star-trim-row input[type=range] { flex: 1; min-width: 0; height: 14px;
-    margin: 0; -webkit-appearance: none; appearance: none;
-    background: transparent; cursor: pointer; }
-.star-trim-row input[type=range]::-webkit-slider-runnable-track {
-    height: 6px; border-radius: 3px; background: var(--track-bg, #3a3a4c); }
-.star-trim-row input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
-    border-radius: 50%; margin-top: -4px; background: #e8e8f2;
-    border: 2px solid #6a5cff; }
-.star-trim-row input[type=range]::-moz-range-track {
-    height: 6px; border-radius: 3px; background: var(--track-bg, #3a3a4c); }
-.star-trim-row input[type=range]::-moz-range-thumb {
-    width: 12px; height: 12px; border-radius: 50%; background: #e8e8f2;
-    border: 2px solid #6a5cff; }
-.star-trim-row input[type=range]:disabled { opacity: .35; cursor: default; }
-.star-trim-val { font-size: 10px; color: #cfcfe8; width: 44px; flex: none;
-                 text-align: right; font-variant-numeric: tabular-nums; }
+.star-range { position: relative; height: ${TRIM_ROW_H}px; margin: 0 2px; }
+.star-range-track { position: absolute; left: 0; right: 0; top: 50%;
+                    transform: translateY(-50%); height: 8px;
+                    border-radius: 4px; background: #3a3a4c; }
+.star-range input[type=range] { position: absolute; inset: 0; width: 100%;
+    height: 100%; margin: 0; -webkit-appearance: none; appearance: none;
+    background: transparent; pointer-events: none; }
+.star-range input[type=range]::-webkit-slider-runnable-track {
+    background: transparent; }
+.star-range input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; pointer-events: auto;
+    width: 14px; height: 14px; border-radius: 50%; background: #e8e8f2;
+    border: 2px solid #6a5cff; cursor: ew-resize; }
+.star-range input[type=range]::-moz-range-track { background: transparent; }
+.star-range input[type=range]::-moz-range-thumb {
+    pointer-events: auto; width: 12px; height: 12px; border-radius: 50%;
+    background: #e8e8f2; border: 2px solid #6a5cff; cursor: ew-resize; }
+.star-range.disabled { opacity: .35; }
+.star-range.disabled input[type=range]::-webkit-slider-thumb { cursor: default; }
+.star-range.disabled input[type=range]::-moz-range-thumb { cursor: default; }
+.star-range-vals { display: flex; justify-content: space-between;
+                   font-size: 10px; color: #cfcfe8; padding: 0 2px;
+                   font-variant-numeric: tabular-nums; }
 `;
     document.head.appendChild(st);
 }
@@ -262,94 +264,111 @@ function seekLoaderPreview(node, isStart, v) {
     st.videoEl.currentTime = Math.min(st.videoEl.duration, frame / fps);
 }
 
-// paint the track: start slider = cut frames red on the left, kept frames
-// green on the right; end slider the other way around
+// paint the range track: kept frames green between the handles, cut frames
+// red outside
 const TRIM_CUT_COLOR = "#d6455b";
 const TRIM_KEEP_COLOR = "#2fbf71";
 
-function paintTrimSlider(s, isStart) {
-    const input = s.input;
-    const min = parseFloat(input.min) || 0;
-    const max = parseFloat(input.max) || 1;
-    const v = parseFloat(input.value) || 0;
-    if (input.disabled || max <= min) {
-        input.style.removeProperty("--track-bg");
+function paintTrimRange(node) {
+    const st = node.starLoader;
+    if (!st?.range) return;
+    const { track, startInput, endInput, startVal, endVal } = st.range;
+    if (startInput.disabled) {
+        track.style.background = "#3a3a4c";
+        startVal.textContent = "";
+        endVal.textContent = "";
         return;
     }
-    const pct = Math.min(100, Math.max(0, (v - min) / (max - min) * 100));
-    input.style.setProperty("--track-bg", isStart
-        ? `linear-gradient(90deg, ${TRIM_CUT_COLOR} 0%, ${TRIM_CUT_COLOR} ${pct}%, ${TRIM_KEEP_COLOR} ${pct}%, ${TRIM_KEEP_COLOR} 100%)`
-        : `linear-gradient(90deg, ${TRIM_KEEP_COLOR} 0%, ${TRIM_KEEP_COLOR} ${pct}%, ${TRIM_CUT_COLOR} ${pct}%, ${TRIM_CUT_COLOR} 100%)`);
+    const max = parseFloat(startInput.max) || 1;
+    const s = parseFloat(startInput.value) || 0;
+    const e = parseFloat(endInput.value) || 0;
+    const sp = Math.min(100, Math.max(0, s / max * 100));
+    const ep = Math.min(100, Math.max(0, e / max * 100));
+    track.style.background =
+        `linear-gradient(90deg, ${TRIM_CUT_COLOR} 0%, ${TRIM_CUT_COLOR} ${sp}%, ` +
+        `${TRIM_KEEP_COLOR} ${sp}%, ${TRIM_KEEP_COLOR} ${ep}%, ` +
+        `${TRIM_CUT_COLOR} ${ep}%, ${TRIM_CUT_COLOR} 100%)`;
+    startVal.textContent = `start ${s}`;
+    endVal.textContent = `end ${e}`;
 }
 
-function paintTrimSliders(node) {
-    const st = node.starLoader;
-    if (!st) return;
-    paintTrimSlider(st.startSlider, true);
-    paintTrimSlider(st.endSlider, false);
-}
+// Dual-handle range slider: one bar, left handle = start_frame, right
+// handle = end_frame. Mirrors into the start_frame/end_frame widgets so the
+// cut persists in the workflow.
+function makeTrimRange(node) {
+    const box = document.createElement("div");
+    const range = document.createElement("div");
+    range.className = "star-range disabled";
+    const track = document.createElement("div");
+    track.className = "star-range-track";
+    const startInput = document.createElement("input");
+    const endInput = document.createElement("input");
+    for (const input of [startInput, endInput]) {
+        input.type = "range";
+        input.min = "0";
+        input.max = "1";
+        input.step = "1";
+        input.value = input.min;
+        input.disabled = true;
+    }
+    endInput.value = "1";
+    range.appendChild(track);
+    range.appendChild(startInput);
+    range.appendChild(endInput);
+    box.appendChild(range);
+    const vals = document.createElement("div");
+    vals.className = "star-range-vals";
+    const startVal = document.createElement("span");
+    const endVal = document.createElement("span");
+    vals.appendChild(startVal);
+    vals.appendChild(endVal);
+    box.appendChild(vals);
 
-function syncTrimGuard(node, changedName, v) {
-    const st = node.starLoader;
-    if (!st?.info) return;
-    const n = st.info.frames_est;
     const startW = getWidget(node, "start_frame");
     const endW = getWidget(node, "end_frame");
-    // keep the range valid: start stays below end
-    if (changedName === "start_frame" && endW && endW.value > 0 && endW.value <= v) {
-        endW.value = Math.min(n, v + 1);
-        st.endSlider.input.value = endW.value;
-        st.endSlider.val.textContent = endW.value;
-    }
-    if (changedName === "end_frame" && startW && v > 0 && startW.value >= v) {
-        startW.value = Math.max(0, v - 1);
-        st.startSlider.input.value = startW.value;
-        st.startSlider.val.textContent = startW.value;
-    }
-}
 
-function makeTrimSlider(node, label, widgetName) {
-    const row = document.createElement("div");
-    row.className = "star-trim-row";
-    const lbl = document.createElement("label");
-    lbl.textContent = label;
-    const input = document.createElement("input");
-    input.type = "range";
-    input.min = "0";
-    input.max = "1";
-    input.step = "1";
-    input.value = "0";
-    input.disabled = true;
-    const val = document.createElement("span");
-    val.className = "star-trim-val";
-    row.appendChild(lbl);
-    row.appendChild(input);
-    row.appendChild(val);
-
-    const w = getWidget(node, widgetName);
-    input.addEventListener("input", () => {
-        const v = parseInt(input.value, 10) || 0;
-        val.textContent = v;
-        if (w) w.value = v;
-        syncTrimGuard(node, widgetName, v);
-        paintTrimSliders(node);
-        seekLoaderPreview(node, widgetName === "start_frame", v);
+    startInput.addEventListener("input", () => {
+        let v = parseInt(startInput.value, 10) || 0;
+        const e = parseInt(endInput.value, 10) || 0;
+        if (v >= e) {                       // start stays below end
+            v = Math.max(0, e - 1);
+            startInput.value = v;
+        }
+        if (startW) startW.value = v;
+        paintTrimRange(node);
+        seekLoaderPreview(node, true, v);
         node.graph?.setDirtyCanvas?.(true, true);
     });
-    // number field -> slider (two-way sync)
-    if (w) {
+    endInput.addEventListener("input", () => {
+        let v = parseInt(endInput.value, 10) || 0;
+        const s = parseInt(startInput.value, 10) || 0;
+        if (v <= s) {                       // end stays above start
+            v = s + 1;
+            endInput.value = v;
+        }
+        if (endW) endW.value = v;
+        paintTrimRange(node);
+        seekLoaderPreview(node, false, v);
+        node.graph?.setDirtyCanvas?.(true, true);
+    });
+
+    // number fields -> range handles (two-way sync)
+    const hookWidget = (w, input, isStart) => {
+        if (!w) return;
         const orig = w.callback;
         w.callback = function () {
             orig?.apply(this, arguments);
-            const v = parseInt(w.value, 10) || 0;
             const max = parseInt(input.max, 10) || 0;
-            input.value = Math.min(v, max);
-            val.textContent = w.value;
-            paintTrimSliders(node);
-            seekLoaderPreview(node, widgetName === "start_frame", v);
+            const v = Math.min(parseInt(w.value, 10) || 0, max);
+            input.value = v;
+            paintTrimRange(node);
+            seekLoaderPreview(node, isStart, v);
         };
-    }
-    return { row, input, val, widgetName };
+    };
+    hookWidget(startW, startInput, true);
+    hookWidget(endW, endInput, false);
+
+    return { box, range, track, startInput, endInput, startVal, endVal };
 }
 
 function resetLoaderPreview(node) {
@@ -363,12 +382,15 @@ function resetLoaderPreview(node) {
         `preview the selected video, then cut it with the sliders ` +
         `below.</div></div>`;
     st.infoLine.textContent = "";
-    for (const s of [st.startSlider, st.endSlider]) {
-        s.input.disabled = true;
-        s.input.value = s.input.min;
-        s.val.textContent = "";
-        s.input.style.removeProperty("--track-bg");
+    const r = st.range;
+    r.range.classList.add("disabled");
+    for (const input of [r.startInput, r.endInput]) {
+        input.disabled = true;
+        input.max = "1";
     }
+    r.startInput.value = "0";
+    r.endInput.value = "1";
+    paintTrimRange(node);
     relayout(node);
 }
 
@@ -443,15 +465,15 @@ async function loadVideoInfo(node) {
         }
         if (startW) startW.value = Math.min(Math.max(0, startW.value || 0), n - 1);
         if (endW && (!(endW.value > 0) || endW.value > n)) endW.value = n;
-        for (const s of [st.startSlider, st.endSlider]) {
-            s.input.disabled = false;
-            s.input.max = String(n);
+        const r = st.range;
+        r.range.classList.remove("disabled");
+        for (const input of [r.startInput, r.endInput]) {
+            input.disabled = false;
+            input.max = String(n);
         }
-        st.startSlider.input.value = startW ? startW.value : 0;
-        st.startSlider.val.textContent = startW ? startW.value : 0;
-        st.endSlider.input.value = endW ? endW.value : n;
-        st.endSlider.val.textContent = endW ? endW.value : n;
-        paintTrimSliders(node);
+        r.startInput.value = startW ? startW.value : 0;
+        r.endInput.value = endW ? endW.value : n;
+        paintTrimRange(node);
         fillLoaderPreview(node, video);
         st.infoLine.textContent =
             `${d.brief} | ~${n} frames @ ${Number(d.fps).toFixed(2)} fps` +
@@ -481,12 +503,8 @@ function setupLoaderNode(node) {
     node.starLoader = { wrap, mediaWrap, infoLine, trimBox,
                         widget: null, videoEl: null, info: null };
 
-    const startSlider = makeTrimSlider(node, "Start frame", "start_frame");
-    const endSlider = makeTrimSlider(node, "End frame", "end_frame");
-    trimBox.appendChild(startSlider.row);
-    trimBox.appendChild(endSlider.row);
-    node.starLoader.startSlider = startSlider;
-    node.starLoader.endSlider = endSlider;
+    node.starLoader.range = makeTrimRange(node);
+    trimBox.appendChild(node.starLoader.range.box);
 
     node.addWidget("button", "📼 Load Video", null, () => loadVideoInfo(node));
     const widget = node.addDOMWidget("star_loader_preview", "starLoaderPreview",
@@ -521,7 +539,7 @@ function setupLoaderNode(node) {
         };
     }
     relayout(node);
-    // make sure the 600px stage + sliders + progress bar all fit right away
+    // make sure the 450px stage + range slider + progress bar all fit right away
     if ((node.size?.[0] ?? 0) < LOADER_MIN_WIDTH) {
         node.setSize([LOADER_MIN_WIDTH, node.computeSize()[1]]);
         node.graph?.setDirtyCanvas?.(true, true);

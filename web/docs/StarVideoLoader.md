@@ -8,15 +8,16 @@ required.
 
 1. Pick (or upload) a video.
 2. Click **📼 Load Video** — the node probes the file in-place and fills the
-   **600×600 preview stage** (placeholder until then; the video letterboxes
+   **450×450 preview stage** (placeholder until then; the video letterboxes
    inside it, portrait or landscape — resize the node taller and the stage
    grows with it). No workflow run needed and no second preview — the
    frontend's built-in upload preview is hidden.
-3. Drag the **Start frame** / **End frame** sliders under the preview to cut
-   the clip — the tracks are color-coded (green = kept frames, red = cut
-   frames), and the preview seeks to the cut point as you drag so you can see
+3. Drag the **range slider** under the preview to cut the clip — the left
+   handle sets the start frame, the right handle the end frame. The track is
+   color-coded (green = kept frames between the handles, red = cut frames),
+   and the preview seeks to the handle you are dragging so you can see
    exactly which frame you are cutting at. Pressing **play** then plays only
-   the cut range (it loops between start and end). The sliders stay in sync
+   the cut range (it loops between start and end). The range stays in sync
    with the `start_frame` / `end_frame` number widgets (use those for exact
    entry).
 4. Run the workflow — only the selected range is decoded, and the **audio is
