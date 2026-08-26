@@ -12,6 +12,11 @@ Loads a video from the ComfyUI input folder (upload supported) and outputs:
 Frame control widgets (force_rate / skip / every-kth / cap) mirror the
 classic load-video behavior so the images output drops straight into any
 image workflow - or back into the Star Video Compressor.
+
+The frontend adds a "Load Video" button: it probes the selected file without
+running the workflow (/starnodes/video_loader/info), shows an inline preview
+and sets the start_frame/end_frame slider ranges - the cut is applied to
+frames and audio when the workflow runs.
 """
 
 import io
@@ -71,6 +76,16 @@ class StarVideoLoader:
                     "tooltip": "Maximum number of frames to load "
                                "(0 = all). Use this to protect your RAM "
                                "with long videos."}),
+                "start_frame": ("INT", {
+                    "default": 0, "min": 0, "max": 1000000, "step": 1,
+                    "tooltip": "First frame to keep (0 = start of the "
+                               "video). Click the Load button to probe the "
+                               "video and preview the cut point."}),
+                "end_frame": ("INT", {
+                    "default": 0, "min": 0, "max": 1000000, "step": 1,
+                    "tooltip": "End frame (exclusive, 0 = to the end). "
+                               "Click the Load button to probe the video "
+                               "and preview the cut point."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -88,7 +103,8 @@ class StarVideoLoader:
     # ------------------------------------------------------------------
 
     def load(self, video, force_rate=0.0, skip_first_frames=0,
-             select_every_kth=1, frame_load_cap=0, unique_id=None):
+             select_every_kth=1, frame_load_cap=0, start_frame=0,
+             end_frame=0, unique_id=None):
         path = folder_paths.get_annotated_filepath(video)
         if not os.path.exists(path):
             raise FileNotFoundError(
@@ -136,23 +152,38 @@ class StarVideoLoader:
 
         if skip_first_frames:
             arr = arr[int(skip_first_frames):]
+        trimmed = ""
+        start = 0
+        if start_frame or end_frame > 0:
+            n0 = arr.shape[0]
+            start = min(max(0, int(start_frame)), n0)
+            end = int(end_frame) if 0 < int(end_frame) <= n0 else n0
+            arr = arr[start:max(start, end)]
+            trimmed = f", trimmed {start}-{end}"
         if frame_load_cap and frame_load_cap > 0:
             arr = arr[:int(frame_load_cap)]
         if arr.shape[0] == 0:
             raise RuntimeError(
-                "Star Video Loader: skip_first_frames/frame_load_cap left "
-                "0 frames.")
+                "Star Video Loader: skip_first_frames/start_frame/end_frame/"
+                "frame_load_cap left 0 frames.")
         if not arr.flags.writeable:
             arr = arr.copy()
         images = torch.from_numpy(arr).float() / 255.0
         loaded = int(images.shape[0])
 
-        # ---- extract audio --------------------------------------------
+        # ---- extract audio (cut to the same range as the kept frames) ----
         audio_out = None
         if info.get("acodec"):
+            cut = skip_first_frames or start or end_frame > 0 \
+                or (frame_load_cap and frame_load_cap > 0)
+            if cut:
+                ss = (int(skip_first_frames) + start) / eff_fps
+                aargs = ["-ss", f"{ss:.6f}", "-i", path, "-vn",
+                         "-t", f"{loaded / eff_fps:.6f}", "-f", "wav", "pipe:1"]
+            else:
+                aargs = ["-i", path, "-vn", "-f", "wav", "pipe:1"]
             wav_bytes = run_ffmpeg_pipe(
-                ["-i", path, "-vn", "-f", "wav", "pipe:1"],
-                duration=info.get("duration"), reporter=reporter,
+                aargs, duration=info.get("duration"), reporter=reporter,
                 sub="extracting audio")
             with wave.open(io.BytesIO(wav_bytes), "rb") as wf:
                 channels = wf.getnchannels()
@@ -173,7 +204,7 @@ class StarVideoLoader:
             f"{os.path.basename(path)} | {fmt_media_brief(info)}\n"
             f"frames: {loaded} loaded"
             + (
-                f" (decoded {decoded}, source ~{est_total} @ {src_fps:g} fps)"
+                f" (decoded {decoded}{trimmed}, source ~{est_total} @ {src_fps:g} fps)"
                 if decoded != loaded or est_total != decoded
                 else f" (source @ {src_fps:g} fps)"
             )
@@ -187,9 +218,8 @@ class StarVideoLoader:
         )     
         print("[StarVideoLoader]\n" + info_str)
 
-        # No custom preview here on purpose: the ComfyUI frontend already
-        # renders a video preview for the upload/selection widget - a
-        # second one would only duplicate it (and overflow the node).
+        # The inline preview is filled by the frontend via the Load button
+        # (see web/js/star_video_compressor.js) - no workflow run needed.
         return {"result": ((True, [path]), images, audio_out,
                            float(eff_fps), loaded, info_str)}
 
@@ -197,14 +227,15 @@ class StarVideoLoader:
 
     @classmethod
     def IS_CHANGED(cls, video, force_rate=0.0, skip_first_frames=0,
-                   select_every_kth=1, frame_load_cap=0, **kwargs):
+                   select_every_kth=1, frame_load_cap=0, start_frame=0,
+                   end_frame=0, **kwargs):
         try:
             mtime = os.path.getmtime(
                 folder_paths.get_annotated_filepath(video))
         except OSError:
             mtime = float("nan")
         return f"{mtime}-{force_rate}-{skip_first_frames}-" \
-               f"{select_every_kth}-{frame_load_cap}"
+               f"{select_every_kth}-{frame_load_cap}-{start_frame}-{end_frame}"
 
     @classmethod
     def VALIDATE_INPUTS(cls, video, **kwargs):
@@ -220,3 +251,45 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "StarVideoLoader": "⭐ Star Video Loader",
 }
+
+
+# API endpoint for the node's Load button: probe the video without running
+# the workflow so the frontend can set the start/end slider ranges and show
+# the preview.
+try:
+    from server import PromptServer
+    from aiohttp import web
+
+    @PromptServer.instance.routes.post("/starnodes/video_loader/info")
+    async def star_video_loader_info(request):
+        try:
+            data = await request.json()
+            video = data.get("video", "")
+            force_rate = float(data.get("force_rate") or 0)
+            kth = max(1, int(data.get("select_every_kth") or 1))
+            path = folder_paths.get_annotated_filepath(video)
+            if not os.path.exists(path):
+                return web.json_response(
+                    {"status": "error", "message": f"video not found: {video}"},
+                    status=404)
+            info = probe_media(path)
+            src_fps = info.get("fps") or 30.0
+            work_fps = force_rate if force_rate > 0 else src_fps
+            frames_est = max(1, int(round((info.get("duration") or 0)
+                                          * work_fps / kth)))
+            return web.json_response({
+                "status": "ok",
+                "frames_est": frames_est,
+                "fps": work_fps / kth,
+                "src_fps": src_fps,
+                "duration": info.get("duration"),
+                "width": info.get("width"),
+                "height": info.get("height"),
+                "has_audio": bool(info.get("acodec")),
+                "brief": fmt_media_brief(info),
+            })
+        except Exception as e:
+            return web.json_response({"status": "error", "message": str(e)},
+                                     status=500)
+except Exception as e:
+    print(f"[StarVideoLoader] could not register info endpoint: {e}")

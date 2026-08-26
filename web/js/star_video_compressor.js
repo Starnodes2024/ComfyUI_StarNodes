@@ -11,12 +11,18 @@ import { app } from "../../../../scripts/app.js";
 // otherwise later widgets are drawn on top of the video (overlap bug).
 const PREVIEW_NODES = ["StarVideoCompressor"];
 const PROGRESS_NODES = ["StarVideoCompressor", "StarVideoLoader", "StarVideoLoaderLowRAM"];
+const LOADER_NODES = ["StarVideoLoader"];
 
 const PREVIEW_MIN_H = 80;
 const PREVIEW_MAX_H = 480;
 const PREVIEW_PLACEHOLDER_H = 200;
 const PREVIEW_PAD = 14;      // padding + border around the video box
 const PROGRESS_H = 58;       // fixed height of the progress bar widget
+const TRIM_ROW_H = 26;       // one trim slider row in the loader
+const LOADER_STAGE_MIN_H = 600;   // preview stage minimum (grows on resize)
+const LOADER_CONTENT_MIN_H = LOADER_STAGE_MIN_H + 18 + TRIM_ROW_H * 2 + 6
+    + PREVIEW_PAD;           // stage + info line + sliders + gaps/padding
+const LOADER_MIN_WIDTH = 660;
 
 const STYLE_ID = "star-nodes-style";
 
@@ -49,16 +55,48 @@ function ensureStyle() {
 @keyframes starPbStripes { from { background-position: 0 0; }
                            to   { background-position: 28px 0; } }
 
-.star-vp { width: 100%; padding: 2px 6px 4px 6px; box-sizing: border-box; }
+.star-vp { width: 100%; height: 100%; padding: 2px 6px 4px 6px;
+           box-sizing: border-box; overflow: hidden;
+           display: flex; flex-direction: column; }
+.star-vp-media { flex: 1 1 auto; min-height: 0; display: flex; }
 .star-vp-box { width: 100%; border-radius: 6px; overflow: hidden;
                background: #101018; border: 1px solid #2c2c3a; }
 .star-vp-empty { height: ${PREVIEW_PLACEHOLDER_H}px; display: flex;
                  align-items: center; justify-content: center; color: #5a5a6e;
-                 font-size: 11px; font-family: sans-serif;
+                 font-size: 11px; font-family: sans-serif; text-align: center;
+                 padding: 0 8px;
                  border: 1px dashed #333344; border-radius: 6px; }
-.star-vp video { width: 100%; display: block; background: #000; }
+.star-vp video { width: 100%; display: block; background: #000;
+                 object-fit: contain; }
 .star-vp-more { font-size: 10px; color: #8a8a9e; font-family: sans-serif;
-                padding: 3px 2px 0 2px; }
+                padding: 3px 2px 0 2px; white-space: nowrap; overflow: hidden;
+                text-overflow: ellipsis; flex: none; }
+.star-trim { font-family: sans-serif; padding: 2px 2px 0 2px; flex: none; }
+.star-vp-fixed { width: min(600px, 100%); height: 100%; margin: 0 auto;
+                 display: flex; align-items: center; justify-content: center; }
+.star-vp-fixed video { width: 100%; height: 100%; }
+.star-vp-fixed .star-vp-empty { width: 100%; height: 100%; border: none; }
+.star-trim-row { display: flex; align-items: center; gap: 6px;
+                 height: ${TRIM_ROW_H}px; }
+.star-trim-row label { font-size: 10px; color: #8a8a9e; width: 64px;
+                       flex: none; }
+.star-trim-row input[type=range] { flex: 1; min-width: 0; height: 14px;
+    margin: 0; -webkit-appearance: none; appearance: none;
+    background: transparent; cursor: pointer; }
+.star-trim-row input[type=range]::-webkit-slider-runnable-track {
+    height: 6px; border-radius: 3px; background: var(--track-bg, #3a3a4c); }
+.star-trim-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; margin-top: -4px; background: #e8e8f2;
+    border: 2px solid #6a5cff; }
+.star-trim-row input[type=range]::-moz-range-track {
+    height: 6px; border-radius: 3px; background: var(--track-bg, #3a3a4c); }
+.star-trim-row input[type=range]::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%; background: #e8e8f2;
+    border: 2px solid #6a5cff; }
+.star-trim-row input[type=range]:disabled { opacity: .35; cursor: default; }
+.star-trim-val { font-size: 10px; color: #cfcfe8; width: 44px; flex: none;
+                 text-align: right; font-variant-numeric: tabular-nums; }
 `;
     document.head.appendChild(st);
 }
@@ -184,6 +222,315 @@ function fillPreview(node, videos) {
     });
 }
 
+// ---------------------------------------------------------------- loader UI
+// StarVideoLoader: "Load Video" probes the file via
+// /starnodes/video_loader/info (no workflow run), fills an inline preview and
+// enables two custom trim sliders. The sliders mirror into the
+// start_frame/end_frame widgets (so the cut persists in the workflow) and
+// seek the preview to the cut point. The frontend's own upload preview is
+// hidden - ours replaces it, so the video shows only after Load is clicked.
+
+function getWidget(node, name) {
+    return (node.widgets || []).find((w) => w.name === name);
+}
+
+// The frontend adds its own "video-preview" DOM widget (canvasOnly) for
+// video_upload inputs as soon as a file is selected. Intercept its creation
+// and hide it completely: type "hidden" excludes it from the node layout
+// (no leftover spacer), our preview replaces it - so the video only shows
+// after the Load button is clicked.
+function interceptNativePreview(node) {
+    const orig = node.addDOMWidget.bind(node);
+    node.addDOMWidget = function (name, type, element, options) {
+        const w = orig(name, type, element, options);
+        if (name === "video-preview") {
+            element.style.display = "none";
+            w.hidden = true;   // excluded from layout + hit testing
+            w.type = "hidden";
+            w.computedHeight = 0;
+            w.computeLayoutSize = () => ({ minHeight: 0, maxHeight: 0, minWidth: 0 });
+        }
+        return w;
+    };
+}
+
+function seekLoaderPreview(node, isStart, v) {
+    const st = node.starLoader;
+    if (!st?.info || !st.videoEl?.duration) return;
+    const fps = st.info.fps || 30;
+    const frame = isStart ? v : Math.max(0, v - 1);
+    st.videoEl.currentTime = Math.min(st.videoEl.duration, frame / fps);
+}
+
+// paint the track: start slider = cut frames red on the left, kept frames
+// green on the right; end slider the other way around
+const TRIM_CUT_COLOR = "#d6455b";
+const TRIM_KEEP_COLOR = "#2fbf71";
+
+function paintTrimSlider(s, isStart) {
+    const input = s.input;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || 1;
+    const v = parseFloat(input.value) || 0;
+    if (input.disabled || max <= min) {
+        input.style.removeProperty("--track-bg");
+        return;
+    }
+    const pct = Math.min(100, Math.max(0, (v - min) / (max - min) * 100));
+    input.style.setProperty("--track-bg", isStart
+        ? `linear-gradient(90deg, ${TRIM_CUT_COLOR} 0%, ${TRIM_CUT_COLOR} ${pct}%, ${TRIM_KEEP_COLOR} ${pct}%, ${TRIM_KEEP_COLOR} 100%)`
+        : `linear-gradient(90deg, ${TRIM_KEEP_COLOR} 0%, ${TRIM_KEEP_COLOR} ${pct}%, ${TRIM_CUT_COLOR} ${pct}%, ${TRIM_CUT_COLOR} 100%)`);
+}
+
+function paintTrimSliders(node) {
+    const st = node.starLoader;
+    if (!st) return;
+    paintTrimSlider(st.startSlider, true);
+    paintTrimSlider(st.endSlider, false);
+}
+
+function syncTrimGuard(node, changedName, v) {
+    const st = node.starLoader;
+    if (!st?.info) return;
+    const n = st.info.frames_est;
+    const startW = getWidget(node, "start_frame");
+    const endW = getWidget(node, "end_frame");
+    // keep the range valid: start stays below end
+    if (changedName === "start_frame" && endW && endW.value > 0 && endW.value <= v) {
+        endW.value = Math.min(n, v + 1);
+        st.endSlider.input.value = endW.value;
+        st.endSlider.val.textContent = endW.value;
+    }
+    if (changedName === "end_frame" && startW && v > 0 && startW.value >= v) {
+        startW.value = Math.max(0, v - 1);
+        st.startSlider.input.value = startW.value;
+        st.startSlider.val.textContent = startW.value;
+    }
+}
+
+function makeTrimSlider(node, label, widgetName) {
+    const row = document.createElement("div");
+    row.className = "star-trim-row";
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = "0";
+    input.max = "1";
+    input.step = "1";
+    input.value = "0";
+    input.disabled = true;
+    const val = document.createElement("span");
+    val.className = "star-trim-val";
+    row.appendChild(lbl);
+    row.appendChild(input);
+    row.appendChild(val);
+
+    const w = getWidget(node, widgetName);
+    input.addEventListener("input", () => {
+        const v = parseInt(input.value, 10) || 0;
+        val.textContent = v;
+        if (w) w.value = v;
+        syncTrimGuard(node, widgetName, v);
+        paintTrimSliders(node);
+        seekLoaderPreview(node, widgetName === "start_frame", v);
+        node.graph?.setDirtyCanvas?.(true, true);
+    });
+    // number field -> slider (two-way sync)
+    if (w) {
+        const orig = w.callback;
+        w.callback = function () {
+            orig?.apply(this, arguments);
+            const v = parseInt(w.value, 10) || 0;
+            const max = parseInt(input.max, 10) || 0;
+            input.value = Math.min(v, max);
+            val.textContent = w.value;
+            paintTrimSliders(node);
+            seekLoaderPreview(node, widgetName === "start_frame", v);
+        };
+    }
+    return { row, input, val, widgetName };
+}
+
+function resetLoaderPreview(node) {
+    const st = node.starLoader;
+    if (!st) return;
+    st.info = null;
+    st.videoEl = null;
+    st.mediaWrap.innerHTML =
+        `<div class="star-vp-box star-vp-fixed">` +
+        `<div class="star-vp-empty">Click "Load Video" to probe and ` +
+        `preview the selected video, then cut it with the sliders ` +
+        `below.</div></div>`;
+    st.infoLine.textContent = "";
+    for (const s of [st.startSlider, st.endSlider]) {
+        s.input.disabled = true;
+        s.input.value = s.input.min;
+        s.val.textContent = "";
+        s.input.style.removeProperty("--track-bg");
+    }
+    relayout(node);
+}
+
+function fillLoaderPreview(node, videoName) {
+    const st = node.starLoader;
+    st.mediaWrap.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "star-vp-box star-vp-fixed";
+    const el = document.createElement("video");
+    el.controls = true;
+    el.loop = true;
+    el.preload = "auto";
+    const params = new URLSearchParams({
+        filename: videoName, subfolder: "", type: "input",
+    });
+    el.src = "/view?" + params.toString();
+    box.appendChild(el);
+    st.mediaWrap.appendChild(box);
+    st.videoEl = el;
+
+    // playback follows the cut: play starts at start_frame and loops back
+    // when end_frame is reached
+    const trimTimes = () => {
+        const fps = st.info?.fps || 30;
+        const start = (getWidget(node, "start_frame")?.value || 0) / fps;
+        const endW = getWidget(node, "end_frame")?.value || 0;
+        return { start, end: endW > 0 ? endW / fps : null };
+    };
+    el.addEventListener("play", () => {
+        const t = trimTimes();
+        if (el.currentTime < t.start - 0.05 || (t.end !== null && el.currentTime >= t.end)) {
+            el.currentTime = t.start;
+        }
+    });
+    el.addEventListener("timeupdate", () => {
+        const t = trimTimes();
+        if (t.end === null || el.paused) return;
+        if (el.currentTime >= t.end) el.currentTime = t.start;
+    });
+    relayout(node);
+}
+
+async function loadVideoInfo(node) {
+    const st = node.starLoader;
+    const vw = getWidget(node, "video");
+    const video = vw?.value;
+    if (!video || !st) return;
+    const forceRate = getWidget(node, "force_rate")?.value || 0;
+    const kth = getWidget(node, "select_every_kth")?.value || 1;
+    st.infoLine.textContent = "Probing video…";
+    try {
+        const resp = await app.api.fetchApi("/starnodes/video_loader/info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ video, force_rate: forceRate, select_every_kth: kth }),
+        });
+        const d = await resp.json();
+        if (d.status !== "ok") {
+            st.infoLine.textContent = "Probe failed: " + (d.message || resp.status);
+            return;
+        }
+        st.info = d;
+        const n = d.frames_est;
+        const startW = getWidget(node, "start_frame");
+        const endW = getWidget(node, "end_frame");
+        for (const w of [startW, endW]) {
+            if (!w) continue;
+            w.options = w.options || {};
+            w.options.min = 0;
+            w.options.max = n;
+            w.options.step = 1;
+        }
+        if (startW) startW.value = Math.min(Math.max(0, startW.value || 0), n - 1);
+        if (endW && (!(endW.value > 0) || endW.value > n)) endW.value = n;
+        for (const s of [st.startSlider, st.endSlider]) {
+            s.input.disabled = false;
+            s.input.max = String(n);
+        }
+        st.startSlider.input.value = startW ? startW.value : 0;
+        st.startSlider.val.textContent = startW ? startW.value : 0;
+        st.endSlider.input.value = endW ? endW.value : n;
+        st.endSlider.val.textContent = endW ? endW.value : n;
+        paintTrimSliders(node);
+        fillLoaderPreview(node, video);
+        st.infoLine.textContent =
+            `${d.brief} | ~${n} frames @ ${Number(d.fps).toFixed(2)} fps` +
+            (d.has_audio ? " | audio ✓" : " | no audio");
+    } catch (e) {
+        st.infoLine.textContent = "Probe failed: " + e;
+    }
+    node.graph?.setDirtyCanvas?.(true, true);
+}
+
+function setupLoaderNode(node) {
+    ensureStyle();
+    interceptNativePreview(node);
+
+    const wrap = document.createElement("div");
+    wrap.className = "star-vp";
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "star-vp-media";
+    const infoLine = document.createElement("div");
+    infoLine.className = "star-vp-more";
+    const trimBox = document.createElement("div");
+    trimBox.className = "star-trim";
+    wrap.appendChild(mediaWrap);
+    wrap.appendChild(infoLine);
+    wrap.appendChild(trimBox);
+
+    node.starLoader = { wrap, mediaWrap, infoLine, trimBox,
+                        widget: null, videoEl: null, info: null };
+
+    const startSlider = makeTrimSlider(node, "Start frame", "start_frame");
+    const endSlider = makeTrimSlider(node, "End frame", "end_frame");
+    trimBox.appendChild(startSlider.row);
+    trimBox.appendChild(endSlider.row);
+    node.starLoader.startSlider = startSlider;
+    node.starLoader.endSlider = endSlider;
+
+    node.addWidget("button", "📼 Load Video", null, () => loadVideoInfo(node));
+    const widget = node.addDOMWidget("star_loader_preview", "starLoaderPreview",
+        wrap, { serialize: false, hideOnZoom: false });
+    node.starLoader.widget = widget;
+    // computeSize() ignores computedHeight for DOM widgets (defaults to
+    // 50px) - computeLayoutSize is what sizes the node at creation.
+    // minHeight fits stage+sliders exactly; no maxHeight cap, so the widget
+    // absorbs extra space when the user expands the node (the stage grows
+    // instead of leaving dead space below the progress bar).
+    widget.computeLayoutSize = () => ({
+        minHeight: LOADER_CONTENT_MIN_H, minWidth: 220,
+    });
+    widget.computedHeight = LOADER_CONTENT_MIN_H;  // initial; the layout
+    // system's free-space distribution keeps it in sync afterwards
+    resetLoaderPreview(node);
+
+    // keep the run progress bar at the very bottom, below button + preview
+    const pw = getWidget(node, "star_progress");
+    if (pw) {
+        node.widgets = node.widgets.filter((w) => w !== pw);
+        node.widgets.push(pw);
+    }
+
+    // switching to another file invalidates the probe/preview
+    const vw = getWidget(node, "video");
+    if (vw) {
+        const origCb = vw.callback;
+        vw.callback = function () {
+            origCb?.apply(this, arguments);
+            resetLoaderPreview(node);
+        };
+    }
+    relayout(node);
+    // make sure the 600px stage + sliders + progress bar all fit right away
+    if ((node.size?.[0] ?? 0) < LOADER_MIN_WIDTH) {
+        node.setSize([LOADER_MIN_WIDTH, node.computeSize()[1]]);
+        node.graph?.setDirtyCanvas?.(true, true);
+    }
+    // workflows saved while the native preview still had layout space keep a
+    // stale tall node size - re-fit once the frontend settles
+    setTimeout(() => node.starLoader && relayout(node), 300);
+}
+
 // ---------------------------------------------------------------- extension
 
 app.registerExtension({
@@ -223,6 +570,11 @@ app.registerExtension({
             if (PREVIEW_NODES.includes(nodeData.name)) {
                 createPreviewWidget(this);
             }
+
+            // 3. Loader: Load-Button + Probe-Preview + Slider-Hooks
+            if (LOADER_NODES.includes(nodeData.name)) {
+                setupLoaderNode(this);
+            }
         };
 
         const onExecuted = nodeType.prototype.onExecuted;
@@ -251,6 +603,7 @@ app.registerExtension({
                     pb.widget.computedHeight = h + PREVIEW_PAD + (pb.extraH || 0);
                 }
             }
+            // the loader's 600px stage is fixed - nothing to recompute
         };
     },
 });
