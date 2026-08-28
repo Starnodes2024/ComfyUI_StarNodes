@@ -82,10 +82,11 @@ Note: decoding happens through ffmpeg directly into RAM — use
 | Input | Type | Description |
 |---|---|---|
 | `video` | `STAR_FILENAMES` | Video file(s) from the **Star Video Loader** (several files = batch compress). |
+| `video_native` | `VIDEO` | Native ComfyUI `VIDEO` input (e.g. from **CreateVideo**, **SaveVideo**, or the loader's `video_native` output). |
 | `images` | `IMAGE` | Alternative: image batch, encoded at `frame_rate`. |
 | `audio` | `AUDIO` | External audio track (core audio — e.g. built-in **LoadAudio** node or the loader's `audio` output). |
 
-**Input priority:** `video` → `video_path` widget → `images`.
+**Input priority:** `video` → `video_native` → `video_path` widget → `images`.
 
 ### Widgets
 
@@ -192,7 +193,7 @@ settings: format=video/h264-mp4 | preset=fast | target size 9.5 MiB (quality sli
 | Loader eats too much RAM | Set `frame_load_cap`, `select_every_kth`, or `force_rate`. |
 | Result larger than target | Long video + tiny target hit the 32 kbps floor — reduce fps/resolution, disable audio, or raise the target. |
 | No DOM bar / no preview | Hard-refresh the browser (Ctrl+F5) after installing/updating so the JS reloads. |
-| Old workflow lost its connection | v2 uses `STAR_FILENAMES` (standalone). Use the included loader or `video_path` instead of VHS nodes. |
+| Old workflow lost its connection | v2 uses `STAR_FILENAMES` (standalone). Use the included loader or `video_path` instead. |
 | `WinError 10054` in console | Unrelated Windows websocket noise from the ComfyUI server — harmless, ignore it. |
 
 ## 8. Releasing / shipping ffmpeg

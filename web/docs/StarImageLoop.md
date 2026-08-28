@@ -56,7 +56,7 @@ Creates seamless looping video frames from panoramic images. Perfect for creatin
 2. Connect to **Star Image Loop**
 3. Set resolution to "Full HD (1920)" and ratio to "9:16 (TikTok/Reels)"
 4. Set duration to 15 seconds for a relaxing pan
-5. Connect the `images` output to a **Video Combine** node (e.g., from VHS or other video nodes)
+5. Connect the `images` output to a **Video Combine** node (or other video nodes)
 6. Connect the `fps` output to the Video Combine node's frame_rate input
 7. Run the workflow
 

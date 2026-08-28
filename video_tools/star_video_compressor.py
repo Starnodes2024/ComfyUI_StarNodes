@@ -1,9 +1,10 @@
 """
-Star Video Compressor - a standalone ComfyUI custom node (no VHS required).
+Star Video Compressor - a standalone ComfyUI custom node.
 
 Compresses videos to a chosen quality (CRF) or to a desired target file
 size (bitrate-driven, two-pass where supported). Accepts:
   - STAR_FILENAMES from the bundled "Star Video Loader" node
+  - VIDEO (native ComfyUI VideoInput) via the video_native input
   - a direct file path via the video_path widget
   - an IMAGE batch (encode + compress in one step, uses frame_rate)
 
@@ -107,6 +108,10 @@ class StarVideoCompressor:
                 "video": ("STAR_FILENAMES", {"tooltip":
                           "Video file(s) from the 'Star Video Loader' "
                           "node."}),
+                "video_native": ("VIDEO", {"tooltip":
+                          "Native ComfyUI VIDEO input (e.g. from "
+                          "CreateVideo, SaveVideo, or the Star Video "
+                          "Loader's video_native output)."}),
                 "images": ("IMAGE", {"tooltip":
                            "Alternative: encode + compress an image batch "
                            "directly (uses frame_rate)."}),
@@ -126,8 +131,7 @@ class StarVideoCompressor:
     CATEGORY = "⭐StarNodes/Video"
     OUTPUT_NODE = True
     DESCRIPTION = ("Compress videos to a chosen quality or a desired file "
-                   "size - handy for Discord's 10 MB limit. Standalone, no "
-                   "Video Helper Suite required. "
+                   "size - handy for Discord's 10 MB limit. "
                    "See web/docs/StarVideoCompressor.md")
 
     # ------------------------------------------------------------------
@@ -135,8 +139,8 @@ class StarVideoCompressor:
     def compress(self, quality, format, preset, filename_prefix,
                  target_size_mb, video_path, frame_rate, save_audio,
                  save_output, drop_first_frames=0, drop_last_frames=0,
-                 video=None, images=None, audio=None, unique_id=None,
-                 prompt=None, extra_pnginfo=None):
+                 video=None, video_native=None, images=None, audio=None,
+                 unique_id=None, prompt=None, extra_pnginfo=None):
 
         drop_first_frames = max(0, min(1000, int(drop_first_frames)))
         drop_last_frames = max(0, min(1000, int(drop_last_frames)))
@@ -174,6 +178,17 @@ class StarVideoCompressor:
                 raise ValueError("Star Video Compressor: the 'video' input "
                                  "contains no files.")
             jobs = [("file", self._resolve_path(f)) for f in files]
+        elif video_native is not None:
+            src = video_native.get_stream_source()
+            if isinstance(src, str):
+                jobs = [("file", src)]
+            else:
+                # BytesIO — write to a temp file so ffmpeg can read it
+                fd, tmp = tempfile.mkstemp(suffix="_star_native_video.mp4")
+                os.close(fd)
+                with open(tmp, "wb") as f:
+                    f.write(src.read())
+                jobs = [("file", tmp)]
         elif video_path and video_path.strip():
             jobs = [("file", self._resolve_path(video_path))]
         elif images is not None:
@@ -181,7 +196,8 @@ class StarVideoCompressor:
         else:
             raise ValueError(
                 "Star Video Compressor: provide a 'video' input (Star Video "
-                "Loader), fill 'video_path', or connect 'images'.")
+                "Loader), a 'video_native' input (native VIDEO), fill "
+                "'video_path', or connect 'images'.")
 
         # Write workflow/prompt data to a temporary ffmetadata file so ffmpeg
         # can embed it (same approach as VideoHelperSuite — ComfyUI's

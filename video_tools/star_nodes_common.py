@@ -1,5 +1,5 @@
 """
-Shared helpers for the Star Nodes video pack (standalone, no VHS needed).
+Shared helpers for the Star Nodes video pack.
 
 - ffmpeg discovery (imageio-ffmpeg if present, else system ffmpeg on PATH)
 - media probing via `ffmpeg -i` parsing (no ffprobe required)

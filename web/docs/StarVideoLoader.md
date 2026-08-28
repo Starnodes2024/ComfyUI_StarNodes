@@ -1,8 +1,7 @@
 # ⭐ Star Video Loader — Help
 
 Loads a video from the ComfyUI input folder (upload supported) and outputs
-the file reference, decoded frames, audio, fps and frame count — no VHS
-required.
+the file reference, decoded frames, audio, fps and frame count.
 
 ## Load, preview & cut (no workflow run needed)
 
@@ -35,6 +34,7 @@ Choosing another video resets the preview — click Load again.
 | `fps` | FLOAT | effective fps of the returned frames |
 | `frames` | INT | number of returned frames |
 | `info` | STRING | report (size, fps, frame counts, path) |
+| `video_native` | VIDEO | native ComfyUI `VIDEO` (VideoInput), cut to the same range — connects to native nodes like SaveVideo |
 
 ## Widgets
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Star Video Joiner** node allows you to combine multiple image batches and audio inputs into a single unified output. This is particularly useful for preparing content for video creation nodes like VHS Video Combine.
+The **Star Video Joiner** node allows you to combine multiple image batches and audio inputs into a single unified output. This is particularly useful for preparing content for video creation nodes.
 
 ## Features
 
@@ -56,7 +56,7 @@ A ComfyUI frontend extension (`star_video_joiner_dynamic.js`) watches connection
 [Image Batch 1] ──┐
 [Image Batch 2] ──┤    (slot appears after connecting image_1)
 [Star Video Loader: video] ─┤    (video slot appears after connecting video_1)
-[Audio 1] ────────┼──> [Star Video Joiner] ──> [VHS Video Combine]
+[Audio 1] ────────┼──> [Star Video Joiner] ──> [Video Combine]
 [Audio 2] ────────┘    (slot appears after connecting audio_1)
 ```
 

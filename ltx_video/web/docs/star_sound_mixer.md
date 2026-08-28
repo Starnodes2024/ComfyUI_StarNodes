@@ -53,7 +53,7 @@ The volume sliders are custom DOM widgets (`star_sound_mixer.js`) — not standa
 
 ### Basic Workflow
 ```
-[Load Audio 1] ──> [Star Sound Mixer] ──> [VHS Video Combine / Save Audio]
+[Load Audio 1] ──> [Star Sound Mixer] ──> [Video Combine / Save Audio]
 [Load Audio 2] ──>   (slot appears after connecting audio_1)
 [Load Audio 3] ──>   (slot appears after connecting audio_2)
 ```

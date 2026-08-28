@@ -1,5 +1,5 @@
 """
-Star Video Loader - standalone video loading node (no VHS required).
+Star Video Loader - standalone video loading node.
 
 Loads a video from the ComfyUI input folder (upload supported) and outputs:
   - video  : STAR_FILENAMES (path list for the Star Video Compressor)
@@ -8,6 +8,7 @@ Loads a video from the ComfyUI input folder (upload supported) and outputs:
   - fps    : FLOAT, effective frames per second of the returned images
   - frames : INT, number of returned frames
   - info   : STRING report
+  - video_native : VIDEO (native ComfyUI VideoInput, cut to the same range)
 
 Frame control widgets (force_rate / skip / every-kth / cap) mirror the
 classic load-video behavior so the images output drops straight into any
@@ -27,6 +28,8 @@ import numpy as np
 import torch
 
 import folder_paths
+
+from comfy_api.latest import VideoFromFile
 
 from .star_nodes_common import (
     ProgressReporter,
@@ -91,8 +94,9 @@ class StarVideoLoader:
         }
 
     RETURN_TYPES = ("STAR_FILENAMES", "IMAGE", "AUDIO", "FLOAT", "INT",
-                    "STRING")
-    RETURN_NAMES = ("video", "images", "audio", "fps", "frames", "info")
+                    "STRING", "VIDEO")
+    RETURN_NAMES = ("video", "images", "audio", "fps", "frames", "info",
+                    "video_native")
     FUNCTION = "load"
     CATEGORY = "⭐StarNodes/Video"
     OUTPUT_NODE = True
@@ -198,6 +202,11 @@ class StarVideoLoader:
 
         reporter.finish_all(time.time() - t0)
 
+        # ---- native VIDEO output (VideoFromFile with cut applied) ----
+        ss = (int(skip_first_frames) + start) / eff_fps
+        native_video = VideoFromFile(
+            path, start_time=ss, duration=loaded / eff_fps)
+
         # ---- info string + preview ------------------------------------
         est_total = int(round((info.get("duration") or 0) * src_fps))
         info_str = (
@@ -221,7 +230,7 @@ class StarVideoLoader:
         # The inline preview is filled by the frontend via the Load button
         # (see web/js/star_video_compressor.js) - no workflow run needed.
         return {"result": ((True, [path]), images, audio_out,
-                           float(eff_fps), loaded, info_str)}
+                           float(eff_fps), loaded, info_str, native_video)}
 
     # ------------------------------------------------------------------
 
