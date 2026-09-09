@@ -2,11 +2,22 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 1.9.9
+**Current Version:** 2.9.1
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
 A collection of utility nodes designed to simplify and enhance your ComfyUI workflows.
+
+## New in 2.9.1
+
+### Sampling Utilities
+- ⭐ **Star Preview support for ⭐ StarSampler (Unified)** (`StarSampler`) — The sampler gained a new optional `preview` connector: connect the same ⭐ Star Preview node (`StarPreview`) you already use with the video all-in-one nodes and watch the latent take shape step by step while sampling. Works for image models (SD/SDXL/Flux/ZIT, single-frame preview) and video latents (animated preview), in the normal, split-sampler and ZIT two-pass modes alike. Optionally pick a matching tiny preview VAE from `models/vae_approx` (e.g. `taesd` for SD 1.5, `taef1` for Flux) for truer preview colors.
+- 🔧 **Star Preview: flat 2D TAE support** — tiny preview VAEs with a flat 2D layout (like the 2D `taeh3` variant) that core ComfyUI cannot load are now rebuilt from the checkpoint itself, so they decode correctly instead of falling back to Latent2RGB.
+
+## New in 2.9.0
+
+### Video & Animation
+- ⭐ **Star Preview** (`StarPreview`) — Live animated sampling preview for the video all-in-one nodes. Connect it to the `preview` input of ⭐ Star LTXV All-in-One (2-Pass), ⭐ Star LTXV 2.5 All-in-One (BETA) or ⭐ Star Minimax All In One and watch the video take shape step by step while sampling runs. Works like the KJNodes Model Preview Override, but fully self-contained in the StarNodes pack and reduced to the video preview only (no charts). Fixed settings: 512 px preview size, quality 80, 8 fps playback — plus one optional dropdown to pick a tiny preview VAE from `models/vae_approx` for truer preview colors (default: fast Latent2RGB, no file needed). The all-in-one nodes (`LTXVSulphurAllInOne`, `LTXV25SulphurAllInOne`, `StarMinimaxAllInOne`) each gained a new optional `preview` connector for it.
 
 ## New in 1.9.9
 

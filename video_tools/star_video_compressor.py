@@ -75,9 +75,9 @@ class StarVideoCompressor:
                     "default": "",
                     "tooltip": "Optional: direct path to a video file "
                                "(absolute, or relative to the ComfyUI input "
-                               "folder). Used when no 'video' input is "
-                               "connected. Leave empty to use the 'images' "
-                               "input."}),
+                               "folder). Used only when no 'video', "
+                               "'video_native', or 'images' input is "
+                               "connected."}),
                 "frame_rate": ("FLOAT", {
                     "default": 30.0, "min": 1.0, "max": 240.0, "step": 0.01,
                     "tooltip": "Only used when compressing an IMAGE batch. "
@@ -189,10 +189,10 @@ class StarVideoCompressor:
                 with open(tmp, "wb") as f:
                     f.write(src.read())
                 jobs = [("file", tmp)]
-        elif video_path and video_path.strip():
-            jobs = [("file", self._resolve_path(video_path))]
         elif images is not None:
             jobs = [("images", self._to_uint8_frames(images))]
+        elif video_path and video_path.strip():
+            jobs = [("file", self._resolve_path(video_path))]
         else:
             raise ValueError(
                 "Star Video Compressor: provide a 'video' input (Star Video "

@@ -32,6 +32,7 @@ import comfy.utils
 from comfy_api.latest import io
 
 from ..ltx_video.star_video_sound_enricher import process_audio as _enrich_sound
+from ..misc.star_preview import apply_star_preview
 from .minimax_common import IMAGE_MODE_FRAMES, decode_audio, decode_video, run_sample
 from .star_minimax_latent_upscaler import upscale_minimax_conditioning, upscale_video_latent_3d
 
@@ -45,11 +46,13 @@ try:
         CANVAS_MULTIPLE,
         FPS,
         REF_IMAGE_SHORT_EDGE,
+        MiniMaxH3AddGuide,
         _empty_av_latent,
         _resize,
         adapt_canvas,
     )
 except Exception:  # pragma: no cover - fallback definitions (identical logic)
+    MiniMaxH3AddGuide = None
     CANVAS_MULTIPLE = 32
     BASE_SHORT_EDGE = 768
     MAX_PIXELS = 768 * 1344
@@ -250,6 +253,23 @@ def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
     return cond, latent
 
 
+def _apply_guides(cond, latent, vae, guides):
+    """The core 'Add Guide for MiniMax H3' chain, run in-process: each guide
+    image/clip is anchored at round(start_seconds * 24) on the output timeline
+    (the seconds -> frames math of the template's Math Expression nodes)."""
+    if MiniMaxH3AddGuide is None:
+        raise RuntimeError(
+            "The 'multiref_settings' input requires a ComfyUI version whose core "
+            "includes the MiniMaxH3AddGuide node (MiniMax H3 multiframe template).")
+    for guide in guides:
+        frame_idx = round(guide["start_seconds"] * FPS)
+        cond = MiniMaxH3AddGuide.execute(positive=cond, latent=latent, frame_idx=frame_idx,
+                                         vae=vae, image=guide["image"]).result[0]
+        logging.info("[Star Minimax AIO] guide anchored at frame %d (%.2fs)",
+                     frame_idx, guide["start_seconds"])
+    return cond
+
+
 class StarMinimaxAllInOne(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -263,13 +283,22 @@ class StarMinimaxAllInOne(io.ComfyNode):
             description=(
                 "Complete MiniMax H3 reference-to-video pipeline in a single node: "
                 "loads the diffusion model (or uses the optional MODEL override input), "
-                "the minimax text encoder and both VAEs, builds <Picture i> / <Video k> / "
+                "the minimax text encoder and both VAEs (or uses the optional VAE override "
+                "input for video decoding), builds <Picture i> / <Video k> / "
                 "<Audio j> reference conditioning, samples with the chosen sampler/scheduler "
                 "and decodes video + audio. Reference image/video/audio slots grow "
                 "automatically, exactly like the core MiniMax H3 Reference to Video node. "
                 "Connect a Star Video Sound Enricher Option to sound_settings to clean up "
                 "and enrich the soundtrack internally, or a Star Minimax Latent Upscaler "
-                "Option to options for a second-pass latent upscale + refine."
+                "Option to options for a second-pass latent upscale + refine. "
+                "Connect a Star Ref Mod Option to ref_mod_settings to inject RefMod "
+                "reference blocks (Apply H3 RefMod behavior, ComfyUI-MiniMaxH3Mod pack) "
+                "into the internal conditioning. "
+                "Connect a Star Minimax Multiref Option to multiref_settings to anchor "
+                "reference images/clips at their start seconds on the output timeline "
+                "(the core 'Add Guide for MiniMax H3' chain, run in-process). "
+                "Connect a Star Preview node to preview for a live animated "
+                "sampling preview on the Star Preview node."
             ),
             inputs=[
                 # ---------------- Mode ----------------
@@ -323,10 +352,18 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 # ---------------- Connectors ----------------
                 io.Model.Input("model_override", optional=True,
                                tooltip="Optional external MODEL (e.g. a sage-attention patched MiniMax H3). When connected, the internal diffusion_model dropdown is ignored."),
+                io.Vae.Input("vae_override", optional=True,
+                             tooltip="Optional external VAE for video decoding. When connected, the internal vae_name dropdown is ignored."),
                 io.Custom("SOUND_SETTINGS").Input("sound_settings", optional=True,
                                                   tooltip="Optional sound processing from a 'Star Video Sound Enricher Option' node - the generated soundtrack is cleaned up and enriched with these settings (at least 44.1 kHz, never downsampled) before it leaves the node. Ignored in image mode without audio."),
                 io.Custom("UPSCALE_SETTINGS").Input("options", optional=True,
                                                     tooltip="Optional second-pass latent upscale from a 'Star Minimax Latent Upscaler Option' node - the pass-1 video latent is upscaled with the selected latent upscaler model and refined in a short second sampling pass with the same conditioning and the same seed (references are resolution-matched). Ignored when megapixels is 'audio only'."),
+                io.Custom("REF_MOD_SETTINGS").Input("ref_mod_settings", optional=True,
+                                                    tooltip="Optional RefMod injection from a 'Star Ref Mod Option' node - appends Apply-H3-RefMod-style reference blocks (ComfyUI-MiniMaxH3Mod pack) to the internal conditioning, after the native reference blocks. Also carried into the upscale refine pass (resolution-matched)."),
+                io.Custom("MULTIREF_SETTINGS").Input("multiref_settings", optional=True,
+                                                     tooltip="Optional timed keyframe references from a 'Star Minimax Multiref Option' node - reference images/clips anchored at their start seconds on the output timeline, exactly like a chain of core 'Add Guide for MiniMax H3' nodes. Works in video and image mode; the guides are also carried into the upscale refine pass (resolution-matched)."),
+                io.Custom("STAR_PREVIEW").Input("preview", optional=True,
+                                                tooltip="Optional live sampling preview from a '⭐ Star Preview' node - while this node is sampling, an animated preview of the video latent is shown on the Star Preview node (fixed: 512 px, quality 80, 8 fps)."),
                 io.Autogrow.Input("ref_images", optional=True,
                                   template=io.Autogrow.TemplatePrefix(
                                       input=io.Image.Input("ref_image",
@@ -469,8 +506,10 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_image_size, seed, steps, sampler_name, scheduler, denoise,
                 diffusion_model, weight_dtype, clip_name, clip_type, clip_device,
                 vae_name, audio_vae_name, audio_vae_precision, audio_vae_device,
-                model_override=None, sound_settings=None, options=None, ref_images=None,
-                ref_videos=None, ref_video_audios=None, ref_audios=None) -> io.NodeOutput:
+                model_override=None, vae_override=None, sound_settings=None, options=None,
+                ref_mod_settings=None, multiref_settings=None, preview=None,
+                ref_images=None, ref_videos=None, ref_video_audios=None,
+                ref_audios=None) -> io.NodeOutput:
 
         audio_only = (megapixels == "audio only")
 
@@ -491,7 +530,12 @@ class StarMinimaxAllInOne(io.ComfyNode):
         else:
             model = cls._load_model(diffusion_model, weight_dtype)
         clip = cls._load_clip(clip_name, clip_type, clip_device)
-        vae = cls._load_video_vae(vae_name)
+        if vae_override is not None:
+            vae = vae_override
+            logging.info("[Star Minimax AIO] using connected VAE override; "
+                         "internal video VAE '%s' ignored", vae_name)
+        else:
+            vae = cls._load_video_vae(vae_name)
         has_audio_refs = (any(a is not None for a in (ref_video_audios or {}).values())
                           or any(a is not None for a in (ref_audios or {}).values()))
         audio_vae = (cls._load_audio_vae(audio_vae_name, audio_vae_precision, audio_vae_device)
@@ -502,10 +546,32 @@ class StarMinimaxAllInOne(io.ComfyNode):
             clip, vae, audio_vae, prompt, width, height, length, ref_image_size,
             ref_images, ref_videos, ref_video_audios, ref_audios,
             image_mode=(mode == "image"))
+
+        # 3b. Optional ref-mods from a Star Ref Mod Option node - appended after
+        #     the native refs, exactly like Apply H3 RefMod on built CONDITIONING
+        if ref_mod_settings is not None:
+            refmod_blocks = ref_mod_settings.get("blocks") or []
+            if refmod_blocks:
+                out = []
+                for t in cond:
+                    d = dict(t[1])
+                    d["minimax_refs"] = list(d.get("minimax_refs", [])) + refmod_blocks
+                    out.append([t[0], d])
+                cond = out
+                logging.info("[Star Minimax AIO] %d ref-mod block(s) injected from Star Ref Mod Option",
+                             len(refmod_blocks))
+        # 3c. Optional timed guides from a Star Minimax Multiref Option node -
+        #     images/clips anchored on the output timeline (Add-Guide chain)
+        guides = (multiref_settings or {}).get("guides") or []
+        if guides:
+            cond = _apply_guides(cond, latent, vae, guides)
+            logging.info("[Star Minimax AIO] %d guide(s) anchored from Star Minimax Multiref Option",
+                         len(guides))
         # 4. Sampling (RandomNoise + BasicGuider + KSamplerSelect +
         #    BasicScheduler + SamplerCustomAdvanced)
         sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
-        samples = run_sample(model, cond, latent, seed, sampler_name, sigmas)
+        sample_model = apply_star_preview(model, preview) if preview is not None else model
+        samples = run_sample(sample_model, cond, latent, seed, sampler_name, sigmas)
 
         # 4b. Optional second pass: latent upscale + refine (Star Minimax Latent Upscaler Option)
         samples_pass1 = samples
@@ -513,7 +579,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
         if options is not None and audio_only:
             logging.info("[Star Minimax AIO] 'audio only' mode - upscale options ignored")
         if ran_pass2:
-            samples = cls._run_upscale_pass(model, cond, samples, seed, options)
+            samples = cls._run_upscale_pass(sample_model, cond, samples, seed, options)
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
         #    image mode: decode all 9 frames, return frame index 8 as the still

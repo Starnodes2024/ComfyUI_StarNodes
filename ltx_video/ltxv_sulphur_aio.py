@@ -29,6 +29,7 @@ import comfy.utils
 import comfy.model_management  # noqa: F401  (kept for parity with loader nodes)
 
 from ..misc.star_progress import make_event_cb, patch_model_for_progress
+from ..misc.star_preview import apply_star_preview
 
 from comfy_extras.nodes_lt import (
     EmptyLTXVLatentVideo,
@@ -412,6 +413,10 @@ class LTXVSulphurAllInOne:
                                     "flash/sage attention). When connected, this is used instead of "
                                     "loading 'base_model' from the dropdown, and the LoRA stack below "
                                     "is applied to it directly."}),
+                "preview": ("STAR_PREVIEW", {"tooltip": "Optional live sampling preview from a "
+                            "'⭐ Star Preview' node - while this node is sampling, an animated "
+                            "preview of the video latent is shown on the Star Preview node "
+                            "(fixed: 512 px, quality 80, 8 fps)."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -452,6 +457,7 @@ class LTXVSulphurAllInOne:
         sampler_pass2="euler_cfg_pp",
         weight_dtype="default",
         model_override=None,
+        preview=None,
         unique_id=None,
     ):
 
@@ -489,6 +495,8 @@ class LTXVSulphurAllInOne:
             model = _apply_lora_stack(model_override, lora_stack)
         else:
             model = _get_model(base_model, weight_dtype, lora_stack)
+        if preview is not None:
+            model = apply_star_preview(model, preview)
         clip = _get_clip(clip_1, clip_2)
         video_vae = _get_vae(vae)
         audio_vae_model = _get_vae(audio_vae)

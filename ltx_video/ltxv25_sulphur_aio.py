@@ -39,6 +39,7 @@ import comfy.utils
 import comfy.model_management  # noqa: F401  (kept for parity with loader nodes)
 
 from ..misc.star_progress import make_event_cb, patch_model_for_progress
+from ..misc.star_preview import apply_star_preview
 from .star_video_sound_enricher import process_audio as _enrich_sound
 
 from comfy_extras.nodes_lt import (
@@ -552,6 +553,10 @@ class LTXV25SulphurAllInOne:
                                    "'Star Video Sound Enricher Option' node - the audio output is "
                                    "cleaned up and enriched with these settings (at least 44.1 kHz, "
                                    "never downsampled) before it leaves the node."}),
+                "preview": ("STAR_PREVIEW", {"tooltip": "Optional live sampling preview from a "
+                            "'⭐ Star Preview' node - while this node is sampling, an animated "
+                            "preview of the video latent is shown on the Star Preview node "
+                            "(fixed: 512 px, quality 80, 8 fps)."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -592,6 +597,7 @@ class LTXV25SulphurAllInOne:
         weight_dtype="default",
         model_override=None,
         sound_settings=None,
+        preview=None,
         unique_id=None,
     ):
 
@@ -634,6 +640,8 @@ class LTXV25SulphurAllInOne:
         else:
             model = _get_model(base_model, weight_dtype, lora_stack)
         model_out = model  # keep an unpatched reference for the MODEL output
+        if preview is not None:
+            model = apply_star_preview(model, preview)
         clip = _get_clip(clip_1)
         video_vae = _get_vae(vae)
         audio_vae_model = _get_vae(audio_vae)

@@ -10,6 +10,7 @@ import comfy.model_sampling
 from comfy.utils import ProgressBar
 
 from ..misc.star_progress import make_event_cb, patch_model_for_progress
+from ..misc.star_preview import apply_star_preview
 
 # Try to import from nodes, but handle if not available
 try:
@@ -86,6 +87,7 @@ class StarSampler:
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
                 "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
+                "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models)."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -209,10 +211,16 @@ class StarSampler:
 
     def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae,
                 decode_image=True, tiled_vae_decoding=False, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None,
-                unique_id=None):
+                preview=None, unique_id=None):
 
         start_time = time.time()
         event_cb = make_event_cb(unique_id)
+
+        # ⭐ Star Preview: attach the live-preview wrapper to a model clone.
+        # All sampling paths below derive their work model from this, so the
+        # preview fires for the normal, split and ZIT two-pass modes alike.
+        if preview is not None:
+            model = apply_star_preview(model, preview)
 
         if isinstance(options, dict) and options.get("starnodes_type") == "ZIT" and (
             bool(options.get("enabled", False)) or int(options.get("details", 0)) > 0

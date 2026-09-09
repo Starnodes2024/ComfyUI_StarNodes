@@ -442,9 +442,20 @@ def _upscale_ref_block(block, scale_by):
     return out
 
 
+def _upscale_keyframe(keyframe, scale_by):
+    z = keyframe.get("latent")
+    if z is None:
+        return keyframe
+    out = dict(keyframe)
+    # resolved_frame_index and audio_latent are unaffected by a spatial upscale
+    out["latent"] = _upscale_visual_latent(z, scale_by)
+    return out
+
+
 def upscale_minimax_conditioning(conditioning, scale_by):
-    """Clone CONDITIONING and resolution-match the MiniMax ref latents so the
-    pass-1 conditioning can drive the second pass at the upscaled size."""
+    """Clone CONDITIONING and resolution-match the MiniMax ref latents and the
+    anchored guide (keyframe) latents so the pass-1 conditioning can drive the
+    second pass at the upscaled size."""
     if conditioning is None or scale_by == 1.0:
         return conditioning
     out = []
@@ -454,11 +465,15 @@ def upscale_minimax_conditioning(conditioning, scale_by):
             continue
         emb, meta = entry[0], entry[1]
         refs = meta.get("minimax_refs")
-        if not refs:
+        keyframes = meta.get("minimax_keyframes")
+        if not refs and not keyframes:
             out.append(entry)
             continue
         new_meta = meta.copy()
-        new_meta["minimax_refs"] = [_upscale_ref_block(blk, scale_by) for blk in refs]
+        if refs:
+            new_meta["minimax_refs"] = [_upscale_ref_block(blk, scale_by) for blk in refs]
+        if keyframes:
+            new_meta["minimax_keyframes"] = [_upscale_keyframe(kf, scale_by) for kf in keyframes]
         out.append([emb, new_meta])
     return out
 

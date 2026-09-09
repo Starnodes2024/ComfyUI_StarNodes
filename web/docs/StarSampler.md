@@ -40,6 +40,7 @@
 | **base_shift** | FLOAT | 0.5 | Base shift parameter for Flux/AuraFlow models |
 | **detail_schedule** | DETAIL_SCHEDULE | None | Optional detail daemon schedule for enhanced quality |
 | **options** | * | None | Optional sampler options input. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (QWEN/ZIT) to enable a two-pass detail refinement. |
+| **preview** | STAR_PREVIEW | None | Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models). |
 
 ## Outputs
 
@@ -120,6 +121,16 @@ The Distilled Optimizer performs a two-pass sampling strategy that can improve d
 4. Optionally override advanced settings in the ZIT node (start/refine samplers, per-pass steps and denoise, patch parameters, and noise multiplier).
 
 If the optimizer cannot be applied for the current model, StarSampler will ignore it and sample normally.
+
+### Live Sampling Preview (⭐ Star Preview)
+
+Connect the `star_preview` output of a ⭐ **Star Preview** node to the optional **`preview`** input to watch the latent take shape step by step while sampling runs — for image models (SD/SDXL/Flux/ZIT) as well as video latents:
+
+1. Add `⭐ Star Preview` and connect `star_preview` → `preview` on the StarSampler.
+2. Optionally pick a tiny preview VAE in its dropdown (e.g. `taesd` for SD 1.5, `taef1` for Flux, `taeh3` for MiniMax H3 video) for truer preview colors; the default `none` uses the fast Latent2RGB approximation.
+3. Queue the prompt — the preview appears on the Star Preview node, updated every sampling step (fixed settings: 512 px, quality 80, 8 fps).
+
+The preview also works in the split-sampler and ZIT two-pass modes — each pass sends its own preview. It never slows down sampling (encoding runs on a background thread), and while it is active ComfyUI's built-in latent preview is silenced for that run.
 
 ## Model-Specific Behavior
 

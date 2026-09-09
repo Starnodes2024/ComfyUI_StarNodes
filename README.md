@@ -13,11 +13,11 @@
 
 # ⭐ ComfyUI StarNodes
 
-**A big, friendly toolbox of 100 custom nodes that make ComfyUI easier, faster and more fun.**
+**A big, friendly toolbox of 100+ custom nodes that make ComfyUI easier, faster and more fun.**
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-2.8.0-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.0-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -74,6 +74,12 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 ### 🆕 ⭐ Star Minimax Latent Upscaler + Option
 **Second-pass upscale + refine, no extra wiring.** The Option node plugs into the `options` input of ⭐ Star Minimax All In One: the pass-1 video latent is upscaled with a MiniMax H3 3D latent-upscaler model and refined in a short 3/4/5-step pass with the same conditioning, same seed — optionally with a turbo-LoRA-patched model on the node's `model` input, and a toggle for pass-1 or refined audio. The standalone twin does the same upscale + refine + decode in any workflow (connect latent, model, clip, both VAEs and a prompt).
 
+### 🆕 ⭐ Star Refmod Option
+**Bring ComfyUI-MiniMaxH3Mod RefMods into ⭐ Star Minimax All In One.** Same options and behavior as the *Apply H3 RefMod* node — retention, curve direction/shape/value, scramble and token budget — applied inside the AIO's conditioning, and carried into the refine pass when the Latent Upscaler Option is connected.
+
+### 🆕 ⭐ Star Minimax Multiref Option
+**Timed keyframe guides for ⭐ Star Minimax All In One, in one node.** Drop up to 9 reference images/clips onto the slots and pin each to a start time in seconds — no *Add Guide* / *Math Expression* chains. Uses the exact `MiniMaxH3AddGuide` code path, with negative times counting back from the end of the video.
+
 ### 🆕 ⭐ StarSampler (Unified)
 **One sampler to rule them all.** Extensive configuration in a single node, with a tiled VAE decoder so even big images finish on modest GPUs. Replaces stacks of sampler plumbing.
 
@@ -91,6 +97,12 @@ These are the newest and most powerful nodes in the pack. If you try nothing els
 
 ### 🔄 ⭐ Star Image Compare
 **Judge your results like a pro.** Interactive before/after wipe slider right inside ComfyUI — drag to compare two images pixel by pixel. Perfect for checking upscales, refiners and filter tweaks.
+
+### 🆕 ⭐ Star Video Compare
+**Judge two videos side by side, right inside ComfyUI.** Draggable wipe slider with zoom/pan, synced playback and optional captions — plus a stitched side-by-side or top/bottom comparison video output you can save or compress. Different resolutions and frame counts are matched automatically.
+
+### 🆕 ⭐ Star Preview
+**Watch your video (or image) take shape while it's still sampling.** Plug into the `preview` input of any Star all-in-one video node or the ⭐ StarSampler (Unified) and get an animated WebP — or a step-by-step JPEG for images — updated every step, with an optional tiny preview VAE for truer colors. Encoding runs on a background thread, so sampling is never slowed down.
 
 ### 🔄 ⭐ Star Panorama Tools
 **Create, save and explore 360° worlds.** The 360 Parallax Viewer (and Pro) let you look around panoramas interactively with mouse parallax, overlays and depth maps — while Save Panorama JPEG/+ embeds proper XMP metadata, including stereoscopic 3D output.
@@ -269,6 +281,9 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | ⭐ Star Video Joiner | Join multiple videos into one |
 | ⭐ Star Video Loader | Decode video to frames + audio + fps — no extra suite needed |
 | ⭐ Star Video Compressor | Compress to a target size/quality (H.264/H.265/VP9/AV1) |
+| ⭐ Star Video Compare | Interactive before/after wipe slider for two videos, with stitched comparison output |
+| ⭐ Star Refmod Option | Inject ComfyUI-MiniMaxH3Mod RefMods into ⭐ Star Minimax All In One |
+| ⭐ Star Minimax Multiref Option | Timed keyframe guides for ⭐ Star Minimax All In One (up to 9 refs, start time in seconds) |
 | ⭐ Star Slideshow Maker | Slideshows with transitions, motion effects and audio |
 | ⭐ Star Image Loop | Seamless looping frames from panoramic images |
 | ⭐ Star Video Loop | Seamless looping frames from video |
@@ -324,6 +339,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | Node | What it does |
 |------|--------------|
 | ⭐ Star Show Everything | Universal debug node — connect anything, see type/shape/stats/preview |
+| ⭐ Star Preview | Live animated sampling preview for the video all-in-one nodes and ⭐ StarSampler (Unified) |
 | ⭐ Star Stop And Go | Interactive pause / preview / continue control |
 | ⭐ Star Output Cleaner | Browse & clean your output folder with thumbnails |
 | ⭐ Star Ollama Prompt Helper | Local Ollama prompts with 15 presets and vision support |

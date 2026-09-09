@@ -52,6 +52,16 @@ duration math → `MiniMaxH3ReferenceToVideo` conditioning → `RandomNoise` →
   same seed — references are resolution-matched automatically). The audio
   toggle on the option node picks which pass the audio output is decoded
   from.
+- **🧬 Optional RefMod injection** — connect a ⭐ Star Ref Mod Option node
+  to `ref_mod_settings` to inject RefMod reference blocks from the
+  ComfyUI-MiniMaxH3Mod pack into the internal conditioning, with the exact
+  same retention / curve / scramble options and behavior as the *Apply H3
+  RefMod* node.
+- **🎬 Optional timed multiref guides** — connect a ⭐ Star Minimax Multiref
+  Option node to `multiref_settings` to pin reference images/clips onto
+  specific frames of the output timeline — the multi-frame / keyframe path
+  of the stock template (the chained *Add Guide for MiniMax H3* nodes),
+  with one start-time-in-seconds widget per connected reference.
 - **📊 Live readout + animated progress bar** — a readout line under the widgets
   shows the resolved `width × height • MP • frames`; an animated DOM progress
   bar appears during execution (indeterminate shimmer while models load and
@@ -78,6 +88,8 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 | `model_override` | MODEL | optional — when connected, the internal `diffusion_model` dropdown is ignored. Use it for sage-attention-patched or otherwise modified models. |
 | `sound_settings` | SOUND_SETTINGS | optional — from a ⭐ Star Video Sound Enricher Option node; the generated soundtrack is processed with these settings before it leaves the node. Ignored in `image` mode without audio |
 | `options` | UPSCALE_SETTINGS | optional — from a ⭐ Star Minimax Latent Upscaler Option node; runs a second-pass latent upscale + refine. Ignored when `megapixels` is `audio only` |
+| `ref_mod_settings` | REF_MOD_SETTINGS | optional — from a ⭐ Star Ref Mod Option node; appends RefMod reference blocks (ComfyUI-MiniMaxH3Mod pack, *Apply H3 RefMod* behavior) to the internal conditioning after the native references |
+| `multiref_settings` | MULTIREF_SETTINGS | optional — from a ⭐ Star Minimax Multiref Option node; anchors reference images/clips at their start seconds on the output timeline (core *Add Guide for MiniMax H3* behavior) |
 | `ref_image_0…8` | IMAGE | up to 9 reference images, slots expand automatically when connected |
 | `ref_video_0…2` | IMAGE | up to 3 reference videos (frames @ 24 fps) |
 | `ref_video_audio_0…2` | AUDIO | soundtrack paired to the same-numbered reference video |
@@ -167,3 +179,16 @@ one appears.
   come from the refined second pass, **AUDIO** comes from the pass selected by
   the option node's audio toggle (default: pass 1), and **MODEL** remains the
   pass-1 model.
+- With a ⭐ Star Ref Mod Option connected, its ref blocks are appended after
+  the native reference blocks in the internal conditioning — identical to
+  running *Apply H3 RefMod* on the built conditioning — and are brought along
+  (resolution-matched) into the optional upscale refine pass.
+  RefMods are not addressed with `<Picture i>` tags; concat the loader's
+  `prompt_hint` onto the prompt instead.
+- With a ⭐ Star Minimax Multiref Option connected, its guides are anchored on
+  the output timeline with the exact `MiniMaxH3AddGuide` behavior
+  (`round(seconds × 24)` → frame index, stills or 17k+5 clips, negative
+  seconds count from the end). Guides are timeline anchors — they are **not**
+  part of the `<Picture i>` reference ordering. They work in both modes and
+  are brought along (resolution-matched) into the optional upscale refine
+  pass.
