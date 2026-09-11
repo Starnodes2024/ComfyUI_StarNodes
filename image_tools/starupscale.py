@@ -1,0 +1,322 @@
+import os
+import json
+import random
+import math
+import torch
+import torchvision.transforms.functional as F
+from torchvision.transforms import InterpolationMode
+from PIL import Image, ImageGrab
+import folder_paths
+import nodes
+import comfy.sd
+import comfy.utils
+import types
+from comfy_extras.nodes_upscale_model import UpscaleModelLoader, ImageUpscaleWithModel
+
+class Starupscale:
+    BGCOLOR = "#3d124d"  # Background color
+    COLOR = "#19124d"  # Title color
+   
+    def __init__(self):
+        pass
+        
+    @staticmethod
+    def vae_list():
+        vaes = folder_paths.get_filename_list("vae")
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+        sdxl_taesd_enc = False
+        sdxl_taesd_dec = False
+        sd1_taesd_enc = False
+        sd1_taesd_dec = False
+        sd3_taesd_enc = False
+        sd3_taesd_dec = False
+        f1_taesd_enc = False
+        f1_taesd_dec = False
+
+        for v in approx_vaes:
+            if v.startswith("taesd_decoder."):
+                sd1_taesd_dec = True
+            elif v.startswith("taesd_encoder."):
+                sd1_taesd_enc = True
+            elif v.startswith("taesdxl_decoder."):
+                sdxl_taesd_dec = True
+            elif v.startswith("taesdxl_encoder."):
+                sdxl_taesd_enc = True
+            elif v.startswith("taesd3_decoder."):
+                sd3_taesd_dec = True
+            elif v.startswith("taesd3_encoder."):
+                sd3_taesd_enc = True
+            elif v.startswith("taef1_encoder."):
+                f1_taesd_dec = True
+            elif v.startswith("taef1_decoder."):
+                f1_taesd_enc = True
+        if sd1_taesd_dec and sd1_taesd_enc:
+            vaes.append("taesd")
+        if sdxl_taesd_dec and sdxl_taesd_enc:
+            vaes.append("taesdxl")
+        if sd3_taesd_dec and sd3_taesd_enc:
+            vaes.append("taesd3")
+        if f1_taesd_dec and f1_taesd_enc:
+            vaes.append("taef1")
+        return vaes
+
+    @staticmethod
+    def load_taesd(name):
+        sd = {}
+        approx_vaes = folder_paths.get_filename_list("vae_approx")
+
+        encoder = next(filter(lambda a: a.startswith("{}_encoder.".format(name)), approx_vaes))
+        decoder = next(filter(lambda a: a.startswith("{}_decoder.".format(name)), approx_vaes))
+
+        enc = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", encoder))
+        for k in enc:
+            sd["taesd_encoder.{}".format(k)] = enc[k]
+
+        dec = comfy.utils.load_torch_file(folder_paths.get_full_path_or_raise("vae_approx", decoder))
+        for k in dec:
+            sd["taesd_decoder.{}".format(k)] = dec[k]
+
+        if name == "taesd":
+            sd["vae_scale"] = torch.tensor(0.18215)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesdxl":
+            sd["vae_scale"] = torch.tensor(0.13025)
+            sd["vae_shift"] = torch.tensor(0.0)
+        elif name == "taesd3":
+            sd["vae_scale"] = torch.tensor(1.5305)
+            sd["vae_shift"] = torch.tensor(0.0609)
+        elif name == "taef1":
+            sd["vae_scale"] = torch.tensor(0.3611)
+            sd["vae_shift"] = torch.tensor(0.1159)
+        return sd
+        
+    @classmethod
+    def INPUT_TYPES(cls):
+        # Get available devices
+        devices = ["cpu"]
+        cuda_devices = [f"cuda:{k}" for k in range(0, torch.cuda.device_count())]
+        devices.extend(cuda_devices)
+        
+        # Set default VAE device to first CUDA device if available
+        default_vae_device = cuda_devices[0] if cuda_devices else "cpu"
+        
+        available_vaes = ["Default"] + cls.vae_list()
+        available_upscalers = folder_paths.get_filename_list("upscale_models")
+        
+        return {
+            "required": {
+                "VAE_OUT": (available_vaes, {"default": "ae.safetensors"}),
+                "VAE_Device": (devices, {"default": default_vae_device}),
+                "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "Default"}),
+                "UPSCALE_MODE": (["By Longest Side", "By MP"], {"default": "By Longest Side"}),
+                "OUTPUT_LONGEST_SIDE": ("INT", { 
+                    "default": 2048, 
+                    "min": 16, 
+                    "step": 16, 
+                    "max": 99968, 
+                    "display_name": "Output Size (longest)"
+                }),
+                "MEGAPIXELS": (["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "15", "20", "50", "100"], {"default": "4"}),
+                "INTERPOLATION_MODE": (
+                    ["bicubic", "bilinear", "nearest", "nearest exact"],
+                    {"default": "bicubic"}
+                ),
+            },
+            "optional": {
+                "VAE_INPUT": ("VAE", ),  # Optional VAE input
+                "LATENT_INPUT": ("LATENT", ),  # Optional latent input
+                "IMAGE": ("IMAGE", ),  # Optional image input
+            }
+        }
+    
+    RETURN_TYPES = (
+        "VAE",       # VAE output
+        "IMAGE",     # Image output
+        "LATENT",    # Added Latent output
+        "STRING",    # Width as string
+        "STRING",    # Height as string
+    )
+    
+    RETURN_NAMES = (
+        "OUTPUT VAE",
+        "IMAGE",
+        "LATENT",  # Added Latent output name
+        "WIDTH",
+        "HEIGHT",
+    )
+    
+    FUNCTION = "process_settings"
+    CATEGORY = "⭐StarNodes/Image And Latent"
+    DESCRIPTION = "Upscaler"
+
+    def override_device(self, model, model_attr, device):
+        # Set model/patcher attributes
+        model.device = device
+        patcher = getattr(model, "patcher", model)
+        for name in ["device", "load_device", "offload_device", "current_device", "output_device"]:
+            setattr(patcher, name, device)
+
+        # Move model to device
+        py_model = getattr(model, model_attr)
+        py_model.to = types.MethodType(torch.nn.Module.to, py_model)
+        py_model.to(device)
+
+        # Remove ability to move model
+        def to(*args, **kwargs):
+            pass
+        py_model.to = types.MethodType(to, py_model)
+        return model
+
+    def process_settings(
+        self, 
+        VAE_OUT,
+        VAE_Device,
+        UPSCALE_MODEL,
+        UPSCALE_MODE,
+        OUTPUT_LONGEST_SIDE,
+        MEGAPIXELS,
+        INTERPOLATION_MODE,
+        VAE_INPUT=None,  # Optional VAE input
+        LATENT_INPUT=None,  # Optional latent input
+        IMAGE=None,  # Optional image input
+    ):
+        # VAE Loading
+        vaeout = None
+        if VAE_OUT != "Default":
+            if VAE_OUT in ["taesd", "taesdxl", "taesd3", "taef1"]:
+                sd = self.load_taesd(VAE_OUT)
+            else:
+                vae_path = folder_paths.get_full_path_or_raise("vae", VAE_OUT)
+                sd = comfy.utils.load_torch_file(vae_path)
+            vaeout = comfy.sd.VAE(sd=sd)
+            
+            # Set VAE device
+            if vaeout is not None:
+                vae_device = torch.device(VAE_Device)
+                vaeout = self.override_device(vaeout, "first_stage_model", vae_device)
+        
+        # Determine processing path
+        output_image = None
+        
+        # Path 1: If both VAE and latent are connected, decode first
+        if VAE_INPUT is not None and LATENT_INPUT is not None:
+            output_image = nodes.VAEDecode().decode(VAE_INPUT, LATENT_INPUT)[0]
+        
+        # Path 2: If only image is connected, use the image directly
+        elif IMAGE is not None:
+            output_image = IMAGE
+        
+        # If no image or latent input, create a default black image
+        if output_image is None:
+            output_image = torch.zeros(1, 64, 64, 3)
+        
+        # Upscale the image
+        if output_image is not None:
+            # Load upscale model
+            upscale_model = None
+            if UPSCALE_MODEL != "Default":
+                upscale_model = UpscaleModelLoader().load_model(UPSCALE_MODEL)[0]
+            
+            # Upscale the image if a model is available
+            if upscale_model is not None:
+                output_image = ImageUpscaleWithModel().upscale(upscale_model, output_image)[0]
+            
+            # Resize the image
+            assert isinstance(output_image, torch.Tensor)
+            assert isinstance(OUTPUT_LONGEST_SIDE, int)
+            assert isinstance(INTERPOLATION_MODE, str)
+
+            INTERPOLATION_MODE = INTERPOLATION_MODE.upper().replace(" ", "_")
+            INTERPOLATION_MODE = getattr(InterpolationMode, INTERPOLATION_MODE)
+            _, h, w, _ = output_image.shape
+
+            # Default to current dimensions in case resizing path is skipped for any reason
+            new_w = w
+            new_h = h
+
+            # Determine target dimensions based on upscale mode
+            if UPSCALE_MODE == "By MP":
+                # Calculate target area from megapixels (1 MP = 1,000,000 pixels)
+                try:
+                    mp_value = float(MEGAPIXELS)
+                except Exception:
+                    mp_value = 4.0
+                mp_value = max(0.1, mp_value)
+                target_area = mp_value * 1_000_000.0
+
+                if h > 0 and w > 0:
+                    current_area = float(h) * float(w)
+                    scale = math.sqrt(target_area / current_area) if current_area > 0 else 1.0
+                    new_w = int(round(w * scale))
+                    new_h = int(round(h * scale))
+                
+                # Ensure minimum reasonable size
+                new_w = max(16, new_w)
+                new_h = max(16, new_h)
+
+                # Make dimensions divisible by 16 (round to nearest multiple)
+                new_w = max(16, round(new_w / 16) * 16)
+                new_h = max(16, round(new_h / 16) * 16)
+            else:
+                # By Longest Side (original behavior, but using 16 as the base)
+                # Ensure OUTPUT_LONGEST_SIDE is divisible by 16
+                # Round to the nearest multiple of 16 (not just rounding up)
+                OUTPUT_LONGEST_SIDE = round(OUTPUT_LONGEST_SIDE / 16) * 16
+                # Ensure minimum size of 16
+                OUTPUT_LONGEST_SIDE = max(16, OUTPUT_LONGEST_SIDE)
+
+                if h >= w:
+                    new_h = OUTPUT_LONGEST_SIDE
+                    new_w = round(w * new_h / h)
+                    # Ensure width is divisible by 16 (round to nearest)
+                    new_w = round(new_w / 16) * 16
+                    # Ensure minimum size of 16
+                    new_w = max(16, new_w)
+                else:  # h < w
+                    new_w = OUTPUT_LONGEST_SIDE
+                    new_h = round(h * new_w / w)
+                    # Ensure height is divisible by 16 (round to nearest)
+                    new_h = round(new_h / 16) * 16
+                    # Ensure minimum size of 16
+                    new_h = max(16, new_h)
+
+            # Resize the image
+            output_image = output_image.permute(0, 3, 1, 2)
+            output_image = F.resize(
+                output_image,
+                (new_h, new_w),
+                interpolation=INTERPOLATION_MODE,
+                antialias=True,
+            )
+            output_image = output_image.permute(0, 2, 3, 1)
+
+        # Encode the resized image to latent representation ALWAYS using the loaded VAE
+        output_latent = None
+        if vaeout is not None and output_image is not None:
+            # Use the loaded VAE to encode the output image to latent space
+            output_latent = nodes.VAEEncode().encode(vaeout, output_image)[0]
+
+        # Prepare string outputs for width and height
+        width_str = ""
+        height_str = ""
+        if output_image is not None:
+            _, final_h, final_w, _ = output_image.shape
+            width_str = str(int(final_w))
+            height_str = str(int(final_h))
+
+        return (
+            vaeout,           # VAE output
+            output_image,     # Image output
+            output_latent,    # Added Latent output
+            width_str,
+            height_str,
+        )
+
+# Mapping for ComfyUI to recognize the node
+NODE_CLASS_MAPPINGS = {
+    "Starupscale": Starupscale
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "Starupscale": "⭐ Star Model Latent Upscaler"
+}

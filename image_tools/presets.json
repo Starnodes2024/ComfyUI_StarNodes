@@ -1,0 +1,16 @@
+{
+  "presets": [
+    "Images",
+    "Video",
+    "Inpaint",
+    "Controlnet",
+    "Edits",
+    "Faceswap",
+    "Creatures",
+    "Upscaled",
+    "Backdrops",
+    "Star/Generations",
+    "Star/Favorites",
+    "Star/Upscales"
+  ]
+}

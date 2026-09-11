@@ -1,0 +1,448 @@
+import torch
+import torch.nn.functional as TF
+import logging
+import math
+import numpy as np
+import node_helpers
+from nodes import common_ksampler, InpaintModelConditioning
+import comfy.utils
+import comfy.samplers
+from scipy.ndimage import gaussian_filter, grey_dilation, binary_fill_holes, binary_closing
+
+
+class DifferentialDiffusion:
+    def apply(self, model):
+        model = model.clone()
+        model.set_model_denoise_mask_function(self.forward)
+        return model
+
+    def forward(self, sigma: torch.Tensor, denoise_mask: torch.Tensor, extra_options: dict):
+        model = extra_options["model"]
+        step_sigmas = extra_options["sigmas"]
+        sigma_to = model.inner_model.model_sampling.sigma_min
+        if step_sigmas[-1] > sigma_to:
+            sigma_to = step_sigmas[-1]
+        sigma_from = step_sigmas[0]
+
+        ts_from = model.inner_model.model_sampling.timestep(sigma_from)
+        ts_to = model.inner_model.model_sampling.timestep(sigma_to)
+        current_ts = model.inner_model.model_sampling.timestep(sigma[0])
+
+        threshold = (current_ts - ts_to) / (ts_from - ts_to)
+
+        return (denoise_mask >= threshold).to(denoise_mask.dtype)
+
+
+class StarFlux2Inpainter:
+    # Define custom colors for the node
+    COLOR = "#19124d"  # Title color
+    BGCOLOR = "#3d124d"  # Background color
+    CATEGORY = "⭐StarNodes/Sampler"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                    "model": ("MODEL", ),
+                    "clip": ("CLIP", ),
+                    "vae": ("VAE", ),
+                    "image": ("IMAGE", ),
+                    "mask": ("MASK", ),
+                    "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "What you want to inpaint?"}),
+                    "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                    "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
+                    "cfg": ("FLOAT", {"default": 5.0, "min": 0.0, "max": 100.0}),
+                    "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
+                    "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
+                    "use_inpaint_area_as_reference": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Feed the inpaint area to the model as a reference image. Helps Flux2 keep style and content consistent with the surrounding image."}),
+                },
+                "optional": {
+                    "reference_image_1": ("IMAGE", ),
+                    "reference_image_2": ("IMAGE", ),
+                    "reference_image_3": ("IMAGE", ),
+                    "reference_image_4": ("IMAGE", ),
+                }
+        }
+
+    RETURN_TYPES = ("IMAGE", "LATENT", "MASK", "INT")
+    RETURN_NAMES = ("image", "latent", "mask", "seed")
+    FUNCTION = "execute"
+
+    # CropAndStitch helper methods
+    def grow_and_blur_mask(self, mask, blur_pixels):
+        if blur_pixels > 0.001:
+            sigma = blur_pixels / 4
+            growmask = mask.reshape((-1, mask.shape[-2], mask.shape[-1])).cpu()
+            out = []
+            for m in growmask:
+                mask_np = m.numpy()
+                kernel_size = math.ceil(sigma * 1.5 + 1)
+                kernel = np.ones((kernel_size, kernel_size), dtype=np.uint8)
+                dilated_mask = grey_dilation(mask_np, footprint=kernel)
+                output = dilated_mask.astype(np.float32) * 255
+                output = torch.from_numpy(output)
+                out.append(output)
+            mask = torch.stack(out, dim=0)
+            mask = torch.clamp(mask, 0.0, 1.0)
+
+            mask_np = mask.numpy()
+            filtered_mask = gaussian_filter(mask_np, sigma=sigma)
+            mask = torch.from_numpy(filtered_mask)
+            mask = torch.clamp(mask, 0.0, 1.0)
+
+        return mask
+
+    def apply_padding(self, min_val, max_val, max_boundary, padding):
+        # Calculate the midpoint and the original range size
+        original_range_size = max_val - min_val + 1
+        midpoint = (min_val + max_val) // 2
+
+        # Determine the smallest multiple of padding that is >= original_range_size
+        if original_range_size % padding == 0:
+            new_range_size = original_range_size
+        else:
+            new_range_size = (original_range_size // padding + 1) * padding
+
+        # Calculate the new min and max values centered on the midpoint
+        new_min_val = max(midpoint - new_range_size // 2, 0)
+        new_max_val = new_min_val + new_range_size - 1
+
+        # Ensure the new max doesn't exceed the boundary
+        if new_max_val >= max_boundary:
+            new_max_val = max_boundary - 1
+            new_min_val = max(new_max_val - new_range_size + 1, 0)
+
+        # Ensure the range still ends on a multiple of padding
+        # Adjust if the calculated range isn't feasible within the given constraints
+        if (new_max_val - new_min_val + 1) != new_range_size:
+            new_min_val = max(new_max_val - new_range_size + 1, 0)
+
+        return new_min_val, new_max_val
+
+    def crop_image_and_mask(self, image, mask):
+        # Default CropAndStitch parameters (hardcoded, tuned for Flux2)
+        context_expand_pixels = 32
+        context_expand_factor = 1.0
+        fill_mask_holes = True
+        blur_mask_pixels = 16.0
+        invert_mask = False
+        blend_pixels = 16.0
+        padding = 32
+
+        # Validate or initialize mask
+        if mask.shape[1] != image.shape[1] or mask.shape[2] != image.shape[2]:
+            non_zero_indices = torch.nonzero(mask[0], as_tuple=True)
+            if not non_zero_indices[0].size(0):
+                mask = torch.zeros_like(image[:, :, :, 0])
+            else:
+                raise ValueError("mask size must match image size")
+
+        # Fill holes if requested
+        if fill_mask_holes:
+            holemask = mask.reshape((-1, mask.shape[-2], mask.shape[-1])).cpu()
+            out = []
+            for m in holemask:
+                mask_np = m.numpy()
+                binary_mask = mask_np > 0
+                struct = np.ones((5, 5))
+                closed_mask = binary_closing(binary_mask, structure=struct, border_value=1)
+                filled_mask = binary_fill_holes(closed_mask)
+                output = filled_mask.astype(np.float32) * 255
+                output = torch.from_numpy(output)
+                out.append(output)
+            mask = torch.stack(out, dim=0)
+            mask = torch.clamp(mask, 0.0, 1.0)
+
+        # Grow and blur mask if requested
+        if blur_mask_pixels > 0.001:
+            mask = self.grow_and_blur_mask(mask, blur_mask_pixels)
+
+        # Invert mask if requested
+        if invert_mask:
+            mask = 1.0 - mask
+
+        # Use mask as context mask
+        context_mask = mask
+
+        # Ensure mask dimensions match image dimensions except channels
+        initial_batch, initial_height, initial_width, initial_channels = image.shape
+        mask_batch, mask_height, mask_width = mask.shape
+        context_mask_batch, context_mask_height, context_mask_width = context_mask.shape
+
+        if initial_height != mask_height or initial_width != mask_width:
+            raise ValueError("Image and mask dimensions must match")
+        if initial_height != context_mask_height or initial_width != context_mask_width:
+            raise ValueError("Image and context mask dimensions must match")
+
+        # Extend image and masks to turn it into a big square in case the context area would go off bounds
+        extend_y = (initial_width + 1) // 2 # Intended, extend height by width (turn into square)
+        extend_x = (initial_height + 1) // 2 # Intended, extend width by height (turn into square)
+        new_height = initial_height + 2 * extend_y
+        new_width = initial_width + 2 * extend_x
+
+        start_y = extend_y
+        start_x = extend_x
+
+        available_top = min(start_y, initial_height)
+        available_bottom = min(new_height - (start_y + initial_height), initial_height)
+        available_left = min(start_x, initial_width)
+        available_right = min(new_width - (start_x + initial_width), initial_width)
+
+        new_image = torch.zeros((initial_batch, new_height, new_width, initial_channels), dtype=image.dtype)
+        new_image[:, start_y:start_y + initial_height, start_x:start_x + initial_width, :] = image
+
+        # Mirror image so there's no bleeding of black border when using inpaintmodelconditioning
+        # Top
+        new_image[:, start_y - available_top:start_y, start_x:start_x + initial_width, :] = torch.flip(image[:, :available_top, :, :], [1])
+        # Bottom
+        new_image[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x:start_x + initial_width, :] = torch.flip(image[:, -available_bottom:, :, :], [1])
+        # Left
+        new_image[:, start_y:start_y + initial_height, start_x - available_left:start_x, :] = torch.flip(new_image[:, start_y:start_y + initial_height, start_x:start_x + available_left, :], [2])
+        # Right
+        new_image[:, start_y:start_y + initial_height, start_x + initial_width:start_x + initial_width + available_right, :] = torch.flip(new_image[:, start_y:start_y + initial_height, start_x + initial_width - available_right:start_x + initial_width, :], [2])
+        # Top-left corner
+        new_image[:, start_y - available_top:start_y, start_x - available_left:start_x, :] = torch.flip(new_image[:, start_y:start_y + available_top, start_x:start_x + available_left, :], [1, 2])
+        # Top-right corner
+        new_image[:, start_y - available_top:start_y, start_x + initial_width:start_x + initial_width + available_right, :] = torch.flip(new_image[:, start_y:start_y + available_top, start_x + initial_width - available_right:start_x + initial_width, :], [1, 2])
+        # Bottom-left corner
+        new_image[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x - available_left:start_x, :] = torch.flip(new_image[:, start_y + initial_height - available_bottom:start_y + initial_height, start_x:start_x + available_left, :], [1, 2])
+        # Bottom-right corner
+        new_image[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x + initial_width:start_x + initial_width + available_right, :] = torch.flip(new_image[:, start_y + initial_height - available_bottom:start_y + initial_height, start_x + initial_width - available_right:start_x + initial_width, :], [1, 2])
+
+        new_mask = torch.ones((mask_batch, new_height, new_width), dtype=mask.dtype) # assume ones in extended image
+        new_mask[:, start_y:start_y + initial_height, start_x:start_x + initial_width] = mask
+
+        blend_mask = torch.zeros((mask_batch, new_height, new_width), dtype=mask.dtype) # assume zeros in extended image
+        blend_mask[:, start_y:start_y + initial_height, start_x:start_x + initial_width] = mask
+
+        # Mirror blend mask so there's no bleeding of border when blending
+        # Top
+        blend_mask[:, start_y - available_top:start_y, start_x:start_x + initial_width] = torch.flip(mask[:, :available_top, :], [1])
+        # Bottom
+        blend_mask[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x:start_x + initial_width] = torch.flip(mask[:, -available_bottom:, :], [1])
+        # Left
+        blend_mask[:, start_y:start_y + initial_height, start_x - available_left:start_x] = torch.flip(blend_mask[:, start_y:start_y + initial_height, start_x:start_x + available_left], [2])
+        # Right
+        blend_mask[:, start_y:start_y + initial_height, start_x + initial_width:start_x + initial_width + available_right] = torch.flip(blend_mask[:, start_y:start_y + initial_height, start_x + initial_width - available_right:start_x + initial_width], [2])
+        # Top-left corner
+        blend_mask[:, start_y - available_top:start_y, start_x - available_left:start_x] = torch.flip(blend_mask[:, start_y:start_y + available_top, start_x:start_x + available_left], [1, 2])
+        # Top-right corner
+        blend_mask[:, start_y - available_top:start_y, start_x + initial_width:start_x + initial_width + available_right] = torch.flip(blend_mask[:, start_y:start_y + available_top, start_x + initial_width - available_right:start_x + initial_width], [1, 2])
+        # Bottom-left corner
+        blend_mask[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x - available_left:start_x] = torch.flip(blend_mask[:, start_y + initial_height - available_bottom:start_y + initial_height, start_x:start_x + available_left], [1, 2])
+        # Bottom-right corner
+        blend_mask[:, start_y + initial_height:start_y + initial_height + available_bottom, start_x + initial_width:start_x + initial_width + available_right] = torch.flip(blend_mask[:, start_y + initial_height - available_bottom:start_y + initial_height, start_x + initial_width - available_right:start_x + initial_width], [1, 2])
+
+        new_context_mask = torch.zeros((mask_batch, new_height, new_width), dtype=context_mask.dtype)
+        new_context_mask[:, start_y:start_y + initial_height, start_x:start_x + initial_width] = context_mask
+
+        image = new_image
+        mask = new_mask
+        context_mask = new_context_mask
+
+        original_image = image
+        original_width = image.shape[2]
+        original_height = image.shape[1]
+
+        # If there are no non-zero indices in the context_mask, adjust context mask to the whole image
+        non_zero_indices = torch.nonzero(context_mask[0], as_tuple=True)
+        if not non_zero_indices[0].size(0):
+            context_mask = torch.zeros((mask_batch, new_height, new_width), dtype=mask.dtype)
+            context_mask[:, start_y:start_y + initial_height, start_x:start_x + initial_width] += 1.0
+            non_zero_indices = torch.nonzero(context_mask[0], as_tuple=True)
+
+        # Compute context area from context mask
+        y_min = torch.min(non_zero_indices[0]).item()
+        y_max = torch.max(non_zero_indices[0]).item()
+        x_min = torch.min(non_zero_indices[1]).item()
+        x_max = torch.max(non_zero_indices[1]).item()
+        height = context_mask.shape[1]
+        width = context_mask.shape[2]
+
+        # Grow context area if requested
+        y_size = y_max - y_min + 1
+        x_size = x_max - x_min + 1
+        y_min = max(y_min - int(y_size * (context_expand_factor - 1.0) / 2.0) - context_expand_pixels, 0)
+        y_max = min(y_max + int(y_size * (context_expand_factor - 1.0) / 2.0) + context_expand_pixels, height - 1)
+        x_min = max(x_min - int(x_size * (context_expand_factor - 1.0) / 2.0) - context_expand_pixels, 0)
+        x_max = min(x_max + int(x_size * (context_expand_factor - 1.0) / 2.0) + context_expand_pixels, width - 1)
+
+        # Recalculate x_size and y_size after adjustments
+        x_size = x_max - x_min + 1
+        y_size = y_max - y_min + 1
+
+        # Pad area to avoid the sampler returning smaller results
+        x_min, x_max = self.apply_padding(x_min, x_max, width, padding)
+        y_min, y_max = self.apply_padding(y_min, y_max, height, padding)
+
+        # Ensure that context area doesn't go outside of the image
+        x_min = max(x_min, 0)
+        x_max = min(x_max, width - 1)
+        y_min = max(y_min, 0)
+        y_max = min(y_max, height - 1)
+
+        # Crop the image and the mask, sized context area
+        cropped_image = image[:, y_min:y_max+1, x_min:x_max+1]
+        cropped_mask = mask[:, y_min:y_max+1, x_min:x_max+1]
+        cropped_mask_blend = blend_mask[:, y_min:y_max+1, x_min:x_max+1]
+
+        # Grow and blur mask for blend if requested
+        if blend_pixels > 0.001:
+            cropped_mask_blend = self.grow_and_blur_mask(cropped_mask_blend, blend_pixels)
+
+        # Return crop information and cropped images
+        crop_info = {
+            'x': x_min,
+            'y': y_min,
+            'original_image': original_image,
+            'cropped_mask_blend': cropped_mask_blend,
+            'start_x': start_x,
+            'start_y': start_y,
+            'initial_width': initial_width,
+            'initial_height': initial_height
+        }
+
+        return crop_info, cropped_image, cropped_mask
+
+    def stitch_image(self, crop_info, inpainted_image):
+        original_image = crop_info['original_image']
+        cropped_mask_blend = crop_info['cropped_mask_blend']
+        x = crop_info['x']
+        y = crop_info['y']
+        start_x = crop_info['start_x']
+        start_y = crop_info['start_y']
+        initial_width = crop_info['initial_width']
+        initial_height = crop_info['initial_height']
+
+        # Prepare for stitching
+        stitched_image = original_image.clone().movedim(-1, 1)
+
+        # Composite the inpainted image onto the original
+        inpainted_movedim = inpainted_image.movedim(-1, 1)
+
+        # Create mask for compositing
+        mask = cropped_mask_blend
+        mask = mask.to(stitched_image.device)
+        mask = torch.nn.functional.interpolate(mask.reshape((-1, 1, mask.shape[-2], mask.shape[-1])),
+                                              size=(inpainted_movedim.shape[2], inpainted_movedim.shape[3]),
+                                              mode="bilinear")
+        mask = comfy.utils.repeat_to_batch_size(mask, inpainted_movedim.shape[0])
+
+        # Calculate the bounds for compositing
+        left, top = x, y
+        right, bottom = left + inpainted_movedim.shape[3], top + inpainted_movedim.shape[2]
+
+        # Handle visible portion calculation
+        visible_width = stitched_image.shape[3] - left
+        visible_height = stitched_image.shape[2] - top
+
+        # Adjust mask and source for the visible portion
+        mask = mask[:, :, :visible_height, :visible_width]
+        inverse_mask = torch.ones_like(mask) - mask
+
+        # Composite the images
+        source_portion = mask * inpainted_movedim[:, :, :visible_height, :visible_width]
+        destination_portion = inverse_mask * stitched_image[:, :, top:bottom, left:right]
+        stitched_image[:, :, top:bottom, left:right] = source_portion + destination_portion
+
+        # Crop out from the extended dimensions back to original
+        output = stitched_image.movedim(1, -1)
+        cropped_output = output[:, start_y:start_y + initial_height, start_x:start_x + initial_width, :]
+
+        return cropped_output
+
+    def scale_image_to_megapixels(self, image, target_megapixels=1.0):
+        # Resizes an image to ~1MP with dimensions that are multiples of 16 for VAE stability
+        samples = image.movedim(-1, 1)
+        _, _, h, w = samples.shape
+
+        current_pixels = h * w
+        target_pixels = target_megapixels * 1024 * 1024
+
+        scale_factor = (target_pixels / current_pixels) ** 0.5
+
+        new_h = max(int(round(h * scale_factor / 16) * 16), 16)
+        new_w = max(int(round(w * scale_factor / 16) * 16), 16)
+
+        resized = TF.interpolate(samples, size=(new_h, new_w), mode='bicubic', align_corners=False)
+
+        return resized.movedim(1, -1)
+
+    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None):
+        # Differential Diffusion is always applied for smooth mask boundaries
+        model = DifferentialDiffusion().apply(model)
+
+        if not text.strip():
+            text = "A Fluffy Confused Purple Monster with a \"?\" Sign"
+
+        with torch.no_grad():
+            # Crop the image and mask down to the inpaint context area
+            crop_info, cropped_image, cropped_mask = self.crop_image_and_mask(image, mask)
+
+            # Encode positive prompt
+            tokens = clip.tokenize(text)
+            cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
+            conditioning_pos = [[cond, {"pooled_output": pooled}]]
+
+            # Encode empty negative prompt (Flux2 uses real CFG)
+            tokens_neg = clip.tokenize("")
+            cond_neg, pooled_neg = clip.encode_from_tokens(tokens_neg, return_pooled=True)
+            conditioning_neg = [[cond_neg, {"pooled_output": pooled_neg}]]
+
+            # Collect reference latents: the inpaint area itself plus optional reference images
+            ref_latents = []
+            reference_images = []
+            if use_inpaint_area_as_reference:
+                reference_images.append(cropped_image)
+            for ref in (reference_image_1, reference_image_2, reference_image_3, reference_image_4):
+                if ref is not None:
+                    reference_images.append(ref)
+
+            for ref in reference_images:
+                scaled_ref = self.scale_image_to_megapixels(ref, 1.0)
+                ref_latents.append(vae.encode(scaled_ref[:, :, :, :3]))
+
+            if len(ref_latents) > 0:
+                conditioning_pos = node_helpers.conditioning_set_values(
+                    conditioning_pos,
+                    {"reference_latents": ref_latents},
+                    append=True
+                )
+
+            # Build inpaint conditioning with noise mask (hardcoded on, matches the Flux2 workflow)
+            conditioning_pos, conditioning_neg, latent = InpaintModelConditioning().encode(
+                conditioning_pos,
+                conditioning_neg,
+                cropped_image,
+                vae,
+                cropped_mask,
+                True
+            )
+
+            # Sample
+            latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
+                                    conditioning_pos, conditioning_neg, latent, denoise=denoise)[0]
+
+            # Decode the latent to an image
+            decoded_image = vae.decode(latent_result["samples"])
+            if len(decoded_image.shape) == 5: # video-style VAEs (e.g. Qwen) return [B, T, H, W, C]
+                decoded_image = decoded_image.reshape(-1, decoded_image.shape[-3], decoded_image.shape[-2], decoded_image.shape[-1])
+
+            # Stitch the decoded image back into the original
+            stitched_image = self.stitch_image(crop_info, decoded_image)
+
+            # Encode the stitched image to a latent
+            final_latent = {"samples": vae.encode(stitched_image[:, :, :, :3])}
+
+        torch.cuda.empty_cache()
+
+        return (stitched_image, final_latent, mask, seed)
+
+
+NODE_CLASS_MAPPINGS = {
+    "StarFlux2Inpainter": StarFlux2Inpainter
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "StarFlux2Inpainter": "⭐ Star Flux2/Qwen-Image-Edit Inpainter"
+}
