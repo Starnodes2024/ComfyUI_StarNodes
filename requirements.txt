@@ -1,9 +1,0 @@
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-psd-tools>=1.10.0
-opencv-python>=4.8.0
-webcolors>=1.13.0
-scikit-learn>=1.3.0
-color-matcher
-imageio-ffmpeg
-ollama>=0.4.0
