@@ -158,6 +158,7 @@ except Exception as e:
     STAR_SIZE_CALCULATOR_AVAILABLE = False
 from .misc.star_show_everything import NODE_CLASS_MAPPINGS as STAR_SHOW_EVERYTHING_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_SHOW_EVERYTHING_NODE_DISPLAY_NAME_MAPPINGS
 from .misc.star_preview import NODE_CLASS_MAPPINGS as STAR_PREVIEW_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_PREVIEW_NODE_DISPLAY_NAME_MAPPINGS
+from .misc.star_checkpoint_saver import NODE_CLASS_MAPPINGS as STAR_CHECKPOINT_SAVER_NODE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as STAR_CHECKPOINT_SAVER_NODE_DISPLAY_NAME_MAPPINGS
 
 import os
 import shutil
@@ -258,6 +259,7 @@ NODE_CLASS_MAPPINGS = {
     **STAR_OUTPUT_CLEANER_NODE_CLASS_MAPPINGS,
     **STAR_SHOW_EVERYTHING_NODE_MAPPINGS,
     **STAR_PREVIEW_NODE_MAPPINGS,
+    **STAR_CHECKPOINT_SAVER_NODE_MAPPINGS,
     # Manual add for Star Detail Enhancer (conditional - requires opencv-python)
     **STARDETAILENHANCER_NODE_MAPPINGS,
     # Manual add for StarShowLastFrame
@@ -352,13 +354,14 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **STAR_OUTPUT_CLEANER_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_SHOW_EVERYTHING_NODE_DISPLAY_NAME_MAPPINGS,
     **STAR_PREVIEW_NODE_DISPLAY_NAME_MAPPINGS,
+    **STAR_CHECKPOINT_SAVER_NODE_DISPLAY_NAME_MAPPINGS,
     # Manual add for Star Detail Enhancer (conditional - requires opencv-python)
     **STARDETAILENHANCER_NODE_DISPLAY_NAMES,
     # Manual add for StarShowLastFrame
     "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES["Star_Show_Last_Frame"],
 }
 
-__version__ = "3.0.3"
+__version__ = "3.0.4"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"
