@@ -55,6 +55,7 @@ class StarFlux2Inpainter:
                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "use_inpaint_area_as_reference": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Feed the inpaint area to the model as a reference image. Helps Flux2 keep style and content consistent with the surrounding image."}),
+                    "qwen_image_2_1": ("BOOLEAN", {"default": False, "label_on": "Yes", "label_off": "No", "tooltip": "Qwen-Image-Edit 2.1 mode: passes reference images through the text encoder (image_slots conditioning) and handles its RGBA VAE output."}),
                 },
                 "optional": {
                     "reference_image_1": ("IMAGE", ),
@@ -368,7 +369,7 @@ class StarFlux2Inpainter:
 
         return resized.movedim(1, -1)
 
-    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None):
+    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, qwen_image_2_1=False, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None):
         # Differential Diffusion is always applied for smooth mask boundaries
         model = DifferentialDiffusion().apply(model)
 
@@ -379,18 +380,7 @@ class StarFlux2Inpainter:
             # Crop the image and mask down to the inpaint context area
             crop_info, cropped_image, cropped_mask = self.crop_image_and_mask(image, mask)
 
-            # Encode positive prompt
-            tokens = clip.tokenize(text)
-            cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
-            conditioning_pos = [[cond, {"pooled_output": pooled}]]
-
-            # Encode empty negative prompt (Flux2 uses real CFG)
-            tokens_neg = clip.tokenize("")
-            cond_neg, pooled_neg = clip.encode_from_tokens(tokens_neg, return_pooled=True)
-            conditioning_neg = [[cond_neg, {"pooled_output": pooled_neg}]]
-
-            # Collect reference latents: the inpaint area itself plus optional reference images
-            ref_latents = []
+            # Collect reference images: the inpaint area itself plus optional reference images
             reference_images = []
             if use_inpaint_area_as_reference:
                 reference_images.append(cropped_image)
@@ -398,9 +388,29 @@ class StarFlux2Inpainter:
                 if ref is not None:
                     reference_images.append(ref)
 
-            for ref in reference_images:
-                scaled_ref = self.scale_image_to_megapixels(ref, 1.0)
-                ref_latents.append(vae.encode(scaled_ref[:, :, :, :3]))
+            scaled_refs = [self.scale_image_to_megapixels(ref, 1.0) for ref in reference_images]
+
+            if qwen_image_2_1:
+                # Qwen Image 2.1 splices reference latents into the text sequence at image_slots
+                # positions, which the text encoder only produces when the reference images are
+                # tokenized into the prompt
+                tokens = clip.tokenize(text, images=scaled_refs)
+                encoded_pos = clip.encode_from_tokens(tokens, return_dict=True)
+                cond = encoded_pos.pop("cond")
+                conditioning_pos = [[cond, encoded_pos]]
+            else:
+                # Encode positive prompt
+                tokens = clip.tokenize(text)
+                cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
+                conditioning_pos = [[cond, {"pooled_output": pooled}]]
+
+            # Encode empty negative prompt (Flux2 uses real CFG)
+            tokens_neg = clip.tokenize("")
+            cond_neg, pooled_neg = clip.encode_from_tokens(tokens_neg, return_pooled=True)
+            conditioning_neg = [[cond_neg, {"pooled_output": pooled_neg}]]
+
+            # Encode reference latents in the same order as the reference images
+            ref_latents = [vae.encode(scaled_ref[:, :, :, :3]) for scaled_ref in scaled_refs]
 
             if len(ref_latents) > 0:
                 conditioning_pos = node_helpers.conditioning_set_values(
@@ -427,6 +437,8 @@ class StarFlux2Inpainter:
             decoded_image = vae.decode(latent_result["samples"])
             if len(decoded_image.shape) == 5: # video-style VAEs (e.g. Qwen) return [B, T, H, W, C]
                 decoded_image = decoded_image.reshape(-1, decoded_image.shape[-3], decoded_image.shape[-2], decoded_image.shape[-1])
+            if decoded_image.shape[-1] > 3: # the Qwen Image 2.1 VAE decodes RGBA, drop the alpha channel for stitching
+                decoded_image = decoded_image[:, :, :, :3]
 
             # Stitch the decoded image back into the original
             stitched_image = self.stitch_image(crop_info, decoded_image)
