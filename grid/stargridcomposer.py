@@ -210,6 +210,8 @@ class StarGridComposer:
             elif img.shape[0] == 3:
                 img = img.transpose(1, 2, 0)  # CHW to HWC for RGB
             img_pil = Image.fromarray(img)
+            if img_pil.mode == "RGBA":
+                img_pil = img_pil.convert("RGB")
             # Calculate position in grid
             row = i // cols
             col = i % cols

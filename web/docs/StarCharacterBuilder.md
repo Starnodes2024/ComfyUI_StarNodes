@@ -80,21 +80,17 @@ When **random_all** is on, only **one** of the five wear categories is picked pe
 
 ### 2. character_sheet (STRING)
 
-- A ready-to-use, strict **character reference sheet** image prompt for the same character:
-  - Fixed layout: multi-panel grid on a solid neutral background with **full-body front**, **full-body back**, **front face close-up** and **profile face close-up** views
-  - Gender-correct anatomical close-up panels (strict mapping, each gender explicitly excludes the wrong genitalia):
-    - **female** → breasts and vulva/vagina panels, absolutely no penis or male genitalia
-    - **male** → penis (with testicles) in flaccid **and** erect state, flat chest, absolutely no breasts/vulva
-    - **transgender woman** → breasts **and** penis (flaccid and erect), absolutely no vulva/vagina
-    - **transgender man** → flat chest and vulva/vagina, absolutely no penis or male genitalia
-    - custom sex entries you add yourself fall back to a neutral chest/genitalia panel description
-    - **female** and **male** sheets also describe the face distinctly (*a distinctly feminine female face* / *a distinctly masculine male face*); transgender sheets keep the face neutral
-    - always with an explicit *no hermaphroditic or mixed traits* safeguard
-  - **Naked by default**: the character is 100% naked in all main body views unless a wear category is selected
-  - **Isolation rule**: accessories and sextoys are never worn or held — they get their own separate panels
+- A ready-to-use, strict **character reference sheet** image prompt for the same character, matching the `system_prompt` layout spec:
+  - **Left side (full height)**: two vertical full-body panels — one **full-body front view** and one **full-body back view**
+  - **Right side (standard layout)**: a 6-panel detail grid in a **3x2** layout:
+    - Top row (head views): **frontal face portrait**, **side profile portrait**, **45-degree angle portrait**
+    - Bottom row (body sections): **chest area** from the front, **pelvic area** from the front, **pelvic area/buttocks** from the back
+  - **Accessory layout**: when accessories or sextoys are selected, the right side expands to **8 panels in a 4x2 layout** with separate isolated close-ups of the items on neutral backgrounds — never worn or held
+  - **female** and **male** sheets also describe the face distinctly (*a distinctly feminine female face* / *a distinctly masculine male face*)
+  - **Unclothed by default**: the character is unclothed in the full-body panels unless a wear category is selected
   - If you use **random_all**, set all five wear categories to **exclude** if you want a naked sheet (otherwise an outfit is always randomized)
-  - `pose` is ignored in sheet mode (the views are prescribed); `expression` and `makeup` show in the face close-ups; `additional` is appended at the very end of the prompt, same as in normal mode
-  - Always ends with: clinical/scientific style, flat even studio lighting, consistent proportions across panels, and an absolute **no text/labels/symbols/watermarks** prohibition
+  - `pose` is ignored in sheet mode (the views are prescribed); `expression` and `makeup` show in the head portraits; `additional` is appended at the very end of the prompt, same as in normal mode
+  - Always ends with: clinical/scientific style, flat even studio lighting, absolute consistency of features/proportions across panels, and an absolute **no text/labels/symbols/watermarks** prohibition
 
 ### 3. system_prompt (STRING)
 

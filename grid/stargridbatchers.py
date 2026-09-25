@@ -48,6 +48,11 @@ class StarGridImageBatcher:
             # Convert to torch if needed
             if isinstance(img, np.ndarray):
                 img = torch.from_numpy(img)
+            # Drop the alpha channel from RGBA inputs
+            if img.dim() == 4 and img.shape[-1] == 4:
+                img = img[..., :3]
+            elif img.dim() == 4 and img.shape[1] == 4:
+                img = img[:, :3]
             # If shape is [B, H, W, C], permute to [B, C, H, W]
             if img.shape[-1] == 3 and img.dim() == 4:
                 img = img.permute(0, 3, 1, 2)

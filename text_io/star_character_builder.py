@@ -187,39 +187,38 @@ class StarCharacterBuilder:
         traits = [x for x in (resolved["skin_tone"] and f"{resolved['skin_tone']} skin",
                               resolved["body_build"], hair, eyes, face_trait, resolved["custom"]) if x]
 
-        anatomy = {
-            "female": "The grid features distinct uncensored anatomical close-up panels of the breasts and the vulva with clearly visible vagina. The character has exactly one vagina and vulva and absolutely no penis, no scrotum, and no male genitalia anywhere in the sheet, with no hermaphroditic or mixed traits.",
-            "male": "The grid features distinct uncensored anatomical close-up panels of the penis with testicles, shown in both a flaccid and a fully erect state. The character has a flat male chest, exactly one penis, and absolutely no breasts, no vagina, and no vulva anywhere in the sheet, with no hermaphroditic or mixed traits.",
-            "transgender woman": "The grid features distinct uncensored anatomical close-up panels of the breasts and the penis, the penis shown in both a flaccid and a fully erect state. The character has both breasts and a penis, reflecting a male-to-female transition, with absolutely no vagina and no vulva anywhere in the sheet, and no hermaphroditic or mixed traits.",
-            "transgender man": "The grid features distinct uncensored anatomical close-up panels of the chest and the vulva with clearly visible vagina. The character has a flat male chest and one vagina, reflecting a female-to-male transition, with absolutely no penis, no scrotum, and no male genitalia anywhere in the sheet, and no hermaphroditic or mixed traits.",
-        }.get(resolved["sex"], "The grid features specific uncensored close-up panels of the chest and the genitalia, depicting exactly one consistent type of genitalia with no hermaphroditic or mixed traits anywhere in the sheet.")
-
         items = [self._isolate(resolved[f]) for f in ("accessories", "sextoy") if resolved[f]]
-
-        style_sentence = "The style is clinical and scientific"
-        if style:
-            style_sentence = f"Rendered in {style} style, presented in a clinical and scientific way"
-        style_sentence += ", featuring flat, even studio lighting that clearly illuminates all morphological details without harsh shadows, and enforces consistent proportions and anatomy across every panel."
 
         sentences = []
         first = f"A character reference sheet of a {lead}"
         if traits:
             first += f" with {', '.join(traits)}"
-        first += ", presented in a multi-panel grid on a solid neutral background."
+        first += ", presented in a multi-panel grid layout on a solid, neutral background."
         sentences.append(first)
-        sentences.append("The layout includes a full-body front view, a full-body back view, a front face close-up, and a profile face close-up.")
+
+        sentences.append("The left side has two vertical full-body panels spanning the entire height: one full-body front view and one full-body back view.")
+
+        head = "the top row shows a frontal face portrait, a side profile portrait, and a 45-degree angle portrait"
         face = [x for x in (resolved["expression"], resolved["makeup"]) if x]
         if face:
-            sentences.append(f"The face close-ups show {' and '.join(face)}.")
+            head += f" with {' and '.join(face)}"
+        sentences.append(f"The right side is a 6-panel detail grid in a 3x2 layout: {head}; the bottom row shows the chest area from the front, the pelvic area from the front, and the pelvic area/buttocks from the back.")
+
         if wear:
-            sentences.append(f"The character wears {wear.removeprefix('wearing ')} in all main body views.")
+            sentences.append(f"The character wears {wear.removeprefix('wearing ')} in the full-body panels.")
         else:
-            sentences.append("The character is 100% naked in all main body views.")
-        sentences.append(anatomy)
+            sentences.append("The character is unclothed in the full-body panels.")
+
         if items:
-            sentences.append(f"The following items appear completely isolated in their own separate panels and are never worn or held by the character: {', '.join(items)}.")
+            sentences.append(f"The right-side grid expands to 8 panels in a 4x2 layout, adding separate isolated close-ups of the following items on neutral backgrounds, never worn or held by the character: {', '.join(items)}.")
+
+        style_sentence = "The style is clinical and scientific"
+        if style:
+            style_sentence = f"Rendered in {style} style, presented in a clinical and scientific way"
+        style_sentence += ", with flat, even studio lighting that clearly illuminates all morphological details without harsh shadows, and enforces absolute consistency in the character's facial features, proportions, and overall appearance across every panel."
         sentences.append(style_sentence)
-        sentences.append("No text, letters, numbers, symbols, logos, watermarks, charts, or labels appear anywhere in the image.")
+        sentences.append("No text, letters, numbers, symbols, watermarks, charts, or labels appear anywhere in the image.")
+
         prompt = " ".join(sentences)
         if additional.strip():
             prompt += ", " + additional.strip()
