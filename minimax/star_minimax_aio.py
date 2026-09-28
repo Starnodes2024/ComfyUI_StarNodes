@@ -33,7 +33,7 @@ from comfy_api.latest import io
 
 from ..ltx_video.star_video_sound_enricher import process_audio as _enrich_sound
 from ..misc.star_preview import apply_star_preview
-from .minimax_common import IMAGE_MODE_FRAMES, decode_audio, decode_video, run_sample
+from .minimax_common import decode_audio, decode_still, decode_video, run_sample
 from .star_minimax_latent_upscaler import upscale_minimax_conditioning, upscale_video_latent_3d
 
 # ---------------------------------------------------------------------------
@@ -122,7 +122,8 @@ CLIP_TYPES = ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "moch
               "qwen_image", "hunyuan_image", "flux2", "ovis", "longcat_image", "cogvideox",
               "lens", "pixeldit", "ideogram4", "boogu", "krea2", "joyimage", "mage", "minimax"]
 
-MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0, "audio only"]
+MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0,
+                     3.0, 4.0, 5.0, 6.0, 7.0, 8.0, "audio only"]   # 3-8 MP: image mode only
 
 OUTPUT_FPS = 24.0
 
@@ -178,12 +179,16 @@ def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
                         image_mode=False):
     """In-node replica of MiniMaxH3ReferenceToVideo.execute (ref2va task)."""
     if image_mode:
-        # still latent, exactly 9 frames (off the 17k+5 video grid)
+        # one-frame still latent (H3's native image convention), decoded with
+        # the Fizgig still decode in minimax_common.decode_still
         device = comfy.model_management.intermediate_device()
-        video = torch.zeros([1, 24, 3, height // 16, width // 16], device=device)
-        audio = torch.zeros([1, 32, 2, round(IMAGE_MODE_FRAMES / FPS * AUDIO_LATENT_FPS)], device=device)
+        # the DiT patchifies 2x2 on a 16x latent grid, so the latent size must be even
+        lh, lw = (height // 16) // 2 * 2, (width // 16) // 2 * 2
+        video = torch.zeros([1, 24, 1, lh, lw], device=device)
+        audio_t = max(1, round(1 / FPS * AUDIO_LATENT_FPS))       # 2, what the sampler uses for one frame
+        audio = torch.zeros([1, 32, 2, audio_t], device=device)
         latent = {"samples": comfy.nested_tensor.NestedTensor((video, audio))}
-        frame_count = IMAGE_MODE_FRAMES
+        frame_count = 5   # ref videos are still capped on the video grid minimum
     else:
         latent, frame_count = _empty_av_latent(width, height, length)
 
@@ -303,7 +308,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
             inputs=[
                 # ---------------- Mode ----------------
                 io.Combo.Input("mode", options=["video", "image"], default="video",
-                               tooltip="'video' renders the full clip with audio. 'image' renders 9 frames at the selected ratio and size and outputs only frame index 8 as a still image (best-quality frame); duration and audio decoding are skipped. Reference inputs work exactly like in video mode."),
+                               tooltip="'video' renders the full clip with audio. 'image' renders one single frame (H3's native still convention) at the selected ratio and size and decodes it with the single-frame still decode; duration and audio decoding are skipped. Reference inputs work exactly like in video mode."),
                 # ---------------- Prompt & user inputs ----------------
                 io.String.Input("prompt", multiline=True, dynamic_prompts=True,
                                 tooltip="Reference inputs by tag in connection order, e.g. <Picture 1>, <Video 1>, <Audio 1>, then describe scene, motion and audio."),
@@ -311,7 +316,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
                                default="16:9 (Widescreen)",
                                tooltip="Aspect ratio for the output dimensions."),
                 io.Combo.Input("megapixels", options=MEGAPIXEL_OPTIONS, default=0.5,
-                               tooltip='Target total megapixels (output pixel size). 0.5 MP ~ 960x544 at 16:9; 2.0 MP ~ 1920x1088. Select "audio only" for a fixed 32x32 canvas when you only need audio output.'),
+                               tooltip='Target total megapixels (output pixel size). 0.5 MP ~ 960x544 at 16:9; 2.0 MP ~ 1920x1088. Select "audio only" for a fixed 32x32 canvas when you only need audio output. The 3-8 MP presets appear in image mode only (single-frame stills hit their quality sweet spot from 3 MP up).'),
                 io.Boolean.Input("match_ratio_from_image", default=False,
                                  label_on="match image ratio", label_off="use selected ratio",
                                  tooltip="If enabled and a reference image is connected, the closest aspect ratio of the first reference image is used at the selected pixel size."),
@@ -512,12 +517,15 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_audios=None) -> io.NodeOutput:
 
         audio_only = (megapixels == "audio only")
+        if mode == "video" and not audio_only and float(megapixels) > 2.0:
+            raise ValueError("[Star Minimax AIO] megapixels above 2.0 are for image mode stills - "
+                             "drop to 2.0 MP or less, or switch mode to 'image'.")
 
         # 1. Resolution (ResolutionSelector, multiple = 32, optional image ratio match)
         #    same size logic in both modes
         width, height, matched = _resolve_dimensions(
             aspect_ratio, megapixels, match_ratio_from_image, ref_images)
-        length = IMAGE_MODE_FRAMES if mode == "image" else _duration_to_length(duration)
+        length = 1 if mode == "image" else _duration_to_length(duration)
         logging.info("[Star Minimax AIO] %s mode | canvas %dx%d%s, %d frames (%.2fs @ 24fps)",
                      mode, width, height, " (ratio matched from image)" if matched else "",
                      length, length / FPS)
@@ -582,8 +590,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
             samples = cls._run_upscale_pass(sample_model, cond, samples, seed, options)
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
-        #    image mode: decode all 9 frames, return frame index 8 as the still
-        images = decode_video(vae, samples, image_mode=(mode == "image"))
+        #    image mode: single-frame still decode (5-frame group, keep pixel frame 3)
+        images = decode_still(vae, samples) if mode == "image" else decode_video(vae, samples)
         if mode == "image" and not audio_only:
             audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
         else:

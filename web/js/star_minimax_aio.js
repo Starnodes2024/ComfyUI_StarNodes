@@ -20,6 +20,10 @@ const RATIOS = {
     "21:9 (Ultrawide)": [21, 9],
 };
 
+const MP_VIDEO = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0, "audio only"];
+const MP_IMAGE = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5, 1.8, 2.0,
+                  3.0, 4.0, 5.0, 6.0, 7.0, 8.0, "audio only"];
+
 function computeSize(ratioLabel, mp) {
     const [wr, hr] = RATIOS[ratioLabel] || [16, 9];
     const scale = Math.sqrt((mp * 1024 * 1024) / (wr * hr));
@@ -161,14 +165,21 @@ app.registerExtension({
                 // image mode: duration is unused, everything else stays the same
                 const durWidget = node.widgets?.find((w) => w.name === "duration");
                 if (durWidget) durWidget.disabled = mode === "image";
+                // the 3-8 MP still presets are offered in image mode only
+                const mpWidget = node.widgets?.find((w) => w.name === "megapixels");
+                if (mpWidget?.options?.values) {
+                    const list = mode === "image" ? MP_IMAGE : MP_VIDEO;
+                    mpWidget.options.values = list;
+                    if (!list.includes(mpWidget.value)) mpWidget.value = 2.0;
+                }
                 const ratio = get("aspect_ratio") ?? "16:9 (Widescreen)";
                 const mp = Number(get("megapixels") ?? 0.5);
                 const match = Boolean(get("match_ratio_from_image"));
                 const [w, h] = computeSize(ratio, mp);
                 if (mode === "image") {
                     info.textContent = match
-                        ? `auto-ratio @ ${mp} MP  •  ~${w}x${h} if 16:9  •  still image (9 frames \u2192 #9)`
-                        : `${w} x ${h}  •  ${mp} MP  •  still image (9 frames \u2192 #9)`;
+                        ? `auto-ratio @ ${mp} MP  •  ~${w}x${h} if 16:9  •  still image (single frame)`
+                        : `${w} x ${h}  •  ${mp} MP  •  still image (single frame)`;
                     return;
                 }
                 const dur = Number(get("duration") ?? 5);
@@ -199,7 +210,7 @@ app.registerExtension({
                     bar.fill.style.opacity = "1";
                     bar.fill.style.width = "100%";
                     const mode = node.widgets?.find((w) => w.name === "mode")?.value;
-                    bar.label.textContent = mode === "image" ? "decoding frame 9…" : "decoding video + audio…";
+                    bar.label.textContent = mode === "image" ? "decoding still…" : "decoding video + audio…";
                     setTimeout(() => {
                         bar.wrap.style.display = "none";
                         bar.fill.style.width = "0%";
@@ -223,6 +234,14 @@ app.registerExtension({
                 }
             }
             node._starUpdateInfo();
+            return r;
+        };
+
+        // re-apply the per-mode readout / MP filter after a saved workflow loads
+        const onConfigure = nodeType.prototype.onConfigure;
+        nodeType.prototype.onConfigure = function () {
+            const r = onConfigure?.apply(this, arguments);
+            this._starUpdateInfo?.();
             return r;
         };
     },

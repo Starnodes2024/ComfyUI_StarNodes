@@ -21,10 +21,11 @@ duration math → `MiniMaxH3ReferenceToVideo` conditioning → `RandomNoise` →
 - **🎬 Single-node pipeline** — model loading, reference conditioning, sampling
   and video/audio VAE decoding all run inside the node, no sub-graph needed.
 - **🖼️📽️ Image / Video mode selector** — `video` (default) renders the full
-  clip with audio; `image` renders exactly 9 frames and outputs only frame
-  index 8 as a still image. The last frame carries the best quality. Audio
-  decoding is skipped and the audio VAE is not loaded (unless reference audios
-  are connected for conditioning).
+  clip with audio; `image` renders one single frame (H3's native still
+  convention) and decodes it with the single-frame still decode (the latent
+  frame is replicated into a full 5-frame group before decoding, for far less
+  banding than a bare VAE decode). Audio decoding is skipped and the audio
+  VAE is not loaded (unless reference audios are connected for conditioning).
 - **🧩 Reference inputs work in both modes** — `image` mode accepts the same
   reference images / videos / audios as `video` mode (ideal for image edits:
   connect the source image as `ref_image_0` and prompt with `<Picture 1>`).
@@ -94,7 +95,7 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 | `ref_video_0…2` | IMAGE | up to 3 reference videos (frames @ 24 fps) |
 | `ref_video_audio_0…2` | AUDIO | soundtrack paired to the same-numbered reference video |
 | `ref_audio_0…2` | AUDIO | up to 3 standalone reference audios |
-| **IMAGE** out | IMAGE | decoded video frames — a single still (frame index 8) in `image` mode |
+| **IMAGE** out | IMAGE | decoded video frames — a single still frame in `image` mode |
 | **AUDIO** out | AUDIO | decoded stereo audio |
 | **FPS** out | FLOAT | fixed 24.0 — connect directly to your video combine/save node |
 
@@ -105,10 +106,9 @@ one appears.
 ## Widgets (defaults = template workflow)
 
 - **mode** — **`video` (default)** renders the full clip with audio; `image`
-  renders 9 frames and outputs only frame index 8 as a still image (the
-  best-quality frame). `duration` is ignored in `image` mode (disabled in the
-  UI); `aspect_ratio`, `megapixels` and `match_ratio_from_image` work exactly
-  like in video mode.
+  renders and decodes one single frame as a still image. `duration` is ignored
+  in `image` mode (disabled in the UI); `aspect_ratio`, `megapixels` and
+  `match_ratio_from_image` work exactly like in video mode.
 - **prompt** — use `<Picture i>` / `<Video k>` / `<Audio j>` tags in connection
   order, then describe scene, motion and audio.
 - **aspect_ratio** — `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`,
@@ -117,8 +117,9 @@ one appears.
   (0.2 / 0.3 / 0.4 / **0.5 default** / 0.6 / 0.7 / 0.8 / 0.9 / 0.98 / 1.0 / 1.2
   / 1.5 / 1.8 / 2.0 / **audio only**);
   0.5 MP ≈ 960×544 at 16:9, 2.0 MP ≈ 1920×1088.
+  In `image` mode the extra still presets **3.0 / 4.0 / 5.0 / 6.0 / 7.0 / 8.0 MP**
+  appear (single-frame stills hit their quality sweet spot from 3 MP up).
   Select **audio only** for a fixed 32×32 canvas when you only need audio output.
-  Same presets in both modes.
 - **match_ratio_from_image** — when ON and a reference image is connected, the
   closest matching ratio of the first reference image is picked at the
   selected pixel size.
@@ -146,9 +147,9 @@ one appears.
 
 1. Make sure the four MiniMax H3 model files listed above are present.
 2. Add the node: **⭐StarNodes/Video → ⭐ Star Minimax All In One**.
-3. Pick the **mode**: `video` for clips, `image` for a high-quality still
-   (frame index 8 of a fully rendered 9-frame run, sized via the same
-   aspect-ratio and megapixel widgets as video mode).
+3. Pick the **mode**: `video` for clips, `image` for a high-quality single
+   frame still (sized via the same aspect-ratio and megapixel widgets as
+   video mode).
 4. (Optional) Connect reference images, reference videos (with paired audio)
    and/or standalone reference audios to the autogrowing slots.
 5. Write your prompt using `<Picture i>` / `<Video k>` / `<Audio j>` tags in
@@ -163,9 +164,12 @@ one appears.
 
 - The internal pipeline is identical in logic to the stock nodes — no behavior
   is changed, only the wiring is collapsed into one node.
-- `image` mode builds a video latent with exactly 9 temporal frames at the
-  selected ratio and megapixel size (same presets as video mode), samples and
-  VAE-decodes all 9 frames, then returns frame index 8 as the still. Audio decoding is skipped and the audio
+- `image` mode builds a single-frame latent (one latent frame, H3's native
+  still convention) at the selected ratio and megapixel size (same presets as
+  video mode), samples only that one frame, then decodes it with the
+  single-frame still decode: the latent frame is replicated into a full
+  5-frame group, decoded, and pixel frame 3 is kept — far less banding than a
+  bare VAE decode of a lone frame. Audio decoding is skipped and the audio
   VAE is not loaded unless reference audios are connected.
 - For image edits in `image` mode, connect your source image to `ref_image_0`
   (and more references if needed) and reference them in the prompt with
