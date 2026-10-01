@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-3.2.2-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.3.0-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -211,6 +211,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | ⭐ Star Detail Daemon | Enhance details for Flux & all SD models |
 | ⭐ Star FluxFill Inpainter | Inpainting for Flux with optimized conditioning |
 | ⭐ Star Flux2/Qwen-Image-Edit Inpainter | All-in-one inpaint: crop-and-stitch, ref image, Differential Diffusion |
+| ⭐ Star Qwen2 Outpainter | All-in-one Qwen-Image-Edit outpaint: built-in image loader, red-canvas reference, ratio + MP picker, drag/resize preview |
 | ⭐ Star Distilled Optimizer (QWEN/ZIT) | Two-pass distilled refinement for Z-Image-Turbo / Qwen Turbo |
 
 </details>

@@ -8,6 +8,7 @@ from nodes import common_ksampler, InpaintModelConditioning
 import comfy.utils
 import comfy.samplers
 from scipy.ndimage import gaussian_filter, grey_dilation, binary_fill_holes, binary_closing
+from .star_preview import apply_star_preview
 
 
 class DifferentialDiffusion:
@@ -62,6 +63,7 @@ class StarFlux2Inpainter:
                     "reference_image_2": ("IMAGE", ),
                     "reference_image_3": ("IMAGE", ),
                     "reference_image_4": ("IMAGE", ),
+                    "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models)."}),
                 }
         }
 
@@ -369,9 +371,12 @@ class StarFlux2Inpainter:
 
         return resized.movedim(1, -1)
 
-    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, qwen_image_2_1=False, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None):
+    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, qwen_image_2_1=False, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None, preview=None):
         # Differential Diffusion is always applied for smooth mask boundaries
         model = DifferentialDiffusion().apply(model)
+
+        if preview is not None:
+            model = apply_star_preview(model, preview)
 
         if not text.strip():
             text = "A Fluffy Confused Purple Monster with a \"?\" Sign"
