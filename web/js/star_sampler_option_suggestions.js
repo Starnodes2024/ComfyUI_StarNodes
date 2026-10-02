@@ -11,6 +11,7 @@ import { app } from "../../../../scripts/app.js";
 
 const SPLIT_CLASS_KEY = "⭐ Star Split Sampler Option";
 const ZIT_CLASS_KEY = "⭐ Star Distilled Optimizer (QWEN/ZIT)";
+const LTX_QWEN_CLASS_KEY = "⭐ Star LTX Scheduler (Qwen Image 2.x)";
 
 function promoteSlotType(slotType, nodeClass, direction) {
     const lg = globalThis.LiteGraph;
@@ -41,14 +42,20 @@ app.registerExtension({
 
     setup() {
         setTimeout(() => {
-            // Dragging an options OUTPUT to the canvas suggests both option nodes.
+            // Dragging an options OUTPUT to the canvas suggests the option nodes.
             promoteSlotType("STARNODES_OPTIONS", SPLIT_CLASS_KEY, "out");
             promoteSlotType("STARNODES_OPTIONS", ZIT_CLASS_KEY, "out");
+            promoteSlotType("STARNODES_OPTIONS", LTX_QWEN_CLASS_KEY, "out");
 
             // Dragging FROM an options INPUT (wildcard type "*" on ⭐ StarSampler
-            // and ⭐ Star SD Upscale Refiner) suggests both option nodes as well.
+            // and ⭐ Star SD Upscale Refiner, STARNODES_OPTIONS on the Qwen
+            // nodes) suggests the option nodes as well.
             promoteSlotType("*", SPLIT_CLASS_KEY, "in");
             promoteSlotType("*", ZIT_CLASS_KEY, "in");
+            promoteSlotType("*", LTX_QWEN_CLASS_KEY, "in");
+            promoteSlotType("STARNODES_OPTIONS", SPLIT_CLASS_KEY, "in");
+            promoteSlotType("STARNODES_OPTIONS", ZIT_CLASS_KEY, "in");
+            promoteSlotType("STARNODES_OPTIONS", LTX_QWEN_CLASS_KEY, "in");
         }, 100);
     },
 });

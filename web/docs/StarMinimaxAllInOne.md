@@ -95,7 +95,7 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 | `ref_video_0…2` | IMAGE | up to 3 reference videos (frames @ 24 fps) |
 | `ref_video_audio_0…2` | AUDIO | soundtrack paired to the same-numbered reference video |
 | `ref_audio_0…2` | AUDIO | up to 3 standalone reference audios |
-| **IMAGE** out | IMAGE | decoded video frames — a single still frame in `image` mode |
+| **IMAGE** out | IMAGE | decoded video frames — a single still frame in `image` mode; empty when `decode_video` is off |
 | **AUDIO** out | AUDIO | decoded stereo audio |
 | **FPS** out | FLOAT | fixed 24.0 — connect directly to your video combine/save node |
 
@@ -133,6 +133,10 @@ one appears.
 - **vae_name** (video VAE).
 - **audio_vae_name**, **audio_vae_precision** (`fp32` default — selectable
   fp32/fp16/bf16), **audio_vae_device**.
+- **decode_video** — **on (default)** decodes the generated video/still with
+  the video VAE. Switch it off to skip the video decode entirely: the **IMAGE**
+  output stays empty and the node only delivers the **LATENT** and the
+  **AUDIO** (e.g. to chain an external decode or keep VRAM free).
 
 ## In-node UI
 

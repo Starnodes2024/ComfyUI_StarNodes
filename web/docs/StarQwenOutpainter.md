@@ -13,17 +13,20 @@ The Star Qwen2 Outpainter is an all-in-one outpainting node built for **Qwen-Ima
 - **aspect_ratio**: Target canvas aspect ratio (same list as the Aspect Ratio Advanced node, default: 16:9 landscape)
 - **megapixel**: Target canvas size in megapixels (default: 2.0)
 - **image_placement**: Where the input image sits on the canvas — any of the 9 positions (`top left` … `bottom right`) or `custom`. With `custom` you can drag the image box inside the in-node preview to define which area gets outpainted, and drag the corner grip to freely resize the source image on the canvas (default: center)
-- **prompt**: What the model should do with the red areas (default: `expand the red areas with background and scene that fits the source <image 1>. add a fluffy purple otter with a golden star and the word "STARNODES" to the scene.`)
+- **bg_color**: Fill color of the canvas surround — `white`, `grey`, `black`, `red` (default), `blue`, `green`. Match the color name in your prompt (e.g. "expand the red areas")
+- **prompt**: What the model should do with the colored areas (default: `expand the red areas with background and scene that fits the source <image 1>. add a fluffy purple otter with a golden star and the word "STARNODES" to the scene.`)
 - **seed**: Random seed for reproducible results
 - **steps**: Number of sampling steps (default: 30)
 - **cfg**: Classifier-free guidance scale (default: 1.0 — an empty negative prompt is encoded automatically)
 - **sampler_name**: Sampling algorithm (default: euler)
-- **scheduler**: Noise schedule (default: simple)
+- **scheduler**: Noise schedule (default: `simple` — ignored while `use_ltx_scheduler` is on or a ⭐ Star LTX Scheduler options node is connected)
+- **use_ltx_scheduler**: Use LTX Scheduler for Qwen 2.x (default: on) — applies the resolution-aware dynamic-shift schedule with 40 steps and the token count from the canvas latent, same as connecting ⭐ Star LTX Scheduler with defaults; fixes grid noise above ~1024px, falls back to `scheduler` on non-Flow models
 - **denoise**: Denoising strength — keep at 1.0 for outpainting (default: 1.0)
 - **qwen_image_2_1**: Enable for Qwen-Image 2.1 models — 64-channel /16x latents, image_slots conditioning and RGBA VAE output (default: No)
 
 ### Optional
 - **reference_image**: Optional second reference image (IMAGE connector) — scaled to ~1 MP and added to the vision tokens and reference latents next to the red canvas, e.g. a style or content reference for the expansion
+- **options**: Optional ⭐ Star options connector — connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px); overrides `scheduler` and `steps`
 - **preview**: Optional ⭐ Star Preview connector — shows a live sampling preview on the connected ⭐ Star Preview node
 
 ## Outputs

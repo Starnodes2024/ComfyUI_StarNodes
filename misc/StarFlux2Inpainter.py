@@ -9,6 +9,7 @@ import comfy.utils
 import comfy.samplers
 from scipy.ndimage import gaussian_filter, grey_dilation, binary_fill_holes, binary_closing
 from .star_preview import apply_star_preview
+from ..samplers.star_ltx_scheduler_qwen2x import apply_star_ltx
 
 
 class DifferentialDiffusion:
@@ -53,7 +54,8 @@ class StarFlux2Inpainter:
                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 5.0, "min": 0.0, "max": 100.0}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule - ignored while 'Use LTX Scheduler' is on or a ⭐ Star LTX Scheduler options node is connected."}),
+                    "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (40 steps, token count from the inpaint latent) - same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px. Falls back to the widget scheduler on non-Flow models."}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "use_inpaint_area_as_reference": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Feed the inpaint area to the model as a reference image. Helps Flux2 keep style and content consistent with the surrounding image."}),
                     "qwen_image_2_1": ("BOOLEAN", {"default": False, "label_on": "Yes", "label_off": "No", "tooltip": "Qwen-Image-Edit 2.1 mode: passes reference images through the text encoder (image_slots conditioning) and handles its RGBA VAE output."}),
@@ -63,6 +65,7 @@ class StarFlux2Inpainter:
                     "reference_image_2": ("IMAGE", ),
                     "reference_image_3": ("IMAGE", ),
                     "reference_image_4": ("IMAGE", ),
+                    "options": ("STARNODES_OPTIONS", {"tooltip": "Optional ⭐ Star options - connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px)."}),
                     "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models)."}),
                 }
         }
@@ -371,7 +374,7 @@ class StarFlux2Inpainter:
 
         return resized.movedim(1, -1)
 
-    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, qwen_image_2_1=False, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None, preview=None):
+    def execute(self, model, clip, vae, image, mask, text, seed, steps, cfg, sampler_name, scheduler, denoise, use_inpaint_area_as_reference=True, use_ltx_scheduler=True, qwen_image_2_1=False, reference_image_1=None, reference_image_2=None, reference_image_3=None, reference_image_4=None, options=None, preview=None):
         # Differential Diffusion is always applied for smooth mask boundaries
         model = DifferentialDiffusion().apply(model)
 
@@ -433,6 +436,23 @@ class StarFlux2Inpainter:
                 cropped_mask,
                 True
             )
+
+            # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node
+            # or the 'Use LTX Scheduler' toggle, which builds the same
+            # payload (40 steps, token count from the inpaint latent). Patches
+            # model_sampling so 'simple' emits the dynamic-shift curve.
+            ltx_options = options if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X" else None
+            if ltx_options is None and use_ltx_scheduler:
+                ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": 40, "tokens": None}
+            if ltx_options is not None:
+                tokens = int(ltx_options["tokens"]) if ltx_options.get("tokens") else int(math.prod(latent["samples"].shape[2:]))
+                steps = max(1, int(ltx_options.get("steps", steps)))
+                model, ltx_shift = apply_star_ltx(model, tokens, steps, ltx_options)
+                if ltx_shift is None:
+                    logging.warning("StarFlux2Inpainter: ⭐ Star LTX Scheduler requires a Flux-style flow model - falling back to the widget scheduler.")
+                else:
+                    logging.info(f"StarFlux2Inpainter (LTX-Qwen2x): dynamic shift {ltx_shift:.4f} for {tokens} tokens, {steps} steps")
+                    scheduler = "simple"
 
             # Sample
             latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,

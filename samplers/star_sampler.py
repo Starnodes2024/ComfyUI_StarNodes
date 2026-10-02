@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import time
@@ -11,6 +12,7 @@ from comfy.utils import ProgressBar
 
 from ..misc.star_progress import make_event_cb, patch_model_for_progress
 from ..misc.star_preview import apply_star_preview
+from .star_ltx_scheduler_qwen2x import STAR_LTX_SCHEDULER
 
 # Try to import from nodes, but handle if not available
 try:
@@ -75,7 +77,8 @@ class StarSampler:
                 "steps": ("INT", {"default": 10, "min": 1, "max": 10000, "tooltip": "Number of sampling steps"}),
                 "cfg": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.1, "tooltip": "Classifier Free Guidance scale"}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler", "tooltip": "Sampler algorithm"}),
-                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule"}),
+                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule - ignored while 'Use LTX Scheduler' is on or a ⭐ Star LTX Scheduler options node is connected."}),
+                "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (40 steps, token count from this node's latent) - same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px. Flux-style flow models only; ignored by detail schedules, ZIT and split sampling."}),
                 "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Denoising strength"}),
                 "vae": ("VAE", {"tooltip": "VAE model for decoding latents"}),
                 "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
@@ -86,7 +89,7 @@ class StarSampler:
                 "max_shift": ("FLOAT", {"default": 1.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Max shift for Flux models (ignored for SD models)"}),
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
-                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement."}),
+                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule."}),
                 "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models)."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
@@ -167,6 +170,44 @@ class StarSampler:
         except Exception:
             return False
 
+    def _ltx_sigmas(self, ltx_options, denoise):
+        """Build the LTX-style dynamic-shift sigma schedule packaged by a
+        ⭐ Star LTX Scheduler (Qwen Image 2.x) options node."""
+        steps = max(1, int(ltx_options.get("steps", 40)))
+        total_steps = steps
+        if denoise < 1.0:
+            if denoise <= 0.0:
+                return torch.FloatTensor([])
+            total_steps = int(steps / denoise)
+
+        tokens = float(ltx_options.get("tokens") or 4096)
+        max_shift = float(ltx_options.get("max_shift", 0.9))
+        base_shift = float(ltx_options.get("base_shift", 0.5))
+        base_seq_len = float(ltx_options.get("base_seq_len", 256))
+        max_seq_len = float(ltx_options.get("max_seq_len", 8192))
+
+        mm = (max_shift - base_shift) / (max_seq_len - base_seq_len)
+        b = base_shift - mm * base_seq_len
+        sigma_shift = tokens * mm + b
+
+        sigmas = torch.linspace(1.0, 0.0, total_steps + 1)
+        sigmas = torch.where(
+            sigmas != 0,
+            math.exp(sigma_shift) / (math.exp(sigma_shift) + (1 / sigmas - 1)),
+            0,
+        )
+
+        # Stretch sigmas so that its final value matches the given terminal value.
+        if bool(ltx_options.get("stretch", True)):
+            terminal = float(ltx_options.get("terminal", 0.02))
+            non_zero_mask = sigmas != 0
+            one_minus_z = 1.0 - sigmas[non_zero_mask]
+            scale_factor = one_minus_z[-1] / (1.0 - terminal)
+            sigmas[non_zero_mask] = 1.0 - (one_minus_z / scale_factor)
+
+        logging.info(f"StarSampler (LTX-Qwen2x): dynamic shift {sigma_shift:.4f} for {int(tokens)} tokens, {steps} steps")
+        return sigmas[-(steps + 1):]
+
     def _get_model_name(self, model):
         """Extract model name from model object."""
         try:
@@ -210,7 +251,7 @@ class StarSampler:
         }
 
     def execute(self, model, positive, latent, seed, steps, cfg, sampler_name, scheduler, denoise, vae,
-                decode_image=True, tiled_vae_decoding=False, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None,
+                use_ltx_scheduler=True, decode_image=True, tiled_vae_decoding=False, negative=None, max_shift=1.15, base_shift=0.5, detail_schedule=None, options=None,
                 preview=None, unique_id=None):
 
         start_time = time.time()
@@ -221,6 +262,10 @@ class StarSampler:
         # preview fires for the normal, split and ZIT two-pass modes alike.
         if preview is not None:
             model = apply_star_preview(model, preview)
+
+        # Scheduler name shown in the info outputs - overridden below when
+        # the LTX schedule actually applies.
+        sched_display = scheduler
 
         if isinstance(options, dict) and options.get("starnodes_type") == "ZIT" and (
             bool(options.get("enabled", False)) or int(options.get("details", 0)) > 0
@@ -309,8 +354,8 @@ class StarSampler:
                     image = images
 
                 processing_time = time.time() - start_time
-                info = self._create_info_output(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
-                split_info = self._create_split_info(processing_time, model, vae, start_sampler, scheduler, denoise, steps, cfg)
+                info = self._create_info_output(processing_time, model, vae, start_sampler, sched_display, denoise, steps, cfg)
+                split_info = self._create_split_info(processing_time, model, vae, start_sampler, sched_display, denoise, steps, cfg)
 
                 if _zit_cleanup is not None:
                     _zit_cleanup()
@@ -396,8 +441,8 @@ class StarSampler:
 
                 processing_time = time.time() - start_time
                 sampler_desc = f"{sampler_1} ({steps_1}) -> {sampler_2} ({steps_2})"
-                info = self._create_info_output(processing_time, model, vae, sampler_desc, scheduler, denoise, total_steps, cfg)
-                split_info = self._create_split_info(processing_time, model, vae, sampler_desc, scheduler, denoise, total_steps, cfg)
+                info = self._create_info_output(processing_time, model, vae, sampler_desc, sched_display, denoise, total_steps, cfg)
+                split_info = self._create_split_info(processing_time, model, vae, sampler_desc, sched_display, denoise, total_steps, cfg)
 
                 if _sp_cleanup is not None:
                     _sp_cleanup()
@@ -408,9 +453,30 @@ class StarSampler:
             except Exception as e:
                 logging.warning(f"StarSampler: Split sampler options ignored due to error: {e}")
 
+        # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node or
+        # the 'Use LTX Scheduler' toggle, which builds the same payload with
+        # the node's defaults (40 steps, token count from the latent). For
+        # Flux-type flow models it replaces the widget scheduler with the
+        # computed sigma curve and its own step count.
+        ltx_options = None
+        if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X":
+            ltx_options = dict(options)
+        elif use_ltx_scheduler:
+            ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": 40, "tokens": None}
+
         # Detect model type
         is_flux = self.is_flux_model(model)
-        
+
+        if ltx_options is not None:
+            if not is_flux or detail_schedule is not None:
+                logging.warning("StarSampler: ⭐ Star LTX Scheduler ignored (requires a Flux-style flow model and no detail schedule).")
+                ltx_options = None
+            else:
+                if not ltx_options.get("tokens"):
+                    ltx_options["tokens"] = int(math.prod(latent["samples"].shape[2:]))
+                steps = max(1, int(ltx_options.get("steps", steps)))
+                sched_display = STAR_LTX_SCHEDULER
+
         logging.info(f"StarSampler: Model type={'Flux' if is_flux else 'SD/SDXL/Flow(non-Flux)'}, steps={steps}, cfg={cfg}")
         
         # Patch model for fancy DOM progress bar (ComfyUI built-in ProgressBar
@@ -451,7 +517,9 @@ class StarSampler:
                 
                 # Get sampler and sigmas (allow external sigmas override)
                 sampler_obj = comfy.samplers.sampler_object(sampler_name)
-                if options is not None and not isinstance(options, dict):
+                if ltx_options is not None:
+                    sigmas = self._ltx_sigmas(ltx_options, denoise)
+                elif options is not None and not isinstance(options, dict):
                     sigmas = options
                 else:
                     sigmas = basic_scheduler.get_sigmas(work_model, scheduler, steps, denoise)[0]
@@ -636,8 +704,8 @@ class StarSampler:
             negative = positive  # Return positive as negative if not used
         
         processing_time = time.time() - start_time
-        info = self._create_info_output(processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg)
-        split_info = self._create_split_info(processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg)
+        info = self._create_info_output(processing_time, model, vae, sampler_name, sched_display, denoise, steps, cfg)
+        split_info = self._create_split_info(processing_time, model, vae, sampler_name, sched_display, denoise, steps, cfg)
         
         return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
 

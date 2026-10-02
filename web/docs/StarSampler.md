@@ -26,7 +26,8 @@
 | **steps** | INT | 20 | Number of sampling steps (1-10000) |
 | **cfg** | FLOAT | 7.0 | Classifier Free Guidance scale (0.0-100.0) |
 | **sampler_name** | SAMPLER | euler | Sampling algorithm to use |
-| **scheduler** | SCHEDULER | beta | Noise schedule type |
+| **scheduler** | SCHEDULER | simple | Noise schedule type - ignored while `use_ltx_scheduler` is on or a ⭐ Star LTX Scheduler options node is connected |
+| **use_ltx_scheduler** | BOOLEAN | True | Use LTX Scheduler for Qwen 2.x - applies the resolution-aware dynamic-shift schedule (40 steps, token count from this node's latent), same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px; Flux-style flow models only, ignored by detail schedules, ZIT and split sampling |
 | **denoise** | FLOAT | 1.0 | Denoising strength (0.0-1.0) |
 | **vae** | VAE | - | VAE model for decoding latents to images |
 | **decode_image** | BOOLEAN | True | Whether to decode latent to image |
@@ -39,7 +40,7 @@
 | **max_shift** | FLOAT | 1.15 | Max shift parameter for Flux models (ignored for SD) |
 | **base_shift** | FLOAT | 0.5 | Base shift parameter for Flux/AuraFlow models |
 | **detail_schedule** | DETAIL_SCHEDULE | None | Optional detail daemon schedule for enhanced quality |
-| **options** | * | None | Optional sampler options input. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, or ⭐ Distilled Optimizer (QWEN/ZIT) to enable a two-pass detail refinement. |
+| **options** | * | None | Optional sampler options input. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, ⭐ Distilled Optimizer (QWEN/ZIT) for two-pass refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule. |
 | **preview** | STAR_PREVIEW | None | Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models). |
 
 ## Outputs

@@ -1,6 +1,7 @@
 import math
 import os
 import json
+import logging
 import numpy as np
 import torch
 import node_helpers
@@ -11,6 +12,7 @@ import folder_paths
 from PIL import Image, ImageOps
 from nodes import common_ksampler
 from ..misc.star_preview import apply_star_preview
+from ..samplers.star_ltx_scheduler_qwen2x import apply_star_ltx
 
 CATEGORY = "⭐StarNodes/Sampler"
 SDRATIOS_PATH = os.path.join(os.path.dirname(__file__), '..', 'json', 'sdratios.json')
@@ -18,6 +20,15 @@ SDRATIOS_PATH = os.path.join(os.path.dirname(__file__), '..', 'json', 'sdratios.
 MEGAPIXEL_CHOICES = [str(mp) for mp in [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]]
 
 DEFAULT_PROMPT = 'expand the red areas with background and scene that fits the source <image 1>. add a fluffy purple otter with a golden star and the word "STARNODES" to the scene.'
+
+BG_COLORS = {
+    "white": (1.0, 1.0, 1.0),
+    "grey": (0.5, 0.5, 0.5),
+    "black": (0.0, 0.0, 0.0),
+    "red": (1.0, 0.0, 0.0),
+    "blue": (0.0, 0.0, 1.0),
+    "green": (0.0, 1.0, 0.0),
+}
 
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif")
 
@@ -58,12 +69,14 @@ class StarQwenOutpainter:
                     "aspect_ratio": (ratio_choices, {"default": "16:9 [1344x768 landscape]"}),
                     "megapixel": (MEGAPIXEL_CHOICES, {"default": "2.0"}),
                     "image_placement": (["top left", "top center", "top right", "center left", "center", "center right", "bottom left", "bottom center", "bottom right", "custom"], {"default": "center", "tooltip": "Where the input image sits on the new canvas — the rest is filled red and gets outpainted. 'custom' lets you drag the image inside the preview."}),
+                    "bg_color": (["white", "grey", "black", "red", "blue", "green"], {"default": "red", "tooltip": "Solid fill color of the canvas surround the model expands into. Match the color name in your prompt (e.g. 'expand the red areas')."}),
                     "prompt": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": DEFAULT_PROMPT}),
                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                     "steps": ("INT", {"default": 30, "min": 1, "max": 10000}),
                     "cfg": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
-                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
+                    "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule - ignored while 'Use LTX Scheduler' is on or a ⭐ Star LTX Scheduler options node is connected."}),
+                    "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (40 steps, token count from the canvas latent) - same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px. Falls back to the widget scheduler on non-Flow models."}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "qwen_image_2_1": ("BOOLEAN", {"default": False, "label_on": "Yes", "label_off": "No", "tooltip": "Qwen-Image 2.1 mode: 64-channel /16x latents, RGBA VAE output and image_slots conditioning (reference latents on positive and negative)."}),
                     "custom_x": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Horizontal position for 'custom' placement (0 = left edge, 1 = right edge). Set by dragging the preview."}),
@@ -72,6 +85,7 @@ class StarQwenOutpainter:
                 },
                 "optional": {
                     "reference_image": ("IMAGE", {"tooltip": "Optional second reference image - added to the vision tokens and reference latents next to the red canvas (e.g. a style or content reference)."}),
+                    "options": ("STARNODES_OPTIONS", {"tooltip": "Optional ⭐ Star options - connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px)."}),
                     "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node."}),
                 },
         }
@@ -86,7 +100,7 @@ class StarQwenOutpainter:
         # img: [B,H,W,C] -> resize keeping width/height order of common_upscale
         return comfy.utils.common_upscale(img.movedim(-1, 1), width, height, "lanczos", "disabled").movedim(1, -1)
 
-    def build_canvas(self, image, aspect_ratio, megapixel, snap, image_placement, custom_x, custom_y, custom_scale):
+    def build_canvas(self, image, aspect_ratio, megapixel, snap, image_placement, custom_x, custom_y, custom_scale, bg_color="red"):
         target_pixels = float(megapixel) * 1000000
 
         img = image[0:1] if image.ndim == 4 else image.unsqueeze(0)
@@ -143,14 +157,17 @@ class StarQwenOutpainter:
         left = round(slack_w * fx)
         top = round(slack_h * fy)
 
-        # Solid red canvas with the input image placed on it
+        # Solid color canvas with the input image placed on it
+        r, g, b = BG_COLORS.get(bg_color, BG_COLORS["red"])
         canvas = torch.zeros((1, canvas_h, canvas_w, 3), dtype=img.dtype, device=img.device)
-        canvas[:, :, :, 0] = 1.0
+        canvas[:, :, :, 0] = r
+        canvas[:, :, :, 1] = g
+        canvas[:, :, :, 2] = b
         canvas[:, top:top + img_h, left:left + img_w, :] = img
 
         return canvas, canvas_w, canvas_h
 
-    def execute(self, model, clip, vae, image, aspect_ratio, megapixel, image_placement, prompt, seed, steps, cfg, sampler_name, scheduler, denoise, qwen_image_2_1=False, custom_x=0.5, custom_y=0.5, custom_scale=1.0, reference_image=None, preview=None):
+    def execute(self, model, clip, vae, image, aspect_ratio, megapixel, image_placement, bg_color, prompt, seed, steps, cfg, sampler_name, scheduler, denoise, qwen_image_2_1=False, use_ltx_scheduler=True, custom_x=0.5, custom_y=0.5, custom_scale=1.0, reference_image=None, options=None, preview=None):
         if preview is not None:
             model = apply_star_preview(model, preview)
 
@@ -164,7 +181,7 @@ class StarQwenOutpainter:
 
         # Qwen 2.1 latents are 64ch at /16, Qwen Image Edit latents are 16ch at /8
         snap = 16 if qwen_image_2_1 else 8
-        canvas, canvas_w, canvas_h = self.build_canvas(img_tensor, aspect_ratio, megapixel, snap, image_placement, custom_x, custom_y, custom_scale)
+        canvas, canvas_w, canvas_h = self.build_canvas(img_tensor, aspect_ratio, megapixel, snap, image_placement, custom_x, custom_y, custom_scale, bg_color)
 
         with torch.no_grad():
             samples = canvas.movedim(-1, 1)
@@ -217,6 +234,23 @@ class StarQwenOutpainter:
 
             downscale = vae.downscale_ratio if isinstance(vae.downscale_ratio, int) else 8
             latent = torch.zeros([1, vae.latent_channels, canvas_h // downscale, canvas_w // downscale], device=comfy.model_management.intermediate_device())
+
+            # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node
+            # or the 'Use LTX Scheduler' toggle, which builds the same
+            # payload (40 steps, token count from the canvas latent). Patches
+            # model_sampling so 'simple' emits the dynamic-shift curve.
+            ltx_options = options if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X" else None
+            if ltx_options is None and use_ltx_scheduler:
+                ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": 40, "tokens": None}
+            if ltx_options is not None:
+                tokens = int(ltx_options["tokens"]) if ltx_options.get("tokens") else int(math.prod(latent.shape[2:]))
+                steps = max(1, int(ltx_options.get("steps", steps)))
+                model, ltx_shift = apply_star_ltx(model, tokens, steps, ltx_options)
+                if ltx_shift is None:
+                    logging.warning("StarQwenOutpainter: ⭐ Star LTX Scheduler requires a Flux-style flow model - falling back to the widget scheduler.")
+                else:
+                    logging.info(f"StarQwenOutpainter (LTX-Qwen2x): dynamic shift {ltx_shift:.4f} for {tokens} tokens, {steps} steps")
+                    scheduler = "simple"
 
             latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
                                     conditioning_pos, conditioning_neg, {"samples": latent}, denoise=denoise)[0]

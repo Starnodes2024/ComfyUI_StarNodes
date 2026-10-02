@@ -33,7 +33,8 @@ from comfy_api.latest import io
 
 from ..ltx_video.star_video_sound_enricher import process_audio as _enrich_sound
 from ..misc.star_preview import apply_star_preview
-from .minimax_common import decode_audio, decode_still, decode_video, run_sample
+from .minimax_common import decode_audio, decode_still, run_sample
+from .minimax_common import decode_video as _decode_video
 from .star_minimax_latent_upscaler import upscale_minimax_conditioning, upscale_video_latent_3d
 
 # ---------------------------------------------------------------------------
@@ -303,7 +304,9 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 "reference images/clips at their start seconds on the output timeline "
                 "(the core 'Add Guide for MiniMax H3' chain, run in-process). "
                 "Connect a Star Preview node to preview for a live animated "
-                "sampling preview on the Star Preview node."
+                "sampling preview on the Star Preview node. "
+                "Switch decode_video off to skip the video VAE decode and "
+                "output only the latent and the audio."
             ),
             inputs=[
                 # ---------------- Mode ----------------
@@ -354,6 +357,9 @@ class StarMinimaxAllInOne(io.ComfyNode):
                                tooltip="Precision the audio VAE runs at. fp32 is recommended (same as the KJ loader preset)."),
                 io.Combo.Input("audio_vae_device", options=["main_device", "cpu"],
                                default="main_device", advanced=True),
+                io.Boolean.Input("decode_video", default=True,
+                                 label_on="decode video", label_off="latent only",
+                                 tooltip="Decode the generated video (or still) with the video VAE. Switch off to skip video decoding entirely - the node then only outputs the LATENT and the AUDIO, e.g. to run an external decode or keep memory free for a follow-up pass."),
                 # ---------------- Connectors ----------------
                 io.Model.Input("model_override", optional=True,
                                tooltip="Optional external MODEL (e.g. a sage-attention patched MiniMax H3). When connected, the internal diffusion_model dropdown is ignored."),
@@ -510,7 +516,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
     def execute(cls, mode, prompt, aspect_ratio, megapixels, match_ratio_from_image, duration,
                 ref_image_size, seed, steps, sampler_name, scheduler, denoise,
                 diffusion_model, weight_dtype, clip_name, clip_type, clip_device,
-                vae_name, audio_vae_name, audio_vae_precision, audio_vae_device,
+                vae_name, audio_vae_name, audio_vae_precision, audio_vae_device, decode_video,
                 model_override=None, vae_override=None, sound_settings=None, options=None,
                 ref_mod_settings=None, multiref_settings=None, preview=None,
                 ref_images=None, ref_videos=None, ref_video_audios=None,
@@ -591,7 +597,12 @@ class StarMinimaxAllInOne(io.ComfyNode):
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
         #    image mode: single-frame still decode (5-frame group, keep pixel frame 3)
-        images = decode_still(vae, samples) if mode == "image" else decode_video(vae, samples)
+        #    decode_video off: skip the video VAE decode - latent + audio outputs only
+        if decode_video:
+            images = decode_still(vae, samples) if mode == "image" else _decode_video(vae, samples)
+        else:
+            images = None
+            logging.info("[Star Minimax AIO] video VAE decode disabled - latent and audio outputs only")
         if mode == "image" and not audio_only:
             audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
         else:
