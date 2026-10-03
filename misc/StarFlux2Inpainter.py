@@ -55,7 +55,7 @@ class StarFlux2Inpainter:
                     "cfg": ("FLOAT", {"default": 5.0, "min": 0.0, "max": 100.0}),
                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule - ignored while 'Use LTX Scheduler' is on or a ⭐ Star LTX Scheduler options node is connected."}),
-                    "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (40 steps, token count from the inpaint latent) - same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px. Falls back to the widget scheduler on non-Flow models."}),
+                    "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (steps widget value, min 20; token count from the inpaint latent) - same as connecting ⭐ Star LTX Scheduler. Fixes grid noise above ~1024px. Falls back to the widget scheduler on non-Flow models."}),
                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                     "use_inpaint_area_as_reference": ("BOOLEAN", {"default": True, "label_on": "Yes", "label_off": "No", "tooltip": "Feed the inpaint area to the model as a reference image. Helps Flux2 keep style and content consistent with the surrounding image."}),
                     "qwen_image_2_1": ("BOOLEAN", {"default": False, "label_on": "Yes", "label_off": "No", "tooltip": "Qwen-Image-Edit 2.1 mode: passes reference images through the text encoder (image_slots conditioning) and handles its RGBA VAE output."}),
@@ -439,11 +439,12 @@ class StarFlux2Inpainter:
 
             # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node
             # or the 'Use LTX Scheduler' toggle, which builds the same
-            # payload (40 steps, token count from the inpaint latent). Patches
-            # model_sampling so 'simple' emits the dynamic-shift curve.
+            # payload (widget steps, min 20; token count from the inpaint
+            # latent). Patches model_sampling so 'simple' emits the
+            # dynamic-shift curve.
             ltx_options = options if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X" else None
             if ltx_options is None and use_ltx_scheduler:
-                ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": 40, "tokens": None}
+                ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": max(20, int(steps)), "tokens": None}
             if ltx_options is not None:
                 tokens = int(ltx_options["tokens"]) if ltx_options.get("tokens") else int(math.prod(latent["samples"].shape[2:]))
                 steps = max(1, int(ltx_options.get("steps", steps)))

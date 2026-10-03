@@ -20,7 +20,7 @@ The Star Qwen2 Outpainter is an all-in-one outpainting node built for **Qwen-Ima
 - **cfg**: Classifier-free guidance scale (default: 1.0 — an empty negative prompt is encoded automatically)
 - **sampler_name**: Sampling algorithm (default: euler)
 - **scheduler**: Noise schedule (default: `simple` — ignored while `use_ltx_scheduler` is on or a ⭐ Star LTX Scheduler options node is connected)
-- **use_ltx_scheduler**: Use LTX Scheduler for Qwen 2.x (default: on) — applies the resolution-aware dynamic-shift schedule with 40 steps and the token count from the canvas latent, same as connecting ⭐ Star LTX Scheduler with defaults; fixes grid noise above ~1024px, falls back to `scheduler` on non-Flow models
+- **use_ltx_scheduler**: Use LTX Scheduler for Qwen 2.x (default: on) — applies the resolution-aware dynamic-shift schedule with the `steps` widget value (minimum 20) and the token count from the canvas latent, same as connecting ⭐ Star LTX Scheduler; fixes grid noise above ~1024px, falls back to `scheduler` on non-Flow models
 - **denoise**: Denoising strength — keep at 1.0 for outpainting (default: 1.0)
 - **qwen_image_2_1**: Enable for Qwen-Image 2.1 models — 64-channel /16x latents, image_slots conditioning and RGBA VAE output (default: No)
 

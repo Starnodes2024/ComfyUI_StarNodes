@@ -8,7 +8,7 @@ It fixes a known generation issue: at resolutions above 1024×1024 (e.g. 2048×2
 
 This node does not output `SIGMAS` for a generic sampler — it emits a `STARNODES_OPTIONS` bundle that the Star sampler nodes understand. When connected, the sampler builds the sigma curve internally and ignores its own `scheduler` and `steps` widgets.
 
-> **Easier alternative:** the same schedule is available without this node — all three sampler nodes have a **`use_ltx_scheduler`** toggle (default: on) that acts exactly as if this node were connected with its defaults: **40 steps** and the token count from the sampler's own latent. This node remains for explicit step-count control.
+> **Easier alternative:** the same schedule is available without this node — all three sampler nodes have a **`use_ltx_scheduler`** toggle (default: on) that applies the LTX schedule using the node's `steps` widget (minimum 20) and the token count from the sampler's own latent.
 
 ## Inputs
 

@@ -17,7 +17,7 @@ The Star Flux2/Qwen-Image-Edit Inpainter is an all-in-one inpainting node built 
 - **cfg**: Classifier-free guidance scale (default: 5.0 — both model families use real CFG with a negative prompt)
 - **sampler_name**: Sampling algorithm (default: euler)
 - **scheduler**: Noise schedule (default: `simple` — ignored while `use_ltx_scheduler` is on or a ⭐ Star LTX Scheduler options node is connected)
-- **use_ltx_scheduler**: Use LTX Scheduler for Qwen 2.x (default: on) — applies the resolution-aware dynamic-shift schedule with 40 steps and the token count from the inpaint latent, same as connecting ⭐ Star LTX Scheduler with defaults; fixes grid noise above ~1024px, falls back to `scheduler` on non-Flow models
+- **use_ltx_scheduler**: Use LTX Scheduler for Qwen 2.x (default: on) — applies the resolution-aware dynamic-shift schedule with the `steps` widget value (minimum 20) and the token count from the inpaint latent, same as connecting ⭐ Star LTX Scheduler; fixes grid noise above ~1024px, falls back to `scheduler` on non-Flow models
 - **denoise**: Denoising strength (1.0 for full inpainting, lower for subtle changes)
 - **use_inpaint_area_as_reference**: Feed the cropped inpaint area to the model as a reference image. Helps the model keep style and content consistent with the surrounding image (default: Yes)
 

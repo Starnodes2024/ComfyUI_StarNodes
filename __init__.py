@@ -385,7 +385,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Star_Show_Last_Frame": STARSHOWLASTFRAME_NODE_DISPLAY_NAMES["Star_Show_Last_Frame"],
 }
 
-__version__ = "3.3.1"
+__version__ = "3.3.2"
 
 # Define the web directory for ComfyUI to find our JavaScript files
 WEB_DIRECTORY = "./web"

@@ -78,7 +78,7 @@ class StarSampler:
                 "cfg": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.1, "tooltip": "Classifier Free Guidance scale"}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler", "tooltip": "Sampler algorithm"}),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple", "tooltip": "Noise schedule - ignored while 'Use LTX Scheduler' is on or a ⭐ Star LTX Scheduler options node is connected."}),
-                "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (40 steps, token count from this node's latent) - same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px. Flux-style flow models only; ignored by detail schedules, ZIT and split sampling."}),
+                "use_ltx_scheduler": ("BOOLEAN", {"default": True, "label_on": "on", "label_off": "off", "tooltip": "Use LTX Scheduler for Qwen 2.x: applies the resolution-aware dynamic-shift schedule (steps widget value, min 20; token count from this node's latent) - same as connecting ⭐ Star LTX Scheduler. Fixes grid noise above ~1024px. Flux-style flow models only; ignored by detail schedules, ZIT and split sampling."}),
                 "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Denoising strength"}),
                 "vae": ("VAE", {"tooltip": "VAE model for decoding latents"}),
                 "decode_image": ("BOOLEAN", {"default": True, "tooltip": "Decode the latent to an image using the VAE"}),
@@ -455,14 +455,14 @@ class StarSampler:
 
         # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node or
         # the 'Use LTX Scheduler' toggle, which builds the same payload with
-        # the node's defaults (40 steps, token count from the latent). For
+        # the widget steps (min 20) and the token count from the latent. For
         # Flux-type flow models it replaces the widget scheduler with the
         # computed sigma curve and its own step count.
         ltx_options = None
         if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X":
             ltx_options = dict(options)
         elif use_ltx_scheduler:
-            ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": 40, "tokens": None}
+            ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": max(20, int(steps)), "tokens": None}
 
         # Detect model type
         is_flux = self.is_flux_model(model)

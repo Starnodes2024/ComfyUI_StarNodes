@@ -27,7 +27,7 @@
 | **cfg** | FLOAT | 7.0 | Classifier Free Guidance scale (0.0-100.0) |
 | **sampler_name** | SAMPLER | euler | Sampling algorithm to use |
 | **scheduler** | SCHEDULER | simple | Noise schedule type - ignored while `use_ltx_scheduler` is on or a ⭐ Star LTX Scheduler options node is connected |
-| **use_ltx_scheduler** | BOOLEAN | True | Use LTX Scheduler for Qwen 2.x - applies the resolution-aware dynamic-shift schedule (40 steps, token count from this node's latent), same as connecting ⭐ Star LTX Scheduler with defaults. Fixes grid noise above ~1024px; Flux-style flow models only, ignored by detail schedules, ZIT and split sampling |
+| **use_ltx_scheduler** | BOOLEAN | True | Use LTX Scheduler for Qwen 2.x - applies the resolution-aware dynamic-shift schedule (`steps` widget value, minimum 20; token count from this node's latent), same as connecting ⭐ Star LTX Scheduler. Fixes grid noise above ~1024px; Flux-style flow models only, ignored by detail schedules, ZIT and split sampling |
 | **denoise** | FLOAT | 1.0 | Denoising strength (0.0-1.0) |
 | **vae** | VAE | - | VAE model for decoding latents to images |
 | **decode_image** | BOOLEAN | True | Whether to decode latent to image |
