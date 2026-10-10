@@ -888,8 +888,8 @@ class StarSDUpscaleRefinerAdvanced:
                 ),
                 # Generic StarNodes options connector
                 # (e.g. ⭐ Star Split Sampler Option, or a SIGMAS tensor
-                # from ⭐ Star FlowMatch Option)
-                "options": ("*", {"tooltip": "Optional refine options. Connect ⭐ Star Split Sampler Option to split the refine pass between two samplers, or ⭐ Star FlowMatch Option (SIGMAS) to override the sigma schedule."}),
+                # from ⭐ Star Custom Sigmas)
+                "options": ("*", {"tooltip": "Optional refine options. Connect ⭐ Star Split Sampler Option to split the refine pass between two samplers, or ⭐ Star Custom Sigmas (SIGMAS) to override the sigma schedule."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
@@ -1047,7 +1047,7 @@ class StarSDUpscaleRefinerAdvanced:
         # Parse the generic "options" connector:
         # - dict payload from ⭐ Star Split Sampler Option -> split the refine
         #   pass between two samplers
-        # - SIGMAS tensor (e.g. ⭐ Star FlowMatch Option) -> sigma override
+        # - SIGMAS tensor (e.g. ⭐ Star Custom Sigmas) -> sigma override
         split_opts = None
         sigmas_override = None
         if isinstance(options, dict):
@@ -1058,7 +1058,7 @@ class StarSDUpscaleRefinerAdvanced:
         elif options is not None:
             sigmas_override = options
 
-        # Build sigma schedule: use external sigmas (e.g. Star FlowMatch Option)
+        # Build sigma schedule: use external sigmas (e.g. Star Custom Sigmas)
         # if provided, otherwise fall back to AlignYourStepsScheduler.
         if sigmas_override is not None:
             sigmas = sigmas_override

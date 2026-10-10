@@ -367,6 +367,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
                              tooltip="Optional external VAE for video decoding. When connected, the internal vae_name dropdown is ignored."),
                 io.Custom("SOUND_SETTINGS").Input("sound_settings", optional=True,
                                                   tooltip="Optional sound processing from a 'Star Video Sound Enricher Option' node - the generated soundtrack is cleaned up and enriched with these settings (at least 44.1 kHz, never downsampled) before it leaves the node. Ignored in image mode without audio."),
+                io.Sigmas.Input("sigmas", optional=True,
+                                tooltip="Optional exact sigma schedule for the main sampling pass (e.g. from a '⭐ Star Custom Sigmas' node or any SIGMAS output) - overrides the scheduler, steps and denoise widgets."),
                 io.Custom("UPSCALE_SETTINGS").Input("options", optional=True,
                                                     tooltip="Optional second-pass latent upscale from a 'Star Minimax Latent Upscaler Option' node - the pass-1 video latent is upscaled with the selected latent upscaler model and refined in a short second sampling pass with the same conditioning and the same seed (references are resolution-matched). Ignored when megapixels is 'audio only'."),
                 io.Custom("REF_MOD_SETTINGS").Input("ref_mod_settings", optional=True,
@@ -517,7 +519,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 ref_image_size, seed, steps, sampler_name, scheduler, denoise,
                 diffusion_model, weight_dtype, clip_name, clip_type, clip_device,
                 vae_name, audio_vae_name, audio_vae_precision, audio_vae_device, decode_video,
-                model_override=None, vae_override=None, sound_settings=None, options=None,
+                model_override=None, vae_override=None, sound_settings=None, sigmas=None, options=None,
                 ref_mod_settings=None, multiref_settings=None, preview=None,
                 ref_images=None, ref_videos=None, ref_video_audios=None,
                 ref_audios=None) -> io.NodeOutput:
@@ -583,7 +585,16 @@ class StarMinimaxAllInOne(io.ComfyNode):
                          len(guides))
         # 4. Sampling (RandomNoise + BasicGuider + KSamplerSelect +
         #    BasicScheduler + SamplerCustomAdvanced)
-        sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
+        #    A SIGMAS link (e.g. Star Custom Sigmas) replaces the
+        #    scheduler/steps/denoise widgets with the exact sigma list.
+        if sigmas is not None:
+            if sigmas.numel() < 2:
+                logging.warning("[Star Minimax AIO] custom sigmas ignored (need at least 2 sigma values)")
+                sigmas = None
+            else:
+                logging.info("[Star Minimax AIO] custom sigmas, %d steps", sigmas.numel() - 1)
+        if sigmas is None:
+            sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
         sample_model = apply_star_preview(model, preview) if preview is not None else model
         samples = run_sample(sample_model, cond, latent, seed, sampler_name, sigmas)
 

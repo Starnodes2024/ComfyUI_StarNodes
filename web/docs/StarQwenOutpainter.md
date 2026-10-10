@@ -26,7 +26,7 @@ The Star Qwen2 Outpainter is an all-in-one outpainting node built for **Qwen-Ima
 
 ### Optional
 - **reference_image**: Optional second reference image (IMAGE connector) — scaled to ~1 MP and added to the vision tokens and reference latents next to the red canvas, e.g. a style or content reference for the expansion
-- **options**: Optional ⭐ Star options connector — connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px); overrides `scheduler` and `steps`
+- **options**: Optional ⭐ Star options connector — connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px), or ⭐ Star Custom Sigmas (SIGMAS) to sample with an exact sigma list; overrides `scheduler`, `steps` and `use_ltx_scheduler`
 - **preview**: Optional ⭐ Star Preview connector — shows a live sampling preview on the connected ⭐ Star Preview node
 
 ## Outputs

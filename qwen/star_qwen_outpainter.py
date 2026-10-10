@@ -85,7 +85,7 @@ class StarQwenOutpainter:
                 },
                 "optional": {
                     "reference_image": ("IMAGE", {"tooltip": "Optional second reference image - added to the vision tokens and reference latents next to the red canvas (e.g. a style or content reference)."}),
-                    "options": ("STARNODES_OPTIONS", {"tooltip": "Optional ⭐ Star options - connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px)."}),
+                    "options": ("*", {"tooltip": "Optional ⭐ Star options - connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px), or ⭐ Star Custom Sigmas (SIGMAS) to sample with an exact sigma list."}),
                     "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node."}),
                 },
         }
@@ -240,8 +240,13 @@ class StarQwenOutpainter:
             # payload (widget steps, min 20; token count from the canvas
             # latent). Patches model_sampling so 'simple' emits the
             # dynamic-shift curve.
+            # A SIGMAS link into "options" (e.g. ⭐ Star Custom Sigmas)
+            # samples with the exact sigma list, overriding the
+            # scheduler/steps widgets.
+            external_sigmas = options if isinstance(options, torch.Tensor) else None
+
             ltx_options = options if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X" else None
-            if ltx_options is None and use_ltx_scheduler:
+            if ltx_options is None and use_ltx_scheduler and external_sigmas is None:
                 ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": max(20, int(steps)), "tokens": None}
             if ltx_options is not None:
                 tokens = int(ltx_options["tokens"]) if ltx_options.get("tokens") else int(math.prod(latent.shape[2:]))
@@ -253,7 +258,22 @@ class StarQwenOutpainter:
                     logging.info(f"StarQwenOutpainter (LTX-Qwen2x): dynamic shift {ltx_shift:.4f} for {tokens} tokens, {steps} steps")
                     scheduler = "simple"
 
-            latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
+            if external_sigmas is not None:
+                if external_sigmas.numel() < 2:
+                    logging.warning("StarQwenOutpainter: custom sigmas ignored (need at least 2 sigma values).")
+                    external_sigmas = None
+                else:
+                    steps = int(external_sigmas.numel()) - 1
+                    logging.info(f"StarQwenOutpainter: custom sigmas, {steps} steps")
+
+            if external_sigmas is not None:
+                from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, CFGGuider, SamplerCustomAdvanced
+                noise_gen = Noise_RandomNoise(seed)
+                guider = CFGGuider().get_guider(model, conditioning_pos, conditioning_neg, cfg)[0]
+                sampler_obj = comfy.samplers.sampler_object(sampler_name)
+                latent_result = SamplerCustomAdvanced().sample(noise_gen, guider, sampler_obj, external_sigmas, {"samples": latent})[1]
+            else:
+                latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
                                     conditioning_pos, conditioning_neg, {"samples": latent}, denoise=denoise)[0]
 
             decoded_image = vae.decode(latent_result["samples"])

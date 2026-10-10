@@ -109,6 +109,7 @@ class SDXLStartSettings:
         
         # Unpack the first 3 values
         model, clip, vae = checkpoint_data[:3]
+        model.model_options["starnodes_model_name"] = Checkpoint
         
         # Load custom VAE if specified
         if VAE != "Default":
@@ -187,6 +188,7 @@ class SDXLStartSettings:
                         model_strength, 
                         clip_strength if clip is not None else 0
                     )
+                    model.model_options.setdefault("starnodes_loras", []).append((lora_name, float(model_strength)))
         
         return (
             model, 

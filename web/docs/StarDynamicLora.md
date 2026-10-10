@@ -73,3 +73,6 @@ Dynamic LoRA node.
 - The single `strengthN` value is used for both model and CLIP (in the full
   node). This replaces the older separate `strengthN_model` / `strengthN_clip`
   sliders for a more compact UI.
+- Applied LoRAs (name + strength) are recorded on the model — when it reaches
+  **⭐ StarSampler (Unified)**, they show up in its console settings block as
+  `LoRA 1: name @ weight`, `LoRA 2: …`.

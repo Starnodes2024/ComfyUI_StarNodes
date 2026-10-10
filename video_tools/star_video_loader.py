@@ -12,7 +12,9 @@ Loads a video from the ComfyUI input folder (upload supported) and outputs:
 
 Frame control widgets (force_rate / skip / every-kth / cap) mirror the
 classic load-video behavior so the images output drops straight into any
-image workflow - or back into the Star Video Compressor.
+image workflow - or back into the Star Video Compressor. force_rate is
+an original/24/25/30 selector that converts the frame rate by
+duplicating or dropping frames evenly across the clip.
 
 The frontend adds a "Load Video" button: it probes the selected file without
 running the workflow (/starnodes/video_loader/info), shows an inline preview
@@ -62,10 +64,14 @@ class StarVideoLoader:
         return {
             "required": {
                 "video": (list_input_videos(), {"video_upload": True}),
-                "force_rate": ("FLOAT", {
-                    "default": 0.0, "min": 0.0, "max": 240.0, "step": 0.01,
-                    "tooltip": "Resample to this fps. 0 = keep the video's "
-                               "original frame rate."}),
+                "force_rate": (["original", "24", "25", "30"], {
+                    "default": "original",
+                    "tooltip": "Output frame rate. Frames are duplicated "
+                               "or dropped evenly across the clip (no "
+                               "blending) to hit the target - e.g. "
+                               "24 -> 30 adds 6 frames per second, "
+                               "30 -> 24 removes 6. 'original' keeps "
+                               "the video's own frame rate."}),
                 "skip_first_frames": ("INT", {
                     "default": 0, "min": 0, "max": 1000000, "step": 1,
                     "tooltip": "Drop this many frames from the start "
@@ -106,7 +112,7 @@ class StarVideoLoader:
 
     # ------------------------------------------------------------------
 
-    def load(self, video, force_rate=0.0, skip_first_frames=0,
+    def load(self, video, force_rate="original", skip_first_frames=0,
              select_every_kth=1, frame_load_cap=0, start_frame=0,
              end_frame=0, unique_id=None):
         path = folder_paths.get_annotated_filepath(video)
@@ -121,8 +127,13 @@ class StarVideoLoader:
                 "is this really a video file?")
         w, h = info["width"], info["height"]
         src_fps = info.get("fps") or 30.0
-        eff_fps = (force_rate if force_rate and force_rate > 0 else src_fps)
-        eff_fps = eff_fps / max(1, int(select_every_kth))
+        # combo sends "original"/"24"/"25"/"30"; old workflows may still
+        # carry a plain number - both parse through float()
+        try:
+            fr = float(force_rate)
+        except (TypeError, ValueError):
+            fr = 0.0
+        eff_fps = (fr if fr > 0 else src_fps) / max(1, int(select_every_kth))
 
         units = 2 if info.get("acodec") else 1
         reporter = ProgressReporter(total_units=units, label="loading",
@@ -132,8 +143,8 @@ class StarVideoLoader:
 
         # ---- decode frames -------------------------------------------
         vf = []
-        if force_rate and force_rate > 0:
-            vf.append(f"fps={force_rate:g}")
+        if fr > 0:
+            vf.append(f"fps={fr:g}")
         if select_every_kth and int(select_every_kth) > 1:
             vf.append(f"select='not(mod(n\\,{int(select_every_kth)}))'")
         args = ["-i", path]
@@ -170,6 +181,7 @@ class StarVideoLoader:
             raise RuntimeError(
                 "Star Video Loader: skip_first_frames/start_frame/end_frame/"
                 "frame_load_cap left 0 frames.")
+
         if not arr.flags.writeable:
             arr = arr.copy()
         images = torch.from_numpy(arr).float() / 255.0
@@ -235,7 +247,7 @@ class StarVideoLoader:
     # ------------------------------------------------------------------
 
     @classmethod
-    def IS_CHANGED(cls, video, force_rate=0.0, skip_first_frames=0,
+    def IS_CHANGED(cls, video, force_rate="original", skip_first_frames=0,
                    select_every_kth=1, frame_load_cap=0, start_frame=0,
                    end_frame=0, **kwargs):
         try:
@@ -274,7 +286,10 @@ try:
         try:
             data = await request.json()
             video = data.get("video", "")
-            force_rate = float(data.get("force_rate") or 0)
+            try:
+                force_rate = float(data.get("force_rate") or 0)
+            except (TypeError, ValueError):
+                force_rate = 0.0   # "original" keeps the source rate
             kth = max(1, int(data.get("select_every_kth") or 1))
             path = folder_paths.get_annotated_filepath(video)
             if not os.path.exists(path):

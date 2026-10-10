@@ -40,7 +40,7 @@
 | **max_shift** | FLOAT | 1.15 | Max shift parameter for Flux models (ignored for SD) |
 | **base_shift** | FLOAT | 0.5 | Base shift parameter for Flux/AuraFlow models |
 | **detail_schedule** | DETAIL_SCHEDULE | None | Optional detail daemon schedule for enhanced quality |
-| **options** | * | None | Optional sampler options input. Connect ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, ⭐ Distilled Optimizer (QWEN/ZIT) for two-pass refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule. |
+| **options** | * | None | Optional sampler options input. Connect ⭐ Star Custom Sigmas (SIGMAS) to sample with an exact sigma list (overrides steps/scheduler/denoise), ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Distilled Optimizer (QWEN/ZIT) for two-pass refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule. |
 | **preview** | STAR_PREVIEW | None | Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models). |
 
 ## Outputs
@@ -171,6 +171,29 @@ The Detail Daemon creates a schedule that modifies sigma values during sampling:
 2. Interpolates between schedule points based on current sigma
 3. Adjusts sigma values to enhance detail at specific steps
 4. Applies adjustments through forward method wrapping
+
+### Console Settings Output
+
+At the start of each run StarSampler prints its effective settings to the console, one per line:
+
+```
+⭐ StarSampler settings:
+  Model: qwen_image_2.1_bf16.safetensors (Flux/Flow)
+  Latent: 64 x 64 (1024 x 1024 px)
+  Custom Sigmas: 10 steps
+  LoRA 1: detail-tweak.safetensors @ 0.7
+  LoRA 2: style-boost.safetensors @ 0.5
+  Sampler: euler
+  Scheduler: custom sigmas: 1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.870114, 0.845148, 0.704534, 0.559551, 0.414568, 0.0
+  Steps: 10
+  CFG: 1
+  Denoise: 1
+```
+
+- **Model** shows the actual checkpoint/UNET filename when the model came from a ⭐ Star Start(t) Settings node (Flux, SDXL or Qwen). For models loaded with vanilla ComfyUI loaders the filename isn't carried on the model, so it falls back to the diffusion model class name.
+- **Latent** shows the latent dimensions plus the real pixel size — the factor comes from the connected VAE (`downscale_ratio`), so 16× VAEs (Qwen Image 2.x etc.) report correctly, not a hardcoded ×8.
+- The **Custom Sigmas** line and the `custom sigmas: …` values in the Scheduler line only appear when a SIGMAS link (e.g. ⭐ Star Custom Sigmas) is connected to `options`.
+- The **LoRA** lines reflect LoRAs applied by **⭐ Star Dynamic LoRA** / **⭐ Star Dynamic LoRA (Model Only)** or a ⭐ Start(t) Settings LoRA stack — they are recorded on the model and read back by the sampler. LoRAs applied with other loaders are not listed.
 
 ### Performance Optimization
 

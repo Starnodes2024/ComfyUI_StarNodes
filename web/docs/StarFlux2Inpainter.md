@@ -23,7 +23,7 @@ The Star Flux2/Qwen-Image-Edit Inpainter is an all-in-one inpainting node built 
 
 ### Optional
 - **reference_image_1 - reference_image_4**: Up to 4 reference images. Each is resized to ~1MP and encoded as a reference latent that guides the generation (e.g. a character, object or style you want to appear in the masked area).
-- **options**: Optional ⭐ Star options connector — connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px); overrides `scheduler` and `steps`
+- **options**: Optional ⭐ Star options connector — connect ⭐ Star LTX Scheduler (Qwen Image 2.x) for the resolution-aware dynamic-shift schedule (fix for grid noise above ~1024px), or ⭐ Star Custom Sigmas (SIGMAS) to sample with an exact sigma list; overrides `scheduler`, `steps` and `use_ltx_scheduler`
 
 ## Outputs
 - **image**: The inpainted result image

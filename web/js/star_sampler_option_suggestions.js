@@ -12,6 +12,7 @@ import { app } from "../../../../scripts/app.js";
 const SPLIT_CLASS_KEY = "⭐ Star Split Sampler Option";
 const ZIT_CLASS_KEY = "⭐ Star Distilled Optimizer (QWEN/ZIT)";
 const LTX_QWEN_CLASS_KEY = "⭐ Star LTX Scheduler (Qwen Image 2.x)";
+const SIGMAS_CLASS_KEY = "⭐ Star Custom Sigmas";
 
 function promoteSlotType(slotType, nodeClass, direction) {
     const lg = globalThis.LiteGraph;
@@ -53,9 +54,14 @@ app.registerExtension({
             promoteSlotType("*", SPLIT_CLASS_KEY, "in");
             promoteSlotType("*", ZIT_CLASS_KEY, "in");
             promoteSlotType("*", LTX_QWEN_CLASS_KEY, "in");
+            promoteSlotType("*", SIGMAS_CLASS_KEY, "in");
             promoteSlotType("STARNODES_OPTIONS", SPLIT_CLASS_KEY, "in");
             promoteSlotType("STARNODES_OPTIONS", ZIT_CLASS_KEY, "in");
             promoteSlotType("STARNODES_OPTIONS", LTX_QWEN_CLASS_KEY, "in");
+            promoteSlotType("STARNODES_OPTIONS", SIGMAS_CLASS_KEY, "in");
+            // Dragging FROM a SIGMAS input (e.g. SamplerCustomAdvanced)
+            // suggests ⭐ Star Custom Sigmas as the source.
+            promoteSlotType("SIGMAS", SIGMAS_CLASS_KEY, "in");
         }, 100);
     },
 });

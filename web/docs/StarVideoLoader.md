@@ -31,7 +31,7 @@ Choosing another video resets the preview — click Load again.
 | `video` | STAR_FILENAMES | file reference for the ⭐ Star Video Compressor |
 | `images` | IMAGE | decoded frames (after all frame controls) |
 | `audio` | AUDIO | soundtrack, cut to the kept frame range |
-| `fps` | FLOAT | effective fps of the returned frames |
+| `fps` | FLOAT | effective fps of the returned frames (the `force_rate` value when set) |
 | `frames` | INT | number of returned frames |
 | `info` | STRING | report (size, fps, frame counts, path) |
 | `video_native` | VIDEO | native ComfyUI `VIDEO` (VideoInput), cut to the same range — connects to native nodes like SaveVideo |
@@ -39,7 +39,12 @@ Choosing another video resets the preview — click Load again.
 ## Widgets
 
 - **video** — file from the input folder (upload button included).
-- **force_rate** — resample fps, `0` = keep original.
+- **force_rate** — `original` / `24` / `25` / `30`. Converts the video to
+  the chosen frame rate by **duplicating or dropping frames spread
+  evenly across the clip** (no blending), so motion stays as fluid as
+  possible. E.g. 24 → 30 inserts 6 duplicated frames per second, 30 → 24
+  removes 6. `original` keeps the video's own rate. The `fps` and
+  `frames` outputs reflect the new rate and frame count.
 - **skip_first_frames** — drop N frames from the start (applied after
   force_rate / every-kth).
 - **select_every_kth** — keep every k-th frame (also divides the fps).

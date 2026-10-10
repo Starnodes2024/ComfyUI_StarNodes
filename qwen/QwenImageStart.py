@@ -315,6 +315,8 @@ class QwenImageStartSettings:
                     model = comfy.sd.load_diffusion_model(model_path)
                 except Exception as e:
                     print(f"Error loading diffusion model: {e}")
+            if model is not None:
+                model.model_options["starnodes_model_name"] = Diffusion_Model
         
         # CLIP Loading
         clip = None
@@ -421,6 +423,7 @@ class QwenImageStartSettings:
                         model_strength,
                         clip_strength if clip is not None else 0
                     )
+                    model.model_options.setdefault("starnodes_loras", []).append((lora_name, float(model_strength)))
         
         # VAE Loading
         vae = None

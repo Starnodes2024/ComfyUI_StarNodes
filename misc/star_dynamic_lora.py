@@ -125,6 +125,9 @@ class StarDynamicLora:
                 float(strength),
                 float(strength) if clip_out is not None else 0.0,
             )
+            # Record for downstream Star nodes (e.g. ⭐ StarSampler prints the
+            # applied LoRAs in its console settings block).
+            model_out.model_options.setdefault("starnodes_loras", []).append((lora_name, float(strength)))
 
         return (model_out, clip_out)
 
@@ -188,6 +191,7 @@ class StarDynamicLoraModelOnly:
                 float(strength),
                 0.0,
             )
+            model_out.model_options.setdefault("starnodes_loras", []).append((lora_name, float(strength)))
 
         return (model_out,)
 

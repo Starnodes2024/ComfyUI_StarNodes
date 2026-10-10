@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-3.3.2-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.3.3-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -203,6 +203,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 |------|--------------|
 | ⭐ StarSampler (Unified) | Advanced all-in-one sampler with tiled VAE decode for low VRAM |
 | ⭐ Star Split Sampler Option | Run two different samplers in one pass — e.g. euler 6 steps + ddim 6 steps |
+| ⭐ Star Custom Sigmas | Exact custom sigma schedule for sampling — plug into the `options` input (or any SIGMAS input) |
 | ⭐ Star Split Sampler Info | Split sampler info into its individual components |
 | ⭐ Star 3 LoRAs | Apply up to 3 LoRAs with individual weights |
 | ⭐ Star Dynamic LoRA | Flexible multi-LoRA node with dynamic slots |
@@ -280,7 +281,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | ⭐ Star LTXV Get Last Frame | Extract the last frame from video latents |
 | ⭐ Star LTXV Load Last Image From Folder | Load the last generated image from a folder |
 | ⭐ Star Video Joiner | Join multiple videos into one |
-| ⭐ Star Video Loader | Decode video to frames + audio + fps — no extra suite needed |
+| ⭐ Star Video Loader | Decode video to frames + audio + fps — with a 24/25/30 force-rate selector (even frame drop/duplicate) |
 | ⭐ Star Video Compressor | Compress to a target size/quality (H.264/H.265/VP9/AV1) |
 | ⭐ Star Video Compare | Interactive before/after wipe slider for two videos, with stitched comparison output |
 | ⭐ Star Refmod Option | Inject ComfyUI-MiniMaxH3Mod RefMods into ⭐ Star Minimax All In One |

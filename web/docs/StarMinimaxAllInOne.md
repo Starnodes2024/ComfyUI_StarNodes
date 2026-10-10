@@ -88,6 +88,7 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 |---|---|---|
 | `model_override` | MODEL | optional — when connected, the internal `diffusion_model` dropdown is ignored. Use it for sage-attention-patched or otherwise modified models. |
 | `sound_settings` | SOUND_SETTINGS | optional — from a ⭐ Star Video Sound Enricher Option node; the generated soundtrack is processed with these settings before it leaves the node. Ignored in `image` mode without audio |
+| `sigmas` | SIGMAS | optional — an exact sigma schedule for the main sampling pass, e.g. from a ⭐ Star Custom Sigmas node (or any SIGMAS output); overrides the `scheduler`, `steps` and `denoise` widgets |
 | `options` | UPSCALE_SETTINGS | optional — from a ⭐ Star Minimax Latent Upscaler Option node; runs a second-pass latent upscale + refine. Ignored when `megapixels` is `audio only` |
 | `ref_mod_settings` | REF_MOD_SETTINGS | optional — from a ⭐ Star Ref Mod Option node; appends RefMod reference blocks (ComfyUI-MiniMaxH3Mod pack, *Apply H3 RefMod* behavior) to the internal conditioning after the native references |
 | `multiref_settings` | MULTIREF_SETTINGS | optional — from a ⭐ Star Minimax Multiref Option node; anchors reference images/clips at their start seconds on the output timeline (core *Add Guide for MiniMax H3* behavior) |

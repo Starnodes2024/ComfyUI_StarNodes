@@ -254,6 +254,7 @@ class FluxStartSettings:
 
             unet_path = folder_paths.get_full_path_or_raise("diffusion_models", UNET)
             unet = comfy.sd.load_diffusion_model(unet_path, model_options=model_options)
+            unet.model_options["starnodes_model_name"] = UNET
             
             # Initialize clip variable
             clip = None
@@ -338,6 +339,7 @@ class FluxStartSettings:
                         model_strength, 
                         clip_strength if clip is not None else 0
                     )
+                    unet.model_options.setdefault("starnodes_loras", []).append((lora_name, float(model_strength)))
 
         # VAE Loading
         vae = None

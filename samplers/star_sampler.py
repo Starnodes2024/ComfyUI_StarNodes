@@ -89,7 +89,7 @@ class StarSampler:
                 "max_shift": ("FLOAT", {"default": 1.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Max shift for Flux models (ignored for SD models)"}),
                 "base_shift": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "Base shift for Flux/AuraFlow models"}),
                 "detail_schedule": ("DETAIL_SCHEDULE", {"tooltip": "Optional detail daemon schedule"}),
-                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star FlowMatch Option (SIGMAS) to override Flux/Aura sigmas, ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule."}),
+                "options": ("*", {"tooltip": "Optional sampler options. Connect ⭐ Star Split Sampler Option to switch between two samplers mid-run, ⭐ Star Custom Sigmas (SIGMAS) to sample with an exact sigma list, ⭐ Distilled Optimizer (ZIT) to enable two-pass ZIT refinement, or ⭐ Star LTX Scheduler (Qwen Image 2.x) for a resolution-aware dynamic-shift sigma schedule."}),
                 "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (works for image and video models)."}),
             },
             "hidden": {"unique_id": "UNIQUE_ID"},
@@ -218,6 +218,39 @@ class StarSampler:
             return 'Unknown Model'
         except:
             return 'Unknown Model'
+
+    def _log_settings(self, model, vae, is_flux, sampler_name, sched_display, steps, cfg, denoise, external_sigmas, latent):
+        """Print the effective sampling settings to the console, one per line."""
+        model_name = model.model_options.get("starnodes_model_name") or self._get_model_name(model)
+        if model_name == "Unknown Model":
+            model_name = type(model.model).__name__
+        # vae.downscale_ratio is the real latent->pixel factor (int, or a
+        # (temporal, h, w) tuple on video VAEs) - it varies per model family.
+        dr = getattr(vae, "downscale_ratio", 8) or 8
+        if isinstance(dr, (tuple, list)):
+            dh, dw = dr[-2], dr[-1]
+        else:
+            dh = dw = dr
+        lat_h, lat_w = latent["samples"].shape[-2], latent["samples"].shape[-1]
+        lines = [
+            "⭐ StarSampler settings:",
+            f"  Model: {model_name} ({'Flux/Flow' if is_flux else 'SD/SDXL'})",
+            f"  Latent: {lat_w} x {lat_h} ({lat_w * dw} x {lat_h * dh} px)",
+        ]
+        if external_sigmas is not None:
+            sig_str = ", ".join(f"{float(s):.6g}" for s in external_sigmas)
+            lines.append(f"  Custom Sigmas: {steps} steps")
+            sched_display = f"custom sigmas: {sig_str}"
+        for i, lora in enumerate(model.model_options.get("starnodes_loras", []), 1):
+            lines.append(f"  LoRA {i}: {lora[0]} @ {float(lora[1]):g}")
+        lines += [
+            f"  Sampler: {sampler_name}",
+            f"  Scheduler: {sched_display}",
+            f"  Steps: {steps}",
+            f"  CFG: {cfg:g}",
+            f"  Denoise: {denoise:g}",
+        ]
+        logging.info("\n".join(lines))
 
     def _create_info_output(self, processing_time, model, vae, sampler_name, scheduler, denoise, steps, cfg):
         """Create formatted info string."""
@@ -388,6 +421,7 @@ class StarSampler:
                     f"StarSampler (Split): {sampler_1} x{steps_1} steps -> {sampler_2} x{steps_2} steps "
                     f"(total {total_steps} steps, switching at step {steps_1 + 1})"
                 )
+                self._log_settings(model, vae, is_flux_split, f"{sampler_1} -> {sampler_2}", scheduler, total_steps, cfg, denoise, None, latent)
 
                 # Flux models need guidance embedded in the conditioning and
                 # don't use a negative prompt; mirror the detail-schedule path.
@@ -453,15 +487,20 @@ class StarSampler:
             except Exception as e:
                 logging.warning(f"StarSampler: Split sampler options ignored due to error: {e}")
 
+        # A SIGMAS link into "options" (e.g. ⭐ Star Custom Sigmas) samples
+        # with the exact sigma list, overriding the scheduler/steps widgets.
+        external_sigmas = options if isinstance(options, torch.Tensor) else None
+
         # ⭐ Star LTX Scheduler (Qwen Image 2.x): either the options node or
         # the 'Use LTX Scheduler' toggle, which builds the same payload with
         # the widget steps (min 20) and the token count from the latent. For
         # Flux-type flow models it replaces the widget scheduler with the
         # computed sigma curve and its own step count.
+
         ltx_options = None
         if isinstance(options, dict) and options.get("starnodes_type") == "LTX_SCHEDULER_QWEN2X":
             ltx_options = dict(options)
-        elif use_ltx_scheduler:
+        elif use_ltx_scheduler and external_sigmas is None:
             ltx_options = {"starnodes_type": "LTX_SCHEDULER_QWEN2X", "steps": max(20, int(steps)), "tokens": None}
 
         # Detect model type
@@ -477,7 +516,18 @@ class StarSampler:
                 steps = max(1, int(ltx_options.get("steps", steps)))
                 sched_display = STAR_LTX_SCHEDULER
 
-        logging.info(f"StarSampler: Model type={'Flux' if is_flux else 'SD/SDXL/Flow(non-Flux)'}, steps={steps}, cfg={cfg}")
+        if external_sigmas is not None:
+            if detail_schedule is not None:
+                logging.warning("StarSampler: custom sigmas ignored (detail schedule connected).")
+                external_sigmas = None
+            elif external_sigmas.numel() < 2:
+                logging.warning("StarSampler: custom sigmas ignored (need at least 2 sigma values).")
+                external_sigmas = None
+            else:
+                steps = int(external_sigmas.numel()) - 1
+                sched_display = "custom sigmas"
+
+        self._log_settings(model, vae, is_flux, sampler_name, sched_display, steps, cfg, denoise, external_sigmas, latent)
         
         # Patch model for fancy DOM progress bar (ComfyUI built-in ProgressBar
         # remains as fallback via comfy.utils.ProgressBar inside patch).
@@ -517,10 +567,10 @@ class StarSampler:
                 
                 # Get sampler and sigmas (allow external sigmas override)
                 sampler_obj = comfy.samplers.sampler_object(sampler_name)
-                if ltx_options is not None:
+                if external_sigmas is not None:
+                    sigmas = external_sigmas
+                elif ltx_options is not None:
                     sigmas = self._ltx_sigmas(ltx_options, denoise)
-                elif options is not None and not isinstance(options, dict):
-                    sigmas = options
                 else:
                     sigmas = basic_scheduler.get_sigmas(work_model, scheduler, steps, denoise)[0]
                 
@@ -664,6 +714,13 @@ class StarSampler:
                 finally:
                     # Restore original forward method
                     target_module.forward = original_forward
+            elif external_sigmas is not None:
+                # Same machinery as the Flux fast path, but with CFG guidance.
+                from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, CFGGuider, SamplerCustomAdvanced
+                noise_gen = Noise_RandomNoise(seed)
+                guider = CFGGuider().get_guider(model, positive, negative, cfg)[0]
+                sampler_obj = comfy.samplers.sampler_object(sampler_name)
+                out_latent = SamplerCustomAdvanced().sample(noise_gen, guider, sampler_obj, external_sigmas, latent)[1]
             else:
                 # Standard sampling without detail daemon
                 out_latent = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 
