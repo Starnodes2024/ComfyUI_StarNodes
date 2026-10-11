@@ -4,12 +4,12 @@
 
 **Star Custom Sigmas** turns a comma-separated sigma list into a real `SIGMAS` output, so the connected sampler runs with **exactly** the sigma values you pick — no scheduler math, no step interpolation.
 
-Pick one of the baked flow-match presets — **8**, **10**, **12** or **16 Steps** — or choose **Custom** to run the text field as-is. Selecting a preset also writes its values into the text field, so you can use any preset as a starting point for your own schedule (editing the text switches the dropdown to **Custom**).
+Pick one of the baked QI 2.1 Turbo flow-match presets — **QI 2.1 Turbo- 8**, **10**, **12** or **16 Steps** — or choose **Custom** to run the text field as-is. Selecting a preset also writes its values into the text field, so you can use any preset as a starting point for your own schedule (editing the text so it no longer matches the selected preset switches the dropdown to **Custom**).
 
-N values = N-1 sampling steps. The default 10-step preset:
+N values = N-1 sampling steps. The default 8-step preset:
 
 ```
-1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.870114, 0.845148, 0.704534, 0.559551, 0.414568, 0.0
+1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0
 ```
 
 ## Inputs
@@ -18,8 +18,8 @@ N values = N-1 sampling steps. The default 10-step preset:
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
-| **preset** | COMBO | `10 Steps` | Baked sigma schedule: `8` / `10` / `12` / `16 Steps`, or `Custom` to use the text field. |
-| **sigmas** | STRING | `1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.870114, 0.845148, 0.704534, 0.559551, 0.414568, 0.0` | Comma-separated sigma values, high to low — only used when preset is `Custom`. Multiline input — newlines and extra spaces are fine. End with `0.0` for a full denoise. |
+| **preset** | COMBO | `QI 2.1 Turbo- 8 Steps` | Baked QI 2.1 Turbo sigma schedule: `8` / `10` / `12` / `16 Steps`, or `Custom` to use the text field. |
+| **sigmas** | STRING | `1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0` | Comma-separated sigma values, high to low — only used when preset is `Custom`. Multiline input — newlines and extra spaces are fine. End with `0.0` for a full denoise. |
 
 ## Outputs
 
@@ -37,10 +37,10 @@ N values = N-1 sampling steps. The default 10-step preset:
 ```
 
 1. Add `⭐ Star Custom Sigmas`.
-2. Edit the text field if needed (the default already gives the 10-step schedule).
+2. Edit the text field if needed (the default already gives the 8-step schedule).
 3. Connect `sigmas` → `options` on `⭐ StarSampler (Unified)` — also works on the `options` input of `⭐ Star Qwen2 Outpainter` and `⭐ Star Flux2/Qwen-Image-Edit Inpainter`.
 
-While connected, the sampler **overrides its `steps`, `scheduler` and `use_ltx_scheduler` widgets** and runs exactly the listed sigmas — the default is 10 steps ending at 0 (full denoise). The `sampler_name` widget still applies (e.g. `euler`), and StarSampler's `info` output reports the scheduler as `custom sigmas`.
+While connected, the sampler **overrides its `steps`, `scheduler` and `use_ltx_scheduler` widgets** and runs exactly the listed sigmas — the default is 8 steps ending at 0 (full denoise). The `sampler_name` widget still applies (e.g. `euler`), and StarSampler's `info` output reports the scheduler as `custom sigmas`.
 
 Because the output is a real `SIGMAS` type, the same node also plugs into **vanilla ComfyUI sigmas inputs** — e.g. `SamplerCustomAdvanced`, `SplitSigmas`, `FlipSigmas` — so it works outside the StarNodes sampler too.
 

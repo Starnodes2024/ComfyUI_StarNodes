@@ -9,7 +9,7 @@ Little Helper Nodes For ComfyUI
 ### Sampling Utilities
 - ⭐ **`use_ltx_scheduler` toggle** — new widget (default: on) on ⭐ StarSampler (Unified), ⭐ Star Qwen2 Outpainter and ⭐ Star Flux2 Inpainter. Applies the official Qwen-Image-2.1 dynamic-shifting schedule (LTX-style sigma warp, base 0.5 @ 256 tokens → max 0.9 @ 8192 tokens, terminal 0.02) with the node's `steps` widget (minimum 20) and the token count from its own latent — fixing the noisy/grid output at resolutions above 1024×1024. Falls back to the `scheduler` widget on non-Flow models.
 - ⭐ **Star LTX Scheduler (Qwen Image 2.x)** (`StarNodes_LTXScheduler_Qwen2x_Options`) — options-node version of the same schedule: connects to the `options` input of all three sampler nodes (Outpainter and Inpainter gained an `options` connector for it) and carries its own step count (default 40). The token count is read from the connected latent, or from the sampler's own latent when unconnected.
-- ⭐ **Star Custom Sigmas** (`StarCustomSigmas`) — exact sigma schedule from a text field (default: 8-step flow-match list `1.0, 0.978453, …, 0.0`). Plug into the `options` input of ⭐ StarSampler (Unified) to override its steps/scheduler/denoise widgets, or into any vanilla ComfyUI `SIGMAS` input.
+- ⭐ **Star Custom Sigmas** (`StarCustomSigmas`) — exact sigma schedule from a text field, with QI 2.1 Turbo presets (8/10/12/16 steps, default: `QI 2.1 Turbo- 8 Steps` `1.0, 0.978453, …, 0.0`). Plug into the `options` input of ⭐ StarSampler (Unified) to override its steps/scheduler/denoise widgets, or into any vanilla ComfyUI `SIGMAS` input.
 
 <img width="917" alt="image" src="https://github.com/user-attachments/assets/4bc1378e-d1cf-4063-9196-b056a58444ec" />
 
