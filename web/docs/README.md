@@ -2,7 +2,12 @@
 
 Little Helper Nodes For ComfyUI
 
-**Current Version:** 3.3.0
+**Current Version:** 3.3.4
+
+## New in 3.3.4
+
+### Helpers & Tools
+- ⭐ **Star LoRA Extractor** (`StarLoraExtractor`) — Extract the difference between a base model and a merge model (both from `models/diffusion_models`, with LoRAs baked in) and save it as a single LoRA in native ComfyUI format, directly into `models/loras`. Very low-RAM friendly: both checkpoints are read key by key via safetensors memory-mapping and the SVD decomposition runs per matrix in fp32. Control size and quality with `dim`, `conv_dim` and `precision` widgets. Docs: [StarLoraExtractor.md](StarLoraExtractor.md)
 
 ## New in 3.3.0
 

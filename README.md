@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-3.3.3-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.3.4-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -348,6 +348,7 @@ Click a category to expand it. All categories appear in ComfyUI exactly as named
 | ⭐ Star Duplicate Model Finder | SHA256 duplicate model scanner |
 | ⭐ Star FP8 Converter | Convert checkpoints to FP8 |
 | ⭐ Star Model Packer | Merge split safetensors, convert precision |
+| ⭐ Star LoRA Extractor | Extract the diff between base and merged diffusion model into a LoRA — supports int8/convrot & fp8 files, low-RAM |
 | ⭐ Star Divisible Dimension | Keep dimensions divisible by a given value |
 | ⭐ Star Size Calculator by Side | Resize longest/shortest side, keep aspect ratio |
 | ⭐ Star Denoise Slider | Simple denoise-strength slider |
