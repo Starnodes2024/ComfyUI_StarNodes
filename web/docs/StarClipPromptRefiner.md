@@ -20,6 +20,7 @@ A single node that loads a text encoder from `models/text_encoders` and uses it 
   - Presets are loaded from the shared text storage (`json/startext.json`), sorted alphabetically — the same file used by the **Star Easy-Text-Storage** node and the **Star Ollama Prompt Helper**. Add, edit, or remove entries with that node and they appear here after refreshing the page.
 - **system_prompt**: Custom system prompt text (used when preset is "Custom")
   - Replaces the system prompt in the model's chat template
+  - If left empty while "Custom" is selected, the **Flux2(Klein) SysPrompt** preset is used as the default
 - **use_seed**: Toggle for seed behavior
   - **On (default)**: The seed below is used; the node caches its result and only re-runs when an input changes
   - **Off**: A random seed is used every run, so the node always executes again even if the inputs did not change

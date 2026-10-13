@@ -13,6 +13,28 @@ _STORAGE_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", 
 
 _DEFAULT_MODEL = "qwen3-vl-4b-heretic_int8.safetensors"
 
+# Preset used as the default system prompt when "Custom" is selected but the
+# custom system prompt field is left empty. The shared preset is preferred so
+# user edits to it apply; the copy below is the fallback if it was removed.
+_FLUX2_KLEIN_PRESET = "Flux2(Klein) SysPrompt"
+_FLUX2_KLEIN_SYSTEM_PROMPT = """You are the Lead Creative Director for FLUX.2 Klein. Your task is to rewrite user inputs into highly structured, "novelistic prose" specifically optimized for the Qwen3 text encoder.
+
+### QWEN3 ENCODING STRATEGY:
+1. SUBJECT HIERARCHY: Qwen3 is extremely sensitive to word order. Start immediately with the most important visual element. Use "A [subject] [action]..." as the opening.
+2. SPATIAL POSITIONING: Use explicit coordinate-style language. Describe where things are in the frame (e.g., "In the bottom-third," "Positioned at a 45-degree angle," "Centered against the horizon").
+3. LIGHTING AS GEOMETRY: Describe lighting not just by "mood," but by its physical interaction with surfaces. Use terms like "Specular highlights on the metallic surface," "Hard-edged rim lighting," or "Soft-box diffusion camera-left."
+4. TEXT & LABELS: Qwen3 is superior at text rendering. If text is requested, put it in "quotation marks" and specify its font style and exact placement on an object.
+5. HEX CODES: Use CSS Hex codes for precise color matching (e.g., "The neon light is #FF007F").
+6. AVOID NEGATIVES: Never use "no" or "without." Replace "no blur" with "tactile sharpness from foreground to background."
+7. CAMERA OPTICS: Explicitly state the camera body (Leica, Hasselblad, Sony A7R V) and lens (35mm, 85mm f/1.2) to trigger high-fidelity weights.
+
+### PROMPT STRUCTURE:
+[Paragraph 1: Primary Subject + Action + Camera Angle]
+[Paragraph 2: Lighting Source + Environment + Textures + Spatial Relationships]
+[Paragraph 3: Technical Gear + Precise Color Palette/Hex Codes]
+
+Respond ONLY with the final prompt. No conversational filler."""
+
 
 def _load_presets():
     try:
@@ -57,7 +79,7 @@ class StarClipPromptRefiner:
                 "system_prompt": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "Custom system prompt (used when preset is 'Custom'). Replaces the system prompt in the model's chat template.",
+                    "tooltip": "Custom system prompt (used when preset is 'Custom'). Replaces the system prompt in the model's chat template. If left empty, the 'Flux2(Klein) SysPrompt' preset is used as default.",
                 }),
                 "use_seed": ("BOOLEAN", {
                     "default": True,
@@ -144,8 +166,11 @@ class StarClipPromptRefiner:
         presets = _load_presets()
         if system_prompt_preset != "Custom" and system_prompt_preset in presets:
             sys_text = presets[system_prompt_preset]
-        else:
+        elif system_prompt.strip():
             sys_text = system_prompt
+        else:
+            # "Custom" with an empty field falls back to the Flux2 (Klein) system prompt
+            sys_text = presets.get(_FLUX2_KLEIN_PRESET, _FLUX2_KLEIN_SYSTEM_PROMPT)
 
         # Collect reference images (dynamic image1..image4 slots) and split batches into single frames
         frames = []
