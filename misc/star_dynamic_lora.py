@@ -24,6 +24,8 @@ class DynamicLoraInputs(dict):
     """
 
     def __getitem__(self, key):
+        if dict.__contains__(self, key):
+            return dict.__getitem__(self, key)
         if key.startswith("lora") and key.endswith("_name"):
             return (LORA_LIST, {"default": "None"})
         if key.startswith("strength") and not key.endswith("_model") and not key.endswith("_clip"):
@@ -40,6 +42,8 @@ class DynamicLoraInputsModelOnly(dict):
     """Flexible parameter definition for dynamic LoRA slots (model only)."""
 
     def __getitem__(self, key):
+        if dict.__contains__(self, key):
+            return dict.__getitem__(self, key)
         if key.startswith("lora") and key.endswith("_name"):
             return (LORA_LIST, {"default": "None"})
         if key.startswith("strength") and not key.endswith("_model") and not key.endswith("_clip"):
