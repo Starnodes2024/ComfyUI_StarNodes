@@ -1,5 +1,41 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 3.4.2 (2026-10-24)
+
+### 🆕 New Nodes
+
+#### Star Creature Builder (`StarCreatureBuilder`)
+- **Fantasy creature prompt builder** — the creature counterpart to ⭐ Star Character Builder. Build creature description prompts from dropdown selections: mix animal, monster and human features without typing
+  - **Identity**: sex (female/male/hermaphrodite/androgynous/sexless), creature_type (75 species: dragon, kitsune, harpy, minotaur, slime creature, mimic, alien…), element (fire, shadow, void… → "fire dragon"), body_plan (anthropomorphic, humanoid, feral, tauric, naga-bodied, human-bodied, amorphous…), size
+  - **Head & face**: head, mouth (auto-combined: "wolf head with sharp fangs"), ears, horns, eye_type + eye_color (→ "glowing amber eyes"), hair_mane + hair_color (→ "long silver mane")
+  - **Body & colors**: skin_type + body_color (→ "emerald scales"), pattern + pattern_color (→ "gold stripes"), body_features
+  - **Limbs & anatomy**: arms_hands (claws/talons/paws/tentacles), legs_feet, wings (24 types), tail (25 types), genitals
+  - **Wear rule** like the character builder: clothing/armor/tribal_garb are mutually exclusive under random_all
+- **Three outputs**: `description`, `creature_sheet` (multi-panel creature reference sheet with anatomical close-up panels for wings/horns/tail and visible genital anatomy), `system_prompt` (creature-adapted LLM system prompt)
+- All option lists editable in `json/star_creature_builder.json`
+- Category: `⭐StarNodes/Text And Data`
+
+### ✨ Enhancements
+
+#### Star Load Image+ (`StarLoadImagePlus`)
+- **⭐ 📂 Load Workflow button** — loads the workflow embedded in the selected image, exactly as if the image had been dragged onto the canvas (uses ComfyUI's own drop handler: full workflows, API-format prompts and A1111 parameters all supported)
+  - Works with input folder files and `[output]` entries including subfolders
+  - PNGs without embedded graph data show a friendly message instead of changing the graph
+
+#### Star Prompt Preview And Edit (`StarPromptPreviewAndEdit`)
+- **Bypass/Edit toggle replaces the mode dropdown** — default is now **Bypass (on)**: preview only, text passes through without pausing; toggle off for Edit (pause + Continue)
+- Old workflows keep their behavior: stored "Edit Mode"/"Bypass Mode" values are converted to the toggle automatically
+
+### 🐛 Bug Fixes
+- **Star Prompt Preview And Edit**: fixed the toggle flipping to Edit after switching workflow tabs — an empty restored widget value is now mapped back to the Bypass default
+
+### 📚 Documentation
+- New `web/docs/StarCreatureBuilder.md`
+- Updated `web/docs/StarLoadImagePlus.md` (Load Workflow button)
+- Updated `web/docs/StarPromptPreviewAndEdit.md` (toggle, v1.3/v1.4 notes)
+
+---
+
 ## Version 2.1.1 (2026-07-10)
 
 ### ✨ Enhancements

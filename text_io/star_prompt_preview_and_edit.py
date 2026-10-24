@@ -33,8 +33,8 @@ def check_interrupted():
 class StarPromptPreviewAndEdit:
     """
     Shows a connected multiline string inside the node.
-    Edit Mode: workflow pauses, the user can edit the prompt and click Continue -
-    the edited text is passed to the next node. Bypass Mode: preview only,
+    Edit: workflow pauses, the user can edit the prompt and click Continue -
+    the edited text is passed to the next node. Bypass (default): preview only,
     no pause, text passes through unchanged.
     """
 
@@ -48,7 +48,7 @@ class StarPromptPreviewAndEdit:
         return {
             "required": {
                 "prompt": ("STRING", {"forceInput": True, "multiline": True, "tooltip": "Connect any STRING. The text is shown inside the node; in Edit Mode you can change it before it is passed on."}),
-                "mode": (["Edit Mode", "Bypass Mode"], {"default": "Edit Mode", "tooltip": "Edit Mode: workflow pauses, you can edit the text and click Continue | Bypass Mode: preview only, text passes through unchanged without pausing."}),
+                "bypass": ("BOOLEAN", {"default": True, "label_on": "Bypass", "label_off": "Edit", "tooltip": "Bypass (default): preview only, text passes through unchanged without pausing | Edit: workflow pauses, you can edit the text and click Continue."}),
             },
             "hidden": {
                 "unique_id": "UNIQUE_ID",
@@ -60,20 +60,22 @@ class StarPromptPreviewAndEdit:
     OUTPUT_TOOLTIPS = ("In Edit Mode this is your edited text, in Bypass Mode the unchanged input.",)
     FUNCTION = "process"
     DESCRIPTION = (
-        "Previews the connected prompt string right inside the node. In Edit Mode "
-        "the workflow pauses until you click Continue — the edited text is sent "
-        "to the next connected node. In Bypass Mode the text is only shown and "
-        "passes through unchanged. The string size is not limited."
+        "Previews the connected prompt string right inside the node. With the "
+        "bypass toggle off (Edit) the workflow pauses until you click Continue — "
+        "the edited text is sent to the next connected node. With bypass on "
+        "(default) the text is only shown and passes through unchanged. "
+        "The string size is not limited."
     )
 
-    def process(self, prompt, mode, unique_id=None):
+    def process(self, prompt, bypass, unique_id=None):
         raw = prompt if isinstance(prompt, str) else str(prompt)
 
         # Send the text to the UI before anything else so the preview shows
         # up immediately, even though the node blocks below in Edit Mode.
-        # Anything that is not explicitly Bypass Mode acts as Edit Mode — the
-        # frontend can briefly hand us "" after switching workflows.
-        edit_mode = mode != "Bypass Mode"
+        # Workflows saved before the toggle change still pass the old
+        # "Edit Mode"/"Bypass Mode" strings — anything that is not explicitly
+        # Bypass acts as Edit Mode, so they keep their old behavior.
+        edit_mode = (bypass != "Bypass Mode") if isinstance(bypass, str) else not bypass
 
         try:
             from server import PromptServer
@@ -89,7 +91,7 @@ class StarPromptPreviewAndEdit:
             print_starnodes(f"Could not send prompt to UI: {e}", Colors.YELLOW)
 
         if not edit_mode:
-            print_starnodes("Mode: Bypass Mode - Preview only, passing text through", Colors.YELLOW)
+            print_starnodes("Bypass on - Preview only, passing text through", Colors.YELLOW)
             return {
                 "ui": {
                     "star_prompt_preview": [raw],
@@ -98,7 +100,7 @@ class StarPromptPreviewAndEdit:
                 "result": (raw,)
             }
 
-        print_starnodes("Mode: Edit Mode - Workflow paused, waiting for your edit", Colors.YELLOW)
+        print_starnodes("Bypass off (Edit) - Workflow paused, waiting for your edit", Colors.YELLOW)
         print_starnodes("Edit the text in the node and click Continue to pass it on", Colors.CYAN)
 
         # A Continue click that arrived before we started waiting wins immediately.

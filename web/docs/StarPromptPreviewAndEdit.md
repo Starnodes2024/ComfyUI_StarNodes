@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Star Prompt Preview And Edit** node shows the connected prompt string directly inside the node — readable, scrollable and with no size limit. In **Edit Mode** the workflow **pauses** at the node: you can review and edit the text directly in the node, then click **Continue**. The edited text is passed on to the next connected node. In **Bypass Mode** the node only previews the string and does not pause — the text passes through unchanged.
+The **Star Prompt Preview And Edit** node shows the connected prompt string directly inside the node — readable, scrollable and with no size limit. With the **bypass toggle off (Edit)** the workflow **pauses** at the node: you can review and edit the text directly in the node, then click **Continue**. The edited text is passed on to the next connected node. With **bypass on (default)** the node only previews the string and does not pause — the text passes through unchanged.
 
 ## Category
 
@@ -20,10 +20,10 @@ All inputs have helpful tooltips when you hover over them in ComfyUI!
   - The string size is **not limited** — long, multiline prompts are fully displayed.
   - *Tooltip: "Connect any STRING. The text is shown inside the node; in Edit Mode you can change it before it is passed on."*
 
-- **mode** (Dropdown)
-  - **Edit Mode**: The workflow pauses at this node. The text is displayed in an editable text area. Edit as needed and click **▶ Continue** — your edited text is passed on.
-  - **Bypass Mode**: Preview only. The text is shown read-only and passed through immediately, without pausing the workflow.
-  - *Tooltip: "Edit Mode: workflow pauses, you can edit the text and click Continue | Bypass Mode: preview only, text passes through unchanged without pausing."*
+- **bypass** (Toggle, default: on)
+  - **On (Bypass)**: Preview only. The text is shown read-only and passed through immediately, without pausing the workflow.
+  - **Off (Edit)**: The workflow pauses at this node. The text is displayed in an editable text area. Edit as needed and click **▶ Continue** — your edited text is passed on.
+  - *Tooltip: "Bypass (default): preview only, text passes through unchanged without pausing | Edit: workflow pauses, you can edit the text and click Continue."*
 
 ## Outputs
 
@@ -34,35 +34,34 @@ All inputs have helpful tooltips when you hover over them in ComfyUI!
 
 ## Usage
 
-### Edit Mode (default)
+### Bypass (default)
 
 1. Add the **⭐ Star Prompt Preview And Edit** node to your workflow.
 2. Connect a STRING output to the **prompt** input.
 3. Connect the **prompt** output to the next node (e.g. CLIP Text Encode).
-4. Set **mode** to `Edit Mode`.
-5. Run the workflow.
-6. When the node executes:
-   - The prompt appears immediately inside the node.
-   - **The workflow pauses** — the node waits for you.
-   - Edit the text however you like (line and character count is shown while editing).
-   - Click **▶ Continue**.
-7. The workflow continues and the **edited text** is passed to the next node.
-
-### Bypass Mode
-
-1. Set **mode** to `Bypass Mode`.
-2. Run the workflow.
-3. The node:
+4. Leave the **bypass** toggle on.
+5. Run the workflow — the node:
    - Shows the text read-only inside the node.
    - Passes it through immediately.
    - Does not pause and does not need any user interaction.
 
+### Edit (bypass off)
+
+1. Switch the **bypass** toggle off (`Edit`).
+2. Run the workflow.
+3. When the node executes:
+   - The prompt appears immediately inside the node.
+   - **The workflow pauses** — the node waits for you.
+   - Edit the text however you like (line and character count is shown while editing).
+   - Click **▶ Continue**.
+4. The workflow continues and the **edited text** is passed to the next node.
+
 ## In-Node Controls
 
-- **Text area**: Shows the full prompt. Editable in Edit Mode, read-only in Bypass Mode. Grows with the node — resize the node to see more lines, or resize the text area itself.
+- **Text area**: Shows the full prompt. Editable with bypass off (Edit), read-only with bypass on. Grows with the node — resize the node to see more lines, or resize the text area itself.
 - **Status line**: Shows the current state (waiting for input, editing with line/character count, continued).
 - **Copy button**: Copies the current text of the preview to the clipboard.
-- **▶ Continue button**: Only visible in Edit Mode. Enabled while the node waits. Sends the (edited) text to the workflow.
+- **▶ Continue button**: Only visible with bypass off (Edit). Enabled while the node waits. Sends the (edited) text to the workflow.
 
 ## Visual Indicators
 
@@ -77,7 +76,7 @@ The node changes its background color to indicate its state:
 The node provides clean, colored console messages:
 
 **Yellow (Informational):**
-- `⭐ StarNodes: Mode: Bypass Mode - Preview only, passing text through`
+- `⭐ StarNodes: Bypass on - Preview only, passing text through`
 - `⭐ StarNodes: Could not send prompt to UI: [error details]`
 
 **Cyan (Actions):**
@@ -92,8 +91,8 @@ The node provides clean, colored console messages:
 
 ## Tips
 
-- Use **Edit Mode** as a "human checkpoint" for prompts generated by wildcard nodes or LLM helpers: review, fix typos, remove unwanted tags, and only then feed the prompt into the sampler.
-- Use **Bypass Mode** when you just want to see the final prompt in your workflow without pausing — e.g. to verify wildcard resolution or conditioning strings.
+- Switch **bypass off** to use the node as a "human checkpoint" for prompts generated by wildcard nodes or LLM helpers: review, fix typos, remove unwanted tags, and only then feed the prompt into the sampler.
+- Keep **bypass on** (the default) when you just want to see the final prompt in your workflow without pausing — e.g. to verify wildcard resolution or conditioning strings.
 - The node always re-executes (does not use caching), so it works correctly even if the input string did not change.
 - While the node waits in Edit Mode you can cancel the queue with ComfyUI's interrupt button — the node stops waiting gracefully.
 
@@ -109,13 +108,13 @@ The node provides clean, colored console messages:
 
 The node uses the same proven polling mechanism as ⭐ Star Stop And Go:
 
-- In **Edit Mode**, the Python backend sends the prompt text to the frontend immediately, then enters a polling loop (checks every 0.5 seconds).
+- With **bypass off (Edit)**, the Python backend sends the prompt text to the frontend immediately, then enters a polling loop (checks every 0.5 seconds).
 - The text is displayed in a DOM widget with a multiline text area inside the node.
 - The **Continue** button sends an HTTP POST request with the (edited) text to the `/starnodes/prompt_preview/continue` endpoint.
 - The backend picks up the edited text and returns it as the node's string output.
 - The loop respects ComfyUI's interrupt, so cancelling the queue stops the node cleanly.
 - There is no timeout — the node waits until you click Continue or interrupt the queue.
-- In **Bypass Mode** no polling happens; the text is sent with the normal execution result and displayed immediately.
+- With **bypass on** no polling happens; the text is sent with the normal execution result and displayed immediately.
 
 ## Notes
 
@@ -126,6 +125,8 @@ The node uses the same proven polling mechanism as ⭐ Star Stop And Go:
 
 ## Version History
 
+- **v1.4**: Fixed the toggle flipping to Edit after switching workflow tabs — the frontend can restore the widget with an empty value, which is now mapped back to the Bypass default (same known frontend quirk as v1.2).
+- **v1.3**: Replaced the mode dropdown with a **bypass/Edit toggle** (default: Bypass on). Workflows saved with the old dropdown keep their behavior — the stored "Edit Mode"/"Bypass Mode" values are converted to the toggle automatically.
 - **v1.2**: Hardened the mode selector against a ComfyUI frontend quirk: after switching workflows the mode widget could be restored with an empty value. The node now treats any value other than "Bypass Mode" as Edit Mode and the frontend restores an empty mode value to "Edit Mode" when the workflow is loaded.
 - **v1.1**: Renamed to "Star Prompt Preview And Edit"; doubled the default height of the text area and the node so more text is visible at once.
 - **v1.0**: Initial release with Edit Mode and Bypass Mode, in-node multiline text editor, Continue button, and status line with line/character count.

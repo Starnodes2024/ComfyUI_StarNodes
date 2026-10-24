@@ -2,7 +2,8 @@ import { app } from "../../../../scripts/app.js";
 
 // ===========================================================================
 //  ⭐ Star Prompt Preview — shows a connected string and lets the user edit
-//  it while the workflow pauses (Edit Mode) or just previews it (Bypass Mode)
+//  it while the workflow pauses (bypass off / Edit) or just previews it
+//  (bypass on, the default)
 // ===========================================================================
 
 const KEY = "StarPromptPreviewAndEdit";
@@ -129,12 +130,11 @@ app.registerExtension({
             };
 
             const applyMode = () => {
-                const mode = node.widgets?.find(w => w.name === "mode")?.value;
-                const bypass = mode === "Bypass Mode";
+                const bypass = !!node.widgets?.find(w => w.name === "bypass")?.value;
                 textarea.readOnly = bypass;
                 continueBtn.style.display = bypass ? "none" : "";
                 if (bypass && !state.waiting && status.dataset.kind !== "done")
-                    status.textContent = "Preview only (Bypass Mode) — run to show the text.";
+                    status.textContent = "Preview only (Bypass) — run to show the text.";
             };
 
             textarea.addEventListener("input", () => {
@@ -165,8 +165,8 @@ app.registerExtension({
                 }
             });
 
-            // Reflect mode widget changes (textarea readonly / button visibility)
-            const modeWidget = node.widgets?.find(w => w.name === "mode");
+            // Reflect bypass toggle changes (textarea readonly / button visibility)
+            const modeWidget = node.widgets?.find(w => w.name === "bypass");
             if (modeWidget) {
                 const originalCallback = modeWidget.callback;
                 modeWidget.callback = function () {
@@ -200,13 +200,20 @@ app.registerExtension({
             return result;
         };
 
-        // After returning from another workflow the frontend can restore the
-        // mode widget with an empty value — put it back on a valid option.
+        // Switching workflow tabs can restore the widget with an empty value,
+        // and old workflows stored the dropdown strings — convert anything
+        // unknown to a valid boolean, defaulting to Bypass (on).
         const onConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function () {
             const result = onConfigure ? onConfigure.apply(this, arguments) : undefined;
-            const modeWidget = this.widgets?.find(w => w.name === "mode");
-            if (modeWidget && !modeWidget.value) modeWidget.value = "Edit Mode";
+            const bypassWidget = this.widgets?.find(w => w.name === "bypass");
+            if (bypassWidget) {
+                const v = bypassWidget.value;
+                if (typeof v === "string")
+                    bypassWidget.value = v === "true" || v === "Bypass Mode" || v === "";
+                else if (v === undefined || v === null)
+                    bypassWidget.value = true;
+            }
             this._starPromptPreview?.applyMode();
             return result;
         };
@@ -225,10 +232,10 @@ app.registerExtension({
                 ui.textarea.value = text;
             }
 
-            const bypass = this.widgets?.find(w => w.name === "mode")?.value === "Bypass Mode";
+            const bypass = !!this.widgets?.find(w => w.name === "bypass")?.value;
             if (bypass) {
                 ui.status.dataset.kind = "";
-                ui.status.textContent = "Preview only (Bypass Mode).";
+                ui.status.textContent = "Preview only (Bypass).";
             } else {
                 ui.setWaiting(Array.isArray(waitArr) ? !!waitArr[0] : !!waitArr);
             }
