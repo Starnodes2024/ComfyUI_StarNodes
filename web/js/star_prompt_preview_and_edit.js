@@ -185,14 +185,18 @@ app.registerExtension({
             widget.status = status;
             widget.textarea = textarea;
             widget.state = state;
-            node._starPromptPreview = { widget, textarea, status, setWaiting, applyMode, state };
 
             // Grow the textarea with the node so long prompts stay readable
+            const syncSize = () => {
+                const h = Math.max(240, node.size[1] - 190);
+                textarea.style.height = `${node.size[1] > 450 ? h : 240}px`;
+            };
+            node._starPromptPreview = { widget, textarea, status, setWaiting, applyMode, state, syncSize };
+
             const onResize = nodeType.prototype.onResize;
             nodeType.prototype.onResize = function (size) {
                 if (onResize) onResize.apply(this, arguments);
-                const h = Math.max(240, size[1] - 190);
-                if (textarea) textarea.style.height = `${size[1] > 450 ? h : 240}px`;
+                syncSize();
             };
 
             const w = node.size ? node.size[0] : 0, h = node.size ? node.size[1] : 0;
@@ -215,6 +219,10 @@ app.registerExtension({
                     bypassWidget.value = true;
             }
             this._starPromptPreview?.applyMode();
+            // The restored size lands during configure — sync the textarea to it,
+            // otherwise the preview falls back to its default height after a
+            // workflow tab switch.
+            this._starPromptPreview?.syncSize();
             return result;
         };
 

@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-3.4.2-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.4.3-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -51,6 +51,17 @@ plus a full set of **Qwen / Flux / LTX-Video** helpers.
 ## ✨ Recently Added & Updated — Spotlight
 
 These are the newest and most powerful nodes in the pack. If you try nothing else, try these:
+
+### 🆕 ⭐ The Builder Family — characters from dropdowns, zero typing
+
+**⭐ Star Character Builder**, **⭐ Star Creature Builder**, **⭐ Star Horror Villains Builder** and **⭐ Star Sexy Builder** — pick every detail from dropdowns and get a complete, ready-to-use prompt string. Each builder also ships a strict multi-panel **reference sheet** output (front/back full-body views + detail close-ups) and an LLM **system prompt**, all with `none`/`random`/`exclude` controls, a seed, and editable JSON lists for your own entries.
+
+| Builder | What it covers |
+|---|---|
+| **Character Builder** | Everyday humans — sex, type, ethnicity, skin, build, hair, makeup, outfits (wear rule), accessories, expression, pose, style |
+| **Creature Builder** | Fantasy creatures — 75 species, body plans (anthro, feral, naga, tauric…), elements, colors & patterns, horns, wings, tails, claws, genitals |
+| **Horror Villains Builder** | Horror icons — slashers, killer dolls, cenobites, clowns: masks & faces, weapons, injuries, aura, outfits |
+| **Sexy Builder** | Sensual figures — explicit anatomy details for male and female, lingerie, sexy nightwear, poses, expressions, boudoir ambiance |
 
 <table>
 <tr>

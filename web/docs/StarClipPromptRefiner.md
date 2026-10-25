@@ -32,7 +32,7 @@ A single node that loads a text encoder from `models/text_encoders` and uses it 
 - **top_p**: Nucleus sampling threshold (default: 0.95)
 - **min_p**: Minimum token probability relative to the most likely token (default: 0.05, 0 disables)
 - **repetition_penalty**: Penalizes repeated tokens (default: 1.05, 1.0 disables)
-- **max_length**: Maximum number of tokens to generate (default: 512)
+- **max_length**: Maximum number of tokens to generate (default: 2048)
 - **thinking**: Thinking / reasoning mode toggle (default: on)
   - The reasoning process is returned on the `think_output`
   - **Note for Qwen3-VL "heretic" models:** turning this off injects an empty think block into the template, which can confuse these models (they may echo the prompt instead of answering). Keep it on if the output looks wrong.

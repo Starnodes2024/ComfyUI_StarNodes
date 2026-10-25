@@ -127,7 +127,7 @@ class StarClipPromptRefiner:
                     "tooltip": "Penalizes repeated tokens. 1.0 disables the penalty.",
                 }),
                 "max_length": ("INT", {
-                    "default": 512,
+                    "default": 2048,
                     "min": 1,
                     "max": 32768,
                     "tooltip": "Maximum number of tokens to generate.",

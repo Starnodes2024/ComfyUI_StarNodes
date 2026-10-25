@@ -125,6 +125,7 @@ The node uses the same proven polling mechanism as ⭐ Star Stop And Go:
 
 ## Version History
 
+- **v1.5**: Fixed the preview size resetting after switching workflow tabs — the text area height is now re-synced to the restored node size when the workflow is loaded.
 - **v1.4**: Fixed the toggle flipping to Edit after switching workflow tabs — the frontend can restore the widget with an empty value, which is now mapped back to the Bypass default (same known frontend quirk as v1.2).
 - **v1.3**: Replaced the mode dropdown with a **bypass/Edit toggle** (default: Bypass on). Workflows saved with the old dropdown keep their behavior — the stored "Edit Mode"/"Bypass Mode" values are converted to the toggle automatically.
 - **v1.2**: Hardened the mode selector against a ComfyUI frontend quirk: after switching workflows the mode widget could be restored with an empty value. The node now treats any value other than "Bypass Mode" as Edit Mode and the frontend restores an empty mode value to "Edit Mode" when the workflow is loaded.

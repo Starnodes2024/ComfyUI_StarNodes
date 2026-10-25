@@ -1,5 +1,39 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 3.4.3 (2026-10-25)
+
+### 🆕 New Nodes
+
+#### Star Horror Villains Builder (`StarHorrorVillainsBuilder`)
+- **Horror villain prompt builder** — the horror counterpart to ⭐ Star Character/Creature Builder. Build villain description prompts from dropdown selections: masked slashers, killer dolls, evil clowns, cenobites and more
+  - **Identity**: sex, villain_type (48 archetypes), size (doll-sized → giant)
+  - **Face & body**: face (hockey mask, porcelain doll face, scream mask, grid-scarred face with embedded pins…), hair, skin, eyes, body_build, injuries (glasgow smile, burn scars, cracked porcelain…)
+  - **Outfit & props**: outfit (striped sweater + fedora, mechanic's coveralls, cenobite leather robe…), weapon (machete, chainsaw, bladed claw glove, meat hooks on chains…), accessories (red balloon, cursed videotape…), aura (fog, VHS distortion…)
+- **Three outputs**: `description`, `villain_sheet` (forensic-style reference sheet with dedicated face/mask and weapon close-up panels), `system_prompt`
+- All option lists editable in `json/star_horror_villains_builder.json`
+
+#### Star Sexy Builder (`StarSexyBuilder`)
+- **Sensual figure prompt builder** — focused on sexually attractive character details
+  - **Body**: skin_tone (incl. oiled/wet/tan-line variants), body_build, waist, legs
+  - **Anatomy**: breasts / chest (male counterpart), nipples, butt, genitals (explicit for both), pubic_hair
+  - **Wear rule**: lingerie / nightwear (sexy night outfits) / kinky_outfit — mutually exclusive under random_all
+  - **Finish**: accessories, seductive expressions, poses, ambiance (candlelight, neon glow…), style (default: boudoir photography)
+- **Three outputs**: `description`, `sexy_sheet` (figure study sheet with chest/pelvic/buttock detail panels and selected-anatomy close-ups), `system_prompt`
+- All option lists editable in `json/star_sexy_builder.json`
+
+### ✨ Enhancements
+- **Star CLIP Prompt Refiner**: `max_length` default raised from 512 to 2048 (applies to newly added nodes)
+- **README**: new builder family spotlight (Character, Creature, Horror Villains, Sexy)
+
+### 🐛 Bug Fixes
+- **Star Prompt Preview And Edit**: fixed the preview size resetting to default after switching workflow tabs — the text area height is re-synced to the restored node size when a workflow is loaded
+
+### 📚 Documentation
+- New `web/docs/StarHorrorVillainsBuilder.md` and `web/docs/StarSexyBuilder.md`
+- Updated `web/docs/StarClipPromptRefiner.md` and `web/docs/StarPromptPreviewAndEdit.md`
+
+---
+
 ## Version 3.4.2 (2026-10-24)
 
 ### 🆕 New Nodes
