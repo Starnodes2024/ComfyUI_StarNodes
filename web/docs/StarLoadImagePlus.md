@@ -15,6 +15,7 @@ original ⭐ Star Load Image+ — old workflows keep working.
 
 - **image** — pick a file from the **input folder** *or* the **output folder** (entries ending with `[output]`, including subfolders like the date folders ⭐ Star Save Image+ creates), or use *Choose file to upload*. PNG, JPG, WEBP, BMP and GIF are supported.
 - **invert_mask** — flip the mask extracted from the alpha channel (e.g. switch between inpaint-area and keep-area).
+- **load with txt** — when enabled, the node looks for a `.txt` sidecar file with the exact same filename as the image (e.g. `Img_00001_.txt` next to `Img_00001_.png`) and loads its text. This matches the caption files ⭐ Star Save Image+ writes via its `caption` input — perfect for reusing LoRA datasets. If no `.txt` exists, `caption` is an empty string.
 
 ## Outputs
 
@@ -22,6 +23,7 @@ original ⭐ Star Load Image+ — old workflows keep working.
 - **mask** — the alpha channel as a mask (empty mask when there is no alpha). Restores masks embedded by ⭐ Star Save Image+; flip it with **invert_mask**.
 - **StarMetaData 1–5** — the 5 custom metadata values (same output slots as the original node).
 - **metadata** — *all* metadata found in the file (STAR_METADATA). Connect this to **⭐ Star Image Loader Options** to see the full list and use single entries.
+- **caption** — the text of the `.txt` sidecar next to the image (only filled when **load with txt** is enabled; otherwise an empty string).
 
 ## Tips
 

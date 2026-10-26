@@ -470,11 +470,8 @@ class StarFlux2Inpainter:
 
             # Sample
             if external_sigmas is not None:
-                from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, CFGGuider, SamplerCustomAdvanced
-                noise_gen = Noise_RandomNoise(seed)
-                guider = CFGGuider().get_guider(model, conditioning_pos, conditioning_neg, cfg)[0]
-                sampler_obj = comfy.samplers.sampler_object(sampler_name)
-                latent_result = SamplerCustomAdvanced().sample(noise_gen, guider, sampler_obj, external_sigmas, latent)[1]
+                from ..samplers.star_sampler_utils import star_sample_with_sigmas
+                latent_result = star_sample_with_sigmas(model, conditioning_pos, conditioning_neg, cfg, seed, sampler_name, external_sigmas, latent)
             else:
                 latent_result = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
                                     conditioning_pos, conditioning_neg, latent, denoise=denoise)[0]

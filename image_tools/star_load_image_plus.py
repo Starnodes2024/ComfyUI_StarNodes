@@ -68,20 +68,29 @@ class StarLoadImagePlus:
                         "tooltip": "Invert the mask extracted from the alpha channel (useful for inpaint vs. keep-area workflows).",
                     },
                 ),
+                "load_with_txt": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": "When enabled, also loads a .txt sidecar with the exact same filename as the image (e.g. a LoRA caption saved by ⭐ Star Save Image+) and outputs it as 'caption'. Empty string if no .txt exists.",
+                    },
+                ),
             }
         }
 
     CATEGORY = "⭐StarNodes/IO"
-    RETURN_TYPES = ("IMAGE", "MASK", "STAR_METADATA")
+    RETURN_TYPES = ("IMAGE", "MASK", "STAR_METADATA", "STRING")
     RETURN_NAMES = (
         "image",
         "mask",
         "metadata",
+        "caption",
     )
     OUTPUT_TOOLTIPS = (
         "Loaded image.",
         "Alpha channel as mask (flip it with invert_mask).",
         "All metadata found in the image - connect to ⭐ Star Image Loader Options.",
+        "Text of the .txt sidecar file next to the image (requires 'load with txt' enabled).",
     )
     FUNCTION = "load_image"
     DESCRIPTION = (
@@ -90,7 +99,7 @@ class StarLoadImagePlus:
         "PNG, JPG and WEBP saved by ⭐ Star Save Image+."
     )
 
-    def load_image(self, image, invert_mask=False):
+    def load_image(self, image, invert_mask=False, load_with_txt=False):
         image_path = folder_paths.get_annotated_filepath(image)
 
         img = Image.open(image_path)
@@ -117,21 +126,35 @@ class StarLoadImagePlus:
 
         img.close()
 
+        caption = ""
+        if load_with_txt:
+            txt_path = os.path.splitext(image_path)[0] + ".txt"
+            if os.path.isfile(txt_path):
+                with open(txt_path, "r", encoding="utf-8") as handle:
+                    caption = handle.read().rstrip("\r\n")
+
         entries = [[str(k), v if isinstance(v, str) else str(v)] for k, v in metadata.items()]
         return {
             "ui": {"star_metadata": [entries]},
-            "result": (image_tensor, mask, metadata),
+            "result": (image_tensor, mask, metadata, caption),
         }
 
     @classmethod
-    def IS_CHANGED(cls, image, invert_mask=False, **kwargs):
+    def IS_CHANGED(cls, image, invert_mask=False, load_with_txt=False, **kwargs):
         image_path = folder_paths.get_annotated_filepath(image)
         try:
             mtime = os.path.getmtime(image_path)
             size = os.path.getsize(image_path)
-            return f"{mtime}-{size}-{invert_mask}"
+            sig = f"{mtime}-{size}-{invert_mask}-{load_with_txt}"
         except Exception:
-            return f"{image}-{invert_mask}"
+            sig = f"{image}-{invert_mask}-{load_with_txt}"
+        if load_with_txt:
+            txt_path = os.path.splitext(image_path)[0] + ".txt"
+            try:
+                sig += f"-{os.path.getmtime(txt_path)}-{os.path.getsize(txt_path)}"
+            except Exception:
+                sig += "-notxt"
+        return sig
 
     @classmethod
     def VALIDATE_INPUTS(cls, image, invert_mask=False, **kwargs):

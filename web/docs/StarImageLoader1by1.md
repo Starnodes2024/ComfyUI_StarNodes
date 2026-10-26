@@ -20,6 +20,7 @@ Loads images from a folder sequentially across workflow runs, persisting state i
 - __current_index__ (INT): 0‑based index of the image just loaded.
 - __total_images__ (INT): Total count of eligible images.
 - __remaining_images__ (INT): Images left after the current one.
+- __caption__ (STRING): Contents of a `.txt` sidecar with the same filename as the loaded image (e.g. `Img_00001_.txt` next to `Img_00001_.png`, as written by ⭐ Star Save Image+). Empty string when no `.txt` exists — perfect for looping through LoRA datasets without losing captions.
 
 ## Persistence
 - State saved to `.star_loader_state.json` in the source folder.

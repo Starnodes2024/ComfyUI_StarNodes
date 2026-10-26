@@ -21,6 +21,9 @@ Every category dropdown starts with three special options:
 ### Body
 
 - **sex**: female / male / transgender woman / transgender man
+- **hairstyle**: long silky hair, long wavy hair, messy bed hair, wet hair look, hair in a tousled ponytail, pixie cut, hair falling over the face, …
+  - Combined with **hair_color** automatically: `long wavy hair` + `blonde` → `long wavy blonde hair`
+- **hair_color**: blonde, jet black, auburn, strawberry blonde, pastel pink, two-tone, …
 - **skin_tone**: porcelain, tan, olive, ebony — plus sensual surface variants like glossy oiled skin, wet skin, sweat-glistened skin, sun-kissed with tan lines
 - **body_build**: slim, athletic, curvy, hourglass figure, voluptuous, petite, muscular, plus-size, …
 - **waist**: slim narrow waist, flat toned stomach, six-pack abs, snatched corseted waist, narrow waist with wide hips, …
@@ -82,7 +85,7 @@ When **random_all** is on, only **one** of the three wear categories is picked p
 ### 1. description (STRING)
 
 - The plain generated **comma-separated description prompt**, e.g.
-  `25 year old female, tan skin, hourglass figure, large natural breasts, erect nipples, slim narrow waist, bubble butt, long shapely legs, wearing sheer silk nightgown, thigh-high stockings, biting the lower lip, arching the back, flickering candlelight, boudoir photography`
+  `25 year old female, long wavy blonde hair, tan skin, hourglass figure, large natural breasts, erect nipples, slim narrow waist, bubble butt, long shapely legs, wearing sheer silk nightgown, thigh-high stockings, biting the lower lip, arching the back, flickering candlelight, boudoir photography`
 
 ### 2. sexy_sheet (STRING)
 
@@ -117,7 +120,7 @@ Edit `json/star_sexy_builder.json` in the StarNodes folder:
 
 ## Tips
 
-- This builder deliberately skips the everyday details (hair, makeup, ethnicity, everyday outfits) — chain it with the ⭐ Star Character Builder upstream and combine both outputs (e.g. with ⭐ Star Prompt Picker or a text join) for the full character
+- This builder deliberately skips most everyday details (makeup, ethnicity, everyday outfits) — chain it with the ⭐ Star Character Builder upstream and combine both outputs (e.g. with ⭐ Star Prompt Picker or a text join) for the full character
 - Don’t mix the gendered anatomy categories against the sex: pick **breasts** for female figures or **chest** for male figures — with **random_all** you may want to set the unused one to **exclude**
 - Use **random** on a few categories and fixed values on the rest for controlled variety (great together with a fixed **seed**)
 - The **additional** field is perfect for the scene: `luxury hotel bedroom, silk sheets, city lights at night`

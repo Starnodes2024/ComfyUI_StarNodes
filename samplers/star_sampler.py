@@ -575,7 +575,7 @@ class StarSampler:
                     sigmas = basic_scheduler.get_sigmas(work_model, scheduler, steps, denoise)[0]
                 
                 # Perform sampling
-                out_latent = sampler_advanced.sample(noise_gen, guider, sampler_obj, sigmas, latent)[1]
+                out_latent = sampler_advanced.sample(noise_gen, guider, sampler_obj, sigmas, latent)[0]
             else:
                 # Use detail schedule path
                 current_latent = {"samples": latent["samples"].clone()}
@@ -716,11 +716,8 @@ class StarSampler:
                     target_module.forward = original_forward
             elif external_sigmas is not None:
                 # Same machinery as the Flux fast path, but with CFG guidance.
-                from comfy_extras.nodes_custom_sampler import Noise_RandomNoise, CFGGuider, SamplerCustomAdvanced
-                noise_gen = Noise_RandomNoise(seed)
-                guider = CFGGuider().get_guider(model, positive, negative, cfg)[0]
-                sampler_obj = comfy.samplers.sampler_object(sampler_name)
-                out_latent = SamplerCustomAdvanced().sample(noise_gen, guider, sampler_obj, external_sigmas, latent)[1]
+                from .star_sampler_utils import star_sample_with_sigmas
+                out_latent = star_sample_with_sigmas(model, positive, negative, cfg, seed, sampler_name, external_sigmas, latent)
             else:
                 # Standard sampling without detail daemon
                 out_latent = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, 

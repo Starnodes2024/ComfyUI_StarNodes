@@ -6,9 +6,10 @@ import random
 _JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "json", "star_sexy_builder.json")
 
 # Field order used for both the widget layout and the prompt assembly.
-_LIST_FIELDS = ["sex", "skin_tone", "body_build", "breasts", "chest", "nipples", "waist", "butt",
-                "legs", "genitals", "pubic_hair", "lingerie", "nightwear", "kinky_outfit",
-                "accessories", "expression", "pose", "ambiance", "custom", "style"]
+_LIST_FIELDS = ["sex", "hairstyle", "hair_color", "skin_tone", "body_build", "breasts", "chest",
+                "nipples", "waist", "butt", "legs", "genitals", "pubic_hair",
+                "lingerie", "nightwear", "kinky_outfit", "accessories", "expression", "pose",
+                "ambiance", "custom", "style"]
 
 # Wear categories are mutually exclusive under random_all - only one of them is picked.
 _WEAR_FIELDS = ["lingerie", "nightwear", "kinky_outfit"]
@@ -91,8 +92,8 @@ class StarSexyBuilder:
             return rng.choice(options)
         return value
 
-    def build(self, sex, skin_tone, body_build, breasts, chest, nipples, waist, butt,
-              legs, genitals, pubic_hair, lingerie, nightwear, kinky_outfit,
+    def build(self, sex, hairstyle, hair_color, skin_tone, body_build, breasts, chest, nipples,
+              waist, butt, legs, genitals, pubic_hair, lingerie, nightwear, kinky_outfit,
               accessories, expression, pose, ambiance, custom, style,
               age, random_age, additional, seed, random_all):
         lists, settings, system_prompt = _load_data()
@@ -100,7 +101,8 @@ class StarSexyBuilder:
             seed = random.randint(0, 0xffffffffffffffff)
         rng = random.Random(seed)
 
-        widget_values = dict(sex=sex, skin_tone=skin_tone, body_build=body_build, breasts=breasts, chest=chest,
+        widget_values = dict(sex=sex, hairstyle=hairstyle, hair_color=hair_color, skin_tone=skin_tone,
+                             body_build=body_build, breasts=breasts, chest=chest,
                              nipples=nipples, waist=waist, butt=butt, legs=legs, genitals=genitals,
                              pubic_hair=pubic_hair, lingerie=lingerie, nightwear=nightwear, kinky_outfit=kinky_outfit,
                              accessories=accessories, expression=expression, pose=pose, ambiance=ambiance,
@@ -136,13 +138,24 @@ class StarSexyBuilder:
         outfits = [o for o in outfits if o]
         wear = f"wearing {' and '.join(outfits)}" if outfits else ""
 
+        hair = ""
+        hair_style, color = resolved["hairstyle"], resolved["hair_color"]
+        if hair_style and color:
+            hair = hair_style.replace("hair", f"{color} hair", 1) if "hair" in hair_style else f"{color} {hair_style}"
+        elif hair_style:
+            hair = hair_style
+        elif color:
+            hair = f"{color} hair"
+
         lead = " ".join(x for x in (age, resolved["sex"]) if x)
 
-        sheet_prompt = self._build_sheet(resolved, lead, wear, additional)
+        sheet_prompt = self._build_sheet(resolved, lead, hair, wear, additional)
 
         parts = []
         if lead:
             parts.append(lead)
+        if hair:
+            parts.append(hair)
         for f in ("skin_tone", "body_build", "breasts", "chest", "nipples", "waist", "butt", "legs",
                   "genitals", "pubic_hair"):
             if resolved[f]:
@@ -157,11 +170,11 @@ class StarSexyBuilder:
 
         return (", ".join(parts), sheet_prompt, system_prompt)
 
-    def _build_sheet(self, resolved, lead, wear, additional):
+    def _build_sheet(self, resolved, lead, hair, wear, additional):
         lead = lead.replace(" year old", "-year-old") if " year old" in lead else lead
         lead = lead or "adult person"
 
-        traits = [x for x in (resolved["skin_tone"], resolved["body_build"], resolved["waist"],
+        traits = [x for x in (hair, resolved["skin_tone"], resolved["body_build"], resolved["waist"],
                               resolved["legs"], resolved["custom"]) if x]
         closeups = [f"the {resolved[f]}" for f in _DETAIL_FIELDS if resolved[f]]
         items = [self._isolate(resolved["accessories"])] if resolved["accessories"] else []

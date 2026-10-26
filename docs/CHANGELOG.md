@@ -1,5 +1,43 @@
 # Changelog - ComfyUI StarNodes
 
+## Version 3.4.4 (2026-10-26)
+
+### 🆕 LoRA Dataset Support
+
+#### Star Save Image+ (`StarSaveImagePlus`)
+- **Optional `caption` STRING input** — when connected, saves a `.txt` sidecar with the exact same filename as the image (`Img_00001_.txt` next to `Img_00001_.png`) in the same folder — ideal for LoRA dataset captioning
+- **New `Datasets` folder preset** in the output folder dropdown
+
+#### Star Load Image+ (`StarLoadImagePlus`)
+- **New `load with txt` toggle** — when enabled, loads a `.txt` sidecar with the same filename as the image
+- **New `caption` STRING output** — the sidecar text (empty when off or no `.txt` exists); the node also re-runs when the `.txt` on disk changes
+
+#### Star Image Loader 1by1 (`StarImageLoader1by1`)
+- **New `caption` STRING output** — automatically loads a matching `.txt` sidecar next to each loaded image (appended as the last output, existing connections unaffected)
+
+#### New Wildcards
+- `Dataset-Prompts-Female.txt` and `Dataset-Prompts-Male.txt` — 200 unique entries each (100 dressed / 100 nude), covering framings, angles, poses, expressions and lighting while staying body/face-neutral for any character type
+
+### ✨ Enhancements
+
+#### Star SD Upscale Refiner Advanced (`StarSDUpscaleRefinerAdvanced`)
+- **Optional `pos_condition` / `neg_condition` CONDITIONING connectors** — use external conditioning instead of the internal prompt fields when connected
+- **New `refine_tiled` toggle** (default on) — disable to refine the whole upscaled latent in a single pass (faster, seam-free, needs more VRAM)
+
+#### Star Sexy Builder (`StarSexyBuilder`)
+- **New `hairstyle` and `hair_color` selectors** with auto-combining (`long wavy` + `blonde` → `long wavy blonde hair`)
+
+### 🐛 Bug Fixes & Internal
+
+- **Removed the global `sampling_function` monkeypatch** in Star SD Upscale Refiner Advanced — Auto-CFG now uses the native `sampler_cfg_function` hook, so it can no longer break other samplers or future ComfyUI versions
+- **Fixed sigma-path sampling outputs** in ⭐ Star Sampler, ⭐ Star Flux2/Qwen Inpainter and ⭐ Star Qwen Outpainter — now use the main sampler output (index `[0]`) instead of `denoised_output` (correct for partial schedules)
+- **New shared sampling helper** `samplers/star_sampler_utils.py` using the stable core API (`comfy.samplers.CFGGuider`) — de-duplicates the sigma-path sampling call
+
+### 📚 Documentation
+- Updated `StarSaveImagePlus.md`, `StarLoadImagePlus.md`, `StarImageLoader1by1.md`, `StarSexyBuilder.md`
+
+---
+
 ## Version 3.4.3 (2026-10-25)
 
 ### 🆕 New Nodes

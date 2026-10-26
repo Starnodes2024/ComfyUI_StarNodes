@@ -1,6 +1,5 @@
 ﻿"""Star SD Upscale Refiner with optional simple image upscaling."""
 
-import math
 import time
 import inspect
 import logging
@@ -141,99 +140,6 @@ def _apply_pag(model, scale):
     return m
 
 
-def _make_sampler_pre_cfg_function(
-    minimum_sigma_to_disable_uncond=0,
-    maximum_sigma_to_enable_uncond=1000000,
-    disabled_cond_start=10000,
-    disabled_cond_end=10000,
-):
-    def sampler_pre_cfg_function(sigma, uncond, cond, cond_scale, **kwargs):
-        if sigma[0] < minimum_sigma_to_disable_uncond or sigma[0] > maximum_sigma_to_enable_uncond:
-            uncond = None
-        if sigma[0] <= disabled_cond_start and sigma[0] > disabled_cond_end:
-            cond = None
-        return uncond, cond, cond_scale
-
-    return sampler_pre_cfg_function
-
-
-_original_sampling_function = None
-
-
-def _sampling_function_patched(model, x, timestep, uncond, cond, cond_scale, model_options={}, seed=None, **kwargs):
-    cond_copy = cond
-    uncond_copy = uncond
-
-    for fn in model_options.get("sampler_patch_model_pre_cfg_function", []):
-        args = {"model": model, "sigma": timestep, "model_options": model_options}
-        model, model_options = fn(args)
-
-    if "sampler_pre_cfg_function" in model_options:
-        uncond, cond, cond_scale = model_options["sampler_pre_cfg_function"](
-            sigma=timestep,
-            uncond=uncond,
-            cond=cond,
-            cond_scale=cond_scale,
-        )
-
-    if math.isclose(cond_scale, 1.0) and model_options.get("disable_cfg1_optimization", False) is False:
-        uncond_ = None
-    else:
-        uncond_ = uncond
-
-    conds = [cond, uncond_]
-
-    out = comfy_samplers.calc_cond_batch(model, conds, x, timestep, model_options)
-    cond_pred = out[0]
-    uncond_pred = out[1]
-
-    if "sampler_cfg_function" in model_options:
-        args = {
-            "cond": x - cond_pred,
-            "uncond": x - uncond_pred,
-            "cond_scale": cond_scale,
-            "timestep": timestep,
-            "input": x,
-            "sigma": timestep,
-            "cond_denoised": cond_pred,
-            "uncond_denoised": uncond_pred,
-            "model": model,
-            "model_options": model_options,
-            "cond_pos": cond_copy,
-            "cond_neg": uncond_copy,
-        }
-        cfg_result = x - model_options["sampler_cfg_function"](args)
-    else:
-        cfg_result = uncond_pred + (cond_pred - uncond_pred) * cond_scale
-
-    for fn in model_options.get("sampler_post_cfg_function", []):
-        args = {
-            "denoised": cfg_result,
-            "cond": cond_copy,
-            "uncond": uncond_copy,
-            "model": model,
-            "uncond_denoised": uncond_pred,
-            "cond_denoised": cond_pred,
-            "sigma": timestep,
-            "model_options": model_options,
-            "input": x,
-        }
-        cfg_result = fn(args)
-
-    return cfg_result
-
-
-def _monkey_patching_comfy_sampling_function():
-    global _original_sampling_function
-
-    if _original_sampling_function is None:
-        _original_sampling_function = comfy_samplers.sampling_function
-    if hasattr(comfy_samplers.sampling_function, "_automatic_cfg_decorated"):
-        return
-    comfy_samplers.sampling_function = _sampling_function_patched
-    comfy_samplers.sampling_function._automatic_cfg_decorated = True
-
-
 def _get_denoised_ranges(latent, measure="hard", top_k=0.25):
     chans = []
     for x in range(len(latent)):
@@ -272,9 +178,6 @@ def _check_skip(sigma, high_sigma_threshold, low_sigma_threshold):
 def _apply_auto_cfg(model):
     m = model.clone()
 
-    model_options_copy = deepcopy(m.model_options)
-    _monkey_patching_comfy_sampling_function()
-
     automatic_cfg = "hard"
     skip_uncond = True
     fake_uncond_start = False
@@ -307,14 +210,6 @@ def _apply_auto_cfg(model):
     previous_sigma = {"value": None}
 
     sigmin, sigmax = _get_sigmin_sigmax(m)
-
-    if skip_uncond:
-        m.model_options["sampler_pre_cfg_function"] = _make_sampler_pre_cfg_function(
-            uncond_sigma_end,
-            uncond_sigma_start,
-            100000.0,
-            100000.0,
-        )
 
     def automatic_cfg_function(args):
         cond_scale = args["cond_scale"]
@@ -865,6 +760,12 @@ class StarSDUpscaleRefinerAdvanced:
                     "step": 64,
                     "max": 16384,
                 }),
+                "refine_tiled": ("BOOLEAN", {
+                    "default": True,
+                    "label_on": "tiled refining",
+                    "label_off": "whole latent",
+                    "tooltip": "On (default): the refine pass samples in tiles (tiled diffusion + tiled VAE encode/decode) - low VRAM, recommended for large images. Off: the whole upscaled image is refined as a single latent without tiling - faster and seam-free, but needs a lot of VRAM on large images.",
+                }),
                 "sampler_name": (sampler_list, {
                     "default": "euler" if "euler" in sampler_list else sampler_list[0],
                 }),
@@ -874,6 +775,8 @@ class StarSDUpscaleRefinerAdvanced:
             },
             "optional": {
                 "IMAGE": ("IMAGE",),
+                "pos_condition": ("CONDITIONING", {"tooltip": "Optional: use this positive CONDITIONING instead of the internal positive_prompt encoding. The positive_prompt text field is ignored while this is connected."}),
+                "neg_condition": ("CONDITIONING", {"tooltip": "Optional: use this negative CONDITIONING instead of the internal negative_prompt encoding. The negative_prompt text field is ignored while this is connected."}),
                 "controlnet_name": (controlnets, {"default": "None"}),
                 "UPSCALE_IMAGE": ("BOOLEAN", {"default": False}),
                 "UPSCALE_MODEL": (["Default"] + available_upscalers, {"default": "4x_NMKD-Siax_200k.pth"}),
@@ -925,9 +828,12 @@ class StarSDUpscaleRefinerAdvanced:
         refine_steps,
         refine_denoise,
         tile_size,
+        refine_tiled,
         sampler_name,
         scheduler_name,
         IMAGE=None,
+        pos_condition=None,
+        neg_condition=None,
         controlnet_name="None",
         UPSCALE_IMAGE=True,
         UPSCALE_MODEL="Default",
@@ -941,8 +847,8 @@ class StarSDUpscaleRefinerAdvanced:
         model, clip = self._apply_lora_if_needed(model, clip, lora_3_name, lora_3_strength)
 
         clip_encoder = CLIPTextEncode()
-        positive_cond = clip_encoder.encode(clip, positive_prompt)[0]
-        negative_cond = clip_encoder.encode(clip, negative_prompt)[0]
+        positive_cond = pos_condition if pos_condition is not None else clip_encoder.encode(clip, positive_prompt)[0]
+        negative_cond = neg_condition if neg_condition is not None else clip_encoder.encode(clip, negative_prompt)[0]
 
         upscaled_image = None
         if IMAGE is not None:
@@ -1014,7 +920,8 @@ class StarSDUpscaleRefinerAdvanced:
         model = _apply_freeu_v2(model, 1.05, 1.08, 0.95, 0.8)
         model = _apply_pag(model, 1.0)
         model = _apply_auto_cfg(model)
-        model = _apply_tiled_diffusion(model, int(tile_size), int(tile_size), 128, 4)
+        if refine_tiled:
+            model = _apply_tiled_diffusion(model, int(tile_size), int(tile_size), 128, 4)
 
         latent = None
         pixels_for_latent = None
@@ -1024,18 +931,21 @@ class StarSDUpscaleRefinerAdvanced:
             pixels_for_latent = IMAGE
 
         if pixels_for_latent is not None:
-            tile_size_enc = int(tile_size)
-            overlap = 64
-            temporal_size = 64
-            temporal_overlap = 8
-            t = vae.encode_tiled(
-                pixels_for_latent[:, :, :, :3],
-                tile_x=tile_size_enc,
-                tile_y=tile_size_enc,
-                overlap=overlap,
-                tile_t=temporal_size,
-                overlap_t=temporal_overlap,
-            )
+            if refine_tiled:
+                tile_size_enc = int(tile_size)
+                overlap = 64
+                temporal_size = 64
+                temporal_overlap = 8
+                t = vae.encode_tiled(
+                    pixels_for_latent[:, :, :, :3],
+                    tile_x=tile_size_enc,
+                    tile_y=tile_size_enc,
+                    overlap=overlap,
+                    tile_t=temporal_size,
+                    overlap_t=temporal_overlap,
+                )
+            else:
+                t = vae.encode(pixels_for_latent[:, :, :, :3])
             latent = {"samples": t}
 
         if latent is None:
@@ -1206,7 +1116,7 @@ class StarSDUpscaleRefinerAdvanced:
             out_latent = _run_custom_sample(latent, sampler_name, sigmas, True)
 
         image = None
-        if VAEDecodeTiled is not None:
+        if refine_tiled and VAEDecodeTiled is not None:
             vdt = VAEDecodeTiled()
             func_name = getattr(VAEDecodeTiled, "FUNCTION", "decode")
             decode_fn = getattr(vdt, func_name, None)

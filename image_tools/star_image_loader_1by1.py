@@ -32,8 +32,8 @@ class StarImageLoader1by1:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "MASK", "STRING", "INT", "INT", "INT")
-    RETURN_NAMES = ("image", "mask", "image_path", "current_index", "total_images", "remaining_images")
+    RETURN_TYPES = ("IMAGE", "MASK", "STRING", "INT", "INT", "INT", "STRING")
+    RETURN_NAMES = ("image", "mask", "image_path", "current_index", "total_images", "remaining_images", "caption")
     FUNCTION = "load_next_image"
     CATEGORY = "⭐StarNodes/Image And Latent"
     
@@ -150,6 +150,16 @@ class StarImageLoader1by1:
         # Load the image
         image, mask = self.load_image(current_image_path)
         
+        # Load a matching .txt sidecar (e.g. a LoRA caption saved by Star Save Image+)
+        caption = ""
+        txt_path = os.path.splitext(current_image_path)[0] + ".txt"
+        if os.path.isfile(txt_path):
+            try:
+                with open(txt_path, "r", encoding="utf-8") as handle:
+                    caption = handle.read().rstrip("\r\n")
+            except (IOError, OSError):
+                pass
+        
         # Increment counter for next run
         next_counter = counter + 1
         if next_counter >= total_images:
@@ -163,7 +173,7 @@ class StarImageLoader1by1:
         if remaining_images < 0:
             remaining_images = 0
         
-        return (image, mask, current_image_path, counter, total_images, remaining_images)
+        return (image, mask, current_image_path, counter, total_images, remaining_images, caption)
     
     @classmethod
     def IS_CHANGED(s, folder, reset_counter=False, include_subfolders=False, sort_by="name", reverse_order=False):

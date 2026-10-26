@@ -218,6 +218,7 @@ class StarSaveImagePlus:
             },
             "optional": {
                 "options": ("STAR_SAVE_OPTIONS", {"tooltip": "Optional ⭐ Star Metadata Saver Option output (provides the 5 StarMetaData fields to embed)."}),
+                "caption": ("STRING", {"forceInput": True, "tooltip": "Optional text (e.g. a prompt/caption). When connected, a .txt file with this text is saved next to every image, using the exact same filename - ideal for LoRA dataset captioning."}),
                 "mask": (
                     "MASK",
                     {
@@ -322,6 +323,7 @@ class StarSaveImagePlus:
         formats="png",
         options=None,
         mask=None,
+        caption=None,
         # ─── NEW ───
         prompt=None,
         extra_pnginfo=None,
@@ -493,6 +495,16 @@ class StarSaveImagePlus:
 
                 if first_file is None:
                     first_file = file
+
+            # Optional caption sidecar: one .txt per image, same filename stem,
+            # next to the saved images (e.g. for LoRA dataset captions).
+            if not preview and caption is not None:
+                text = str(caption).strip()
+                if text:
+                    txt_file = f"{filename_with_batch_num}_{counter:05}_.txt"
+                    with open(os.path.join(full_output_folder, txt_file), "w", encoding="utf-8") as f:
+                        f.write(text + "\n")
+                    saved_files.append(os.path.join(subfolder, txt_file) if subfolder else txt_file)
 
             # Show the first written format in the node preview.
             results.append({"filename": first_file, "subfolder": subfolder, "type": node_type})

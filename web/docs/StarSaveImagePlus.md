@@ -19,10 +19,11 @@ metadata fields**. This node is a drop-in replacement for the original
 - **images** — the image batch to save.
 - **options** *(optional)* — connect a **⭐ Star Metadata Saver Option** node. Its 5 StarMetaData fields are embedded into every saved image.
 - **mask** *(optional)* — embedded as alpha channel (**PNG/WEBP**) so **⭐ Star Load Image+** restores it automatically; **JPG** gets a `..._mask.png` sidecar; **PSD** gets a real layer mask.
+- **caption** *(optional)* — connect any STRING (e.g. the prompt or a caption). For every saved image a `.txt` file with this text is written next to it, using **exactly the same filename** (`MyPic_00001_.png` → `MyPic_00001_.txt`). Nothing is written in preview mode or when the input is unconnected/empty — ideal for **LoRA dataset captioning** (pair with the `Datasets` preset folder and the ⭐ Star wildcard files like `Dataset-Prompts-Female`).
 
 ## Widgets
 
-- **preset_folder** — preset save folder from `presets.json` (overrides custom folder).
+- **preset_folder** — preset save folder from `presets.json` (overrides custom folder). Includes a ready-made **Datasets** preset for building LoRA training sets.
 - **date_folder / date_folder_position** — add today's date as a folder, either as the first folder or as a subfolder.
 - **custom_folder / custom_subfolder** — free-text folders.
 - **date_in_filename** — add the date as filename prefix or suffix.
