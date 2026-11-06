@@ -125,15 +125,10 @@ class StarFlux2Inpainter:
 
         return new_min_val, new_max_val
 
-    def crop_image_and_mask(self, image, mask):
-        # Default CropAndStitch parameters (hardcoded, tuned for Flux2)
-        context_expand_pixels = 32
-        context_expand_factor = 1.0
-        fill_mask_holes = True
-        blur_mask_pixels = 16.0
-        invert_mask = False
-        blend_pixels = 16.0
-        padding = 32
+    def crop_image_and_mask(self, image, mask, context_expand_pixels=32,
+                            context_expand_factor=1.0, fill_mask_holes=True,
+                            blur_mask_pixels=16.0, invert_mask=False,
+                            blend_pixels=16.0, padding=32):
 
         # Validate or initialize mask
         if mask.shape[1] != image.shape[1] or mask.shape[2] != image.shape[2]:

@@ -8,6 +8,7 @@ import comfy.samplers
 import comfy.sample
 import comfy.model_base
 import comfy.model_sampling
+import comfy.model_management
 from comfy.utils import ProgressBar
 
 from ..misc.star_progress import make_event_cb, patch_model_for_progress
@@ -57,6 +58,16 @@ def conditioning_zero_out(conditioning):
         n = [torch.zeros_like(t[0]), d]
         c.append(n)
     return c
+
+def rethrow_gpu_fatal(e):
+    """Re-raise GPU-fatal errors (OOM / broken CUDA context) instead of
+    falling back to another sampling pass. Starting a new full sampling run
+    right after one of these can wedge the CUDA driver ('CUDA unknown error'
+    until reboot); ComfyUI's executor handles them by unloading models."""
+    if comfy.model_management.is_oom(e):
+        raise e
+    if isinstance(e, RuntimeError) and "cuda" in str(e).lower():
+        raise e
 
 class StarSampler:
     """
@@ -397,6 +408,7 @@ class StarSampler:
 
                 return (model, positive, negative, out_latent, image, vae, seed, info, split_info)
             except Exception as e:
+                rethrow_gpu_fatal(e)
                 logging.warning(f"StarSampler: ZIT options ignored due to error: {e}")
 
         # ⭐ Star Split Sampler Option: run the first steps_1 steps with
@@ -485,6 +497,7 @@ class StarSampler:
 
                 return (model, positive, negative if negative is not None else pos, out_latent, image, vae, seed, info, split_info)
             except Exception as e:
+                rethrow_gpu_fatal(e)
                 logging.warning(f"StarSampler: Split sampler options ignored due to error: {e}")
 
         # A SIGMAS link into "options" (e.g. ⭐ Star Custom Sigmas) samples

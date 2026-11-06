@@ -190,7 +190,8 @@ class StarVideoCompressor:
                     f.write(src.read())
                 jobs = [("file", tmp)]
         elif images is not None:
-            jobs = [("images", self._to_uint8_frames(images))]
+            jobs = [("images", self._images_to_raw_file(
+                images, drop_first_frames, drop_last_frames))]
         elif video_path and video_path.strip():
             jobs = [("file", self._resolve_path(video_path))]
         else:
@@ -272,26 +273,17 @@ class StarVideoCompressor:
                 else:
                     a_args = []
             else:  # images batch
-                frames = src
-                total_frames = frames.shape[0]
-                if drop_first_frames + drop_last_frames >= total_frames:
-                    raise ValueError(
-                        "Star Video Compressor: drop_first_frames + "
-                        f"drop_last_frames ({drop_first_frames + drop_last_frames}) "
-                        "is >= the number of frames in the IMAGE batch "
-                        f"({total_frames}).")
-                end_idx = total_frames - drop_last_frames \
-                    if drop_last_frames > 0 else total_frames
-                frames = frames[drop_first_frames:end_idx]
+                # the batch was written to a rawvideo file on disk in
+                # slices, so a huge batch never sits twice in RAM
+                raw_path, n, h, w = src
                 drop_time = drop_first_frames / max(frame_rate, 0.001)
-                n, h, w = frames.shape[0], frames.shape[1], frames.shape[2]
                 duration = n / max(frame_rate, 0.001)
                 in_desc = (f"IMAGE batch | {n} frames @ {frame_rate:g} fps "
                            f"| {w}x{h}")
                 source_args = ["-f", "rawvideo", "-pix_fmt", "rgb24",
                                "-s", f"{w}x{h}", "-r", str(frame_rate),
-                               "-i", "-"]
-                payload = frames.tobytes()
+                               "-i", raw_path]
+                payload = None
                 map_args = []
                 filter_args = ["-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"] \
                     if (w % 2 or h % 2) else []
@@ -309,6 +301,12 @@ class StarVideoCompressor:
             self._encode(fmt, quality, preset, target_size_mb, duration,
                          a_args, source_args, out_path, map_args, filter_args,
                          payload, reporter, meta_path)
+
+            if kind == "images":
+                try:
+                    os.remove(raw_path)
+                except OSError:
+                    pass
 
             elapsed = time.time() - t0
             out_info = probe_media(out_path)
@@ -409,7 +407,10 @@ class StarVideoCompressor:
             f"Star Video Compressor: input video not found: {path}")
 
     @staticmethod
-    def _to_uint8_frames(images):
+    def _images_to_raw_file(images, drop_first=0, drop_last=0):
+        """Convert an IMAGE batch to a temp rawvideo file on disk, slice by
+        slice, so a huge batch never needs a full uint8 copy in RAM.
+        Returns (raw_path, num_frames, height, width)."""
         arr = images.cpu().numpy() if hasattr(images, "cpu") \
             else np.asarray(images)
         arr = np.asarray(arr, dtype=np.float32)
@@ -420,7 +421,23 @@ class StarVideoCompressor:
         if arr.shape[-1] != 3:
             raise ValueError("Star Video Compressor: IMAGE batch must have "
                              "3 (RGB) or 4 (RGBA) channels.")
-        return np.clip(arr * 255.0, 0, 255).astype(np.uint8)
+        total = arr.shape[0]
+        if drop_first + drop_last >= total:
+            raise ValueError(
+                "Star Video Compressor: drop_first_frames + "
+                f"drop_last_frames ({drop_first + drop_last}) is >= the "
+                f"number of frames in the IMAGE batch ({total}).")
+        end = total - drop_last if drop_last > 0 else total
+        arr = arr[drop_first:end]
+        n, h, w = arr.shape[0], arr.shape[1], arr.shape[2]
+        fd, path = tempfile.mkstemp(suffix="_star_frames.raw")
+        os.close(fd)
+        step = max(1, min(64, n))
+        with open(path, "wb") as f:
+            for i in range(0, n, step):
+                f.write(np.clip(arr[i:i + step] * 255.0, 0, 255)
+                        .astype(np.uint8).tobytes())
+        return path, n, h, w
 
     def _encode(self, fmt, quality, preset, target_size_mb, duration,
                 a_args, source_args, out_path, map_args, filter_args,

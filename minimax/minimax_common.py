@@ -17,10 +17,19 @@ class GuiderBasic(comfy.samplers.CFGGuider):
         self.inner_set_conds({"positive": positive})
 
 
-def run_sample(model, cond, latent, seed, sampler_name, sigmas):
-    """RandomNoise + BasicGuider + KSamplerSelect + SamplerCustomAdvanced, in-process."""
-    guider = GuiderBasic(model)
-    guider.set_conds(cond)
+def run_sample(model, cond, latent, seed, sampler_name, sigmas, negative=None, cfg=1.0, denoise_mask=None):
+    """RandomNoise + BasicGuider + KSamplerSelect + SamplerCustomAdvanced, in-process.
+    With a negative conditioning connected this becomes a real CFGGuider at the
+    given cfg scale (at cfg 1.0 the negative is ignored by the sampler anyway).
+    A nested denoise_mask matching the AV latent's members runs H3's native
+    inpaint path (per-token rows at mask * sigma, clean source re-injected)."""
+    if negative is not None:
+        guider = comfy.samplers.CFGGuider(model)
+        guider.set_conds(cond, negative)
+        guider.set_cfg(cfg)
+    else:
+        guider = GuiderBasic(model)
+        guider.set_conds(cond)
     sampler = comfy.samplers.sampler_object(sampler_name)
 
     latent = latent.copy()
@@ -38,7 +47,7 @@ def run_sample(model, cond, latent, seed, sampler_name, sigmas):
         guider.model_patcher, sigmas.shape[-1] - 1, x0_output)
     disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
     samples = guider.sample(noise, latent_image, sampler, sigmas,
-                            denoise_mask=None, callback=callback,
+                            denoise_mask=denoise_mask, callback=callback,
                             disable_pbar=disable_pbar, seed=seed)
     return samples.to(comfy.model_management.intermediate_device())
 

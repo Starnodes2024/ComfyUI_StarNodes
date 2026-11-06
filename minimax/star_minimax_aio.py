@@ -175,23 +175,26 @@ def _encode_ref_audio(audio_vae, audio):
     return z, z.shape[-1]
 
 
-def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
-                        ref_image_size, ref_images, ref_videos, ref_video_audios, ref_audios,
-                        image_mode=False):
-    """In-node replica of MiniMaxH3ReferenceToVideo.execute (ref2va task)."""
+def _build_latent(width, height, length, image_mode):
+    """The empty AV latent for the requested canvas. Image mode uses H3's native
+    one-frame still convention, decoded with the Fizgig still decode in
+    minimax_common.decode_still. Returns (latent, frame_count)."""
     if image_mode:
-        # one-frame still latent (H3's native image convention), decoded with
-        # the Fizgig still decode in minimax_common.decode_still
         device = comfy.model_management.intermediate_device()
         # the DiT patchifies 2x2 on a 16x latent grid, so the latent size must be even
         lh, lw = (height // 16) // 2 * 2, (width // 16) // 2 * 2
         video = torch.zeros([1, 24, 1, lh, lw], device=device)
         audio_t = max(1, round(1 / FPS * AUDIO_LATENT_FPS))       # 2, what the sampler uses for one frame
         audio = torch.zeros([1, 32, 2, audio_t], device=device)
-        latent = {"samples": comfy.nested_tensor.NestedTensor((video, audio))}
-        frame_count = 5   # ref videos are still capped on the video grid minimum
-    else:
-        latent, frame_count = _empty_av_latent(width, height, length)
+        return {"samples": comfy.nested_tensor.NestedTensor((video, audio))}, 5
+    return _empty_av_latent(width, height, length)
+
+
+def _build_conditioning(clip, vae, audio_vae, prompt, width, height, length,
+                        ref_image_size, ref_images, ref_videos, ref_video_audios, ref_audios,
+                        image_mode=False):
+    """In-node replica of MiniMaxH3ReferenceToVideo.execute (ref2va task)."""
+    latent, frame_count = _build_latent(width, height, length, image_mode)
 
     ref_items = []   # for the tokenizer presentation, in request order
     ref_blocks = []  # for the DiT payload, same order
@@ -493,7 +496,7 @@ class StarMinimaxAllInOne(io.ComfyNode):
         return sigmas[-(steps + 1):]
 
     @classmethod
-    def _run_upscale_pass(cls, model, cond, samples, seed, options):
+    def _run_upscale_pass(cls, model, cond, samples, seed, options, negative=None, cfg=1.0):
         """Second pass from a Star Minimax Latent Upscaler Option bundle:
         upscale the pass-1 video latent, keep the pass-1 audio latent, refine
         with the baked sigmas and the same (resolution-matched) conditioning,
@@ -511,7 +514,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
             (video_up.to(audio.device), audio))}
         cond2 = upscale_minimax_conditioning(cond, scale)
         return run_sample(model2, cond2, latent2, seed,
-                          options["sampler_name"], options["sigmas"])
+                          options["sampler_name"], options["sigmas"],
+                          negative=negative, cfg=cfg)
 
     # ------------------------------------------------------------------
     @classmethod

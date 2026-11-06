@@ -609,7 +609,9 @@ class _MultiDiffusion(_AbstractDiffusion):
         if self.draw_background:
             for batch_id, bboxes in enumerate(self.batched_bboxes):
                 if processing_interrupted():
-                    return x_in
+                    # Abort the whole run instead of silently returning garbage
+                    # and letting sampling continue at full load on the GPU.
+                    raise comfy_model_management.InterruptProcessingException()
 
                 x_tile = torch.cat([x_in[bbox.slicer] for bbox in bboxes], dim=0)
                 t_tile = _repeat_to_batch_size(t_in, x_tile.shape[0])
