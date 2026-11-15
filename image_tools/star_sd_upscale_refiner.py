@@ -9,7 +9,7 @@ import torch
 import torchvision.transforms.functional as F
 from torchvision.transforms import InterpolationMode
 
-import comfy.model_patcher as comfy_model_patcher
+import comfy.model_sampling as comfy_model_sampling
 import comfy.samplers as comfy_samplers
 import comfy.model_management as comfy_model_management
 from comfy.controlnet import ControlNet, T2IAdapter
@@ -37,107 +37,6 @@ except ImportError:  # Fallback so ComfyUI can still import the extension
     AlignYourStepsScheduler = None
     VAEDecodeTiled = None
 
-
-def _fourier_filter(x, threshold, scale):
-    x_freq = torch.fft.fftn(x.float(), dim=(-2, -1))
-    x_freq = torch.fft.fftshift(x_freq, dim=(-2, -1))
-
-    b, c, h, w = x_freq.shape
-    mask = torch.ones((b, c, h, w), device=x.device)
-
-    crow, ccol = h // 2, w // 2
-    mask[..., crow - threshold : crow + threshold, ccol - threshold : ccol + threshold] = scale
-    x_freq = x_freq * mask
-
-    x_freq = torch.fft.ifftshift(x_freq, dim=(-2, -1))
-    x_filtered = torch.fft.ifftn(x_freq, dim=(-2, -1)).real
-
-    return x_filtered.to(x.dtype)
-
-
-def _apply_freeu_v2(model, b1, b2, s1, s2):
-    # Some models (e.g. non-UNet / flow models) may not expose model_channels
-    # in the standard SD unet_config. In those cases we simply skip FreeU.
-    try:
-        model_config = getattr(model.model, "model_config", None)
-        if model_config is None:
-            return model
-
-        unet_config = getattr(model_config, "unet_config", None)
-        if unet_config is None:
-            # model_config might be a dict-like
-            unet_config = getattr(model_config, "get", lambda *_args, **_kwargs: None)("unet_config")
-        if not unet_config or "model_channels" not in unet_config:
-            return model
-
-        model_channels = unet_config["model_channels"]
-    except Exception:
-        return model
-
-    scale_dict = {model_channels * 4: (b1, s1), model_channels * 2: (b2, s2)}
-    on_cpu_devices = {}
-
-    def output_block_patch(h, hsp, transformer_options):
-        scale = scale_dict.get(int(h.shape[1]), None)
-        if scale is not None:
-            hidden_mean = h.mean(1).unsqueeze(1)
-            b = hidden_mean.shape[0]
-            hidden_max, _ = torch.max(hidden_mean.view(b, -1), dim=-1, keepdim=True)
-            hidden_min, _ = torch.min(hidden_mean.view(b, -1), dim=-1, keepdim=True)
-            hidden_mean = (hidden_mean - hidden_min.unsqueeze(2).unsqueeze(3)) / (hidden_max - hidden_min).unsqueeze(2).unsqueeze(3)
-
-            h[:, : h.shape[1] // 2] = h[:, : h.shape[1] // 2] * ((scale[0] - 1) * hidden_mean + 1)
-
-            if hsp.device not in on_cpu_devices:
-                try:
-                    hsp = _fourier_filter(hsp, threshold=1, scale=scale[1])
-                except Exception:
-                    on_cpu_devices[hsp.device] = True
-                    hsp = _fourier_filter(hsp.cpu(), threshold=1, scale=scale[1]).to(hsp.device)
-            else:
-                hsp = _fourier_filter(hsp.cpu(), threshold=1, scale=scale[1]).to(hsp.device)
-
-        return h, hsp
-
-    m = model.clone()
-    m.set_model_output_block_patch(output_block_patch)
-    return m
-
-
-def _apply_pag(model, scale):
-    unet_block = "middle"
-    unet_block_id = 0
-    m = model.clone()
-
-    def perturbed_attention(q, k, v, extra_options, mask=None):
-        return v
-
-    def post_cfg_function(args):
-        model_inner = args["model"]
-        cond_pred = args["cond_denoised"]
-        cond = args["cond"]
-        cfg_result = args["denoised"]
-        sigma = args["sigma"]
-        model_options = args["model_options"].copy()
-        x = args["input"]
-
-        if scale == 0:
-            return cfg_result
-
-        model_options = comfy_model_patcher.set_model_options_patch_replace(
-            model_options,
-            perturbed_attention,
-            "attn1",
-            unet_block,
-            unet_block_id,
-        )
-        (pag,) = comfy_samplers.calc_cond_batch(model_inner, [cond], x, sigma, model_options)
-
-        return cfg_result + (cond_pred - pag) * scale
-
-    m.set_model_sampler_post_cfg_function(post_cfg_function)
-
-    return m
 
 
 def _get_denoised_ranges(latent, measure="hard", top_k=0.25):
@@ -176,34 +75,19 @@ def _check_skip(sigma, high_sigma_threshold, low_sigma_threshold):
 
 
 def _apply_auto_cfg(model):
+    # AutoCFG normalization for k-diffusion SD models: rescale the CFG output
+    # per channel so the hardcoded cfg 8.0 refine stays stable. Flow models
+    # cover a 0..1 sigma range which the skip window always catches, so this
+    # degenerates to cfg 1 behavior there (and is skipped entirely anyway via
+    # cfg_value in _run_custom_sample).
     m = model.clone()
 
     automatic_cfg = "hard"
     skip_uncond = True
-    fake_uncond_start = False
     uncond_sigma_start = 1000.0
     uncond_sigma_end = 1.0
     auto_cfg_topk = 0.25
     auto_cfg_ref = 8.0
-
-    lerp_uncond = False
-    lerp_uncond_strength = 1.0
-    lerp_uncond_sigma_start = 1000.0
-    lerp_uncond_sigma_end = 1.0
-
-    cond_exp = False
-    uncond_exp = False
-    fake_uncond_exp = False
-    fake_uncond_multiplier = 1.0
-    fake_uncond_sigma_start = 1000.0
-    fake_uncond_sigma_end = 1.0
-
-    attention_modifiers_positive = []
-    attention_modifiers_negative = []
-    attention_modifiers_fake_negative = []
-    eval_string_cond = ""
-    eval_string_uncond = ""
-    eval_string_fake = ""
 
     last_cfg_ht_one = {"value": 1.0}
     previous_cond_pred = {"value": None}
@@ -217,7 +101,6 @@ def _apply_auto_cfg(model):
         cond_pred = args["cond_denoised"]
         uncond_pred = args["uncond_denoised"]
         sigma = args["sigma"][0]
-        model_options = args["model_options"]
 
         if previous_cond_pred["value"] is None:
             previous_cond_pred["value"] = cond_pred.clone().detach().to(device=cond_pred.device)
@@ -226,45 +109,14 @@ def _apply_auto_cfg(model):
 
         reference_cfg = auto_cfg_ref if auto_cfg_ref > 0 else cond_scale
 
-        def fake_uncond_step():
-            return (
-                fake_uncond_start
-                and skip_uncond
-                and (sigma > uncond_sigma_start or sigma < uncond_sigma_end)
-                and sigma <= fake_uncond_sigma_start
-                and sigma >= fake_uncond_sigma_end
-            )
-
-        if fake_uncond_step():
-            uncond_pred = cond_pred.clone().detach().to(device=cond_pred.device) * fake_uncond_multiplier
-
-        if cond_exp and sigma <= lerp_uncond_sigma_start and sigma >= lerp_uncond_sigma_end:
-            cond_pred = cond_pred
-        if uncond_exp and sigma <= lerp_uncond_sigma_start and sigma >= lerp_uncond_sigma_end and not fake_uncond_step():
-            uncond_pred = uncond_pred
-        if fake_uncond_step() and fake_uncond_exp:
-            uncond_pred = uncond_pred
-
         previous_cond_pred["value"] = cond_pred.clone().detach().to(device=cond_pred.device)
 
         if sigma >= sigmax or cond_scale > 1:
             last_cfg_ht_one["value"] = cond_scale
         target_intensity = last_cfg_ht_one["value"] / 10.0
 
-        if ((
-            _check_skip(sigma, uncond_sigma_start, uncond_sigma_end)
-            and skip_uncond
-        ) and not fake_uncond_step()) or cond_scale == 1:
+        if _check_skip(sigma, uncond_sigma_start, uncond_sigma_end) and skip_uncond or cond_scale == 1:
             return input_x - cond_pred
-
-        if (
-            lerp_uncond
-            and not _check_skip(sigma, lerp_uncond_sigma_start, lerp_uncond_sigma_end)
-            and lerp_uncond_strength != 1
-        ):
-            uncond_pred_norm = uncond_pred.norm()
-            uncond_pred = torch.lerp(cond_pred, uncond_pred, lerp_uncond_strength)
-            uncond_pred = uncond_pred * uncond_pred_norm / uncond_pred.norm()
 
         cond = input_x - cond_pred
         uncond = input_x - uncond_pred
@@ -345,6 +197,7 @@ class _AbstractDiffusion:
         self.tile_height = None
         self.tile_overlap = None
         self.tile_batch_size = None
+        self.sync_each_tile = False
 
         self.x_buffer = None
         self._weights = None
@@ -655,14 +508,19 @@ class _MultiDiffusion(_AbstractDiffusion):
                     self.x_buffer[bbox.slicer] += x_tile_out[i * N : (i + 1) * N, :, :, :]
                 del x_tile_out, x_tile, t_tile, c_tile
 
+                # sync-guard: surface an async CUDA fault here instead of
+                # letting it wedge the whole context (debugging aid)
+                if self.sync_each_tile and x_in.device.type == "cuda":
+                    torch.cuda.synchronize(x_in.device)
+
         x_out = torch.where(self.weights > 1, self.x_buffer / self.weights, self.x_buffer)
 
         return x_out
 
 
-def _apply_tiled_diffusion(model, tile_width=1024, tile_height=1024, tile_overlap=128, tile_batch_size=4):
+def _apply_tiled_diffusion(model, tile_width=1024, tile_height=1024, tile_overlap=128, tile_batch_size=4, sync_each_tile=False, compression=8):
     impl = _MultiDiffusion()
-    compression = 4 if "CASCADE" in str(model.model.model_type) else 8
+    impl.sync_each_tile = sync_each_tile
     impl.tile_width = tile_width // compression
     impl.tile_height = tile_height // compression
     impl.tile_overlap = tile_overlap // compression
@@ -756,6 +614,13 @@ class StarSDUpscaleRefinerAdvanced:
                     "max": 1.0,
                     "step": 0.01,
                 }),
+                "cfg": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 1.0,
+                    "max": 30.0,
+                    "step": 0.1,
+                    "tooltip": "CFG scale for the refine pass. Flow models (Flux, Fibo2, ...) must stay at 1.0. SD/SDXL models: raise it for stronger prompt guidance - above 1.0 the AutoCFG normalization keeps the refine stable.",
+                }),
                 "tile_size": ("INT", {
                     "default": 1024,
                     "min": 64,
@@ -766,7 +631,19 @@ class StarSDUpscaleRefinerAdvanced:
                     "default": True,
                     "label_on": "tiled refining",
                     "label_off": "whole latent",
-                    "tooltip": "On (default): the refine pass samples in tiles (tiled diffusion + tiled VAE encode/decode) - low VRAM, recommended for large images. Off: the whole upscaled image is refined as a single latent without tiling - faster and seam-free, but needs a lot of VRAM on large images.",
+                    "tooltip": "On (default): the refine pass samples in tiles (tiled diffusion + tiled VAE encode/decode) - low VRAM, recommended for large images. Off: the whole upscaled image is refined as a single latent without tiling - faster and seam-free, but needs a lot of VRAM on large images (auto-falls back to tiled above 2 MP).",
+                }),
+                "free_vram": ("BOOLEAN", {
+                    "default": True,
+                    "label_on": "clear before run",
+                    "label_off": "keep",
+                    "tooltip": "On (default): unload all GPU models and clear the VRAM cache before refining - safest against sticky CUDA errors on long sessions, costs a reload each run. Off: keep the current VRAM state (faster on repeated runs).",
+                }),
+                "cuda_sync_guard": ("BOOLEAN", {
+                    "default": False,
+                    "label_on": "on",
+                    "label_off": "off",
+                    "tooltip": "Debug: synchronize the GPU after every tile batch. If a sticky CUDA error ever comes back, it fails at the exact offending tile in the console instead of silently wedging the driver. Slightly slower - turn on only when reproducing crashes.",
                 }),
                 "sampler_name": (sampler_list, {
                     "default": "euler" if "euler" in sampler_list else sampler_list[0],
@@ -812,6 +689,7 @@ class StarSDUpscaleRefinerAdvanced:
         model, clip = loader.load_lora(model, clip, lora_name, strength, strength)
         return model, clip
 
+    @torch.no_grad()
     def process(
         self,
         model,
@@ -829,8 +707,11 @@ class StarSDUpscaleRefinerAdvanced:
         seed,
         refine_steps,
         refine_denoise,
+        cfg,
         tile_size,
         refine_tiled,
+        free_vram,
+        cuda_sync_guard,
         sampler_name,
         scheduler_name,
         IMAGE=None,
@@ -844,6 +725,15 @@ class StarSDUpscaleRefinerAdvanced:
         unique_id=None,
     ):
         start_time = time.time()
+
+        if free_vram:
+            # Unload all GPU models and flush the allocator before refining -
+            # long sessions leave stale/fragmented VRAM that the paging system
+            # can trip over (sticky illegal-address errors). Models reload on
+            # demand, so this only costs one re-stage per run.
+            comfy_model_management.unload_all_models()
+            comfy_model_management.soft_empty_cache(True)
+
         model, clip = self._apply_lora_if_needed(model, clip, lora_1_name, lora_1_strength)
         model, clip = self._apply_lora_if_needed(model, clip, lora_2_name, lora_2_strength)
         model, clip = self._apply_lora_if_needed(model, clip, lora_3_name, lora_3_strength)
@@ -919,11 +809,42 @@ class StarSDUpscaleRefinerAdvanced:
                 end_percent,
             )
 
-        model = _apply_freeu_v2(model, 1.05, 1.08, 0.95, 0.8)
-        model = _apply_pag(model, 1.0)
-        model = _apply_auto_cfg(model)
+        # Safety net: an untiled refine pass samples the whole image as one
+        # latent. On large images that can exceed VRAM and poison the CUDA
+        # context (sticky illegal-address errors) - fall back to tiled refine.
+        refine_px = upscaled_image if upscaled_image is not None else IMAGE
+        if not refine_tiled and refine_px is not None and int(refine_px.shape[1]) * int(refine_px.shape[2]) > 2_000_000:
+            logging.warning("StarSDUpscaleRefiner: whole-latent refine is only safe up to 2 MP "
+                            f"- this image is {int(refine_px.shape[2])}x{int(refine_px.shape[1])}, "
+                            "falling back to tiled refining with 768 px tiles.")
+            refine_tiled = True
+            tile_size = min(int(tile_size), 768)
+
+        # CFG comes from the widget (default 1.0 - right for distilled flow
+        # models like Flux/Fibo2). AutoCFG normalization is only valid for
+        # discrete k-diffusion models (SD1/SDXL); flow-family models sample
+        # with cfg 1 and never need it.
+        try:
+            model_sampling = model.get_model_object("model_sampling")
+        except Exception:
+            model_sampling = None
+        is_kdiffusion = isinstance(model_sampling, comfy_model_sampling.ModelSamplingDiscrete)
+        cfg_value = max(1.0, float(cfg))
+        if is_kdiffusion and cfg_value > 1.0:
+            model = _apply_auto_cfg(model)
+
         if refine_tiled:
-            model = _apply_tiled_diffusion(model, int(tile_size), int(tile_size), 128, 4)
+            # Latent tile sizes follow the VAE's real downscale ratio: 8 for
+            # SD/SDXL/Flux1, 16 for Fibo2/Flux2, 4 for Cascade, tuples for
+            # video VAEs ((temporal, y, x)). Getting this wrong feeds tiles at
+            # double/half the intended footprint.
+            vae_downscale = getattr(vae, "downscale_ratio", None)
+            if isinstance(vae_downscale, tuple):
+                vae_downscale = vae_downscale[-1]
+            if not isinstance(vae_downscale, (int, float)):
+                vae_downscale = 4 if "CASCADE" in str(model.model.model_type) else 8
+            model = _apply_tiled_diffusion(model, int(tile_size), int(tile_size), 128, 4,
+                                           sync_each_tile=bool(cuda_sync_guard), compression=int(vae_downscale))
 
         latent = None
         pixels_for_latent = None
@@ -987,7 +908,7 @@ class StarSDUpscaleRefinerAdvanced:
             except Exception:
                 # If anything goes wrong, fall back to the original sigmas tensor
                 pass
-        else:
+        elif is_kdiffusion or model_sampling is None:
             scheduler = AlignYourStepsScheduler()
             get_sigmas = scheduler.get_sigmas
             s_arg_names = inspect.getfullargspec(get_sigmas).args[1:]
@@ -1002,6 +923,23 @@ class StarSDUpscaleRefinerAdvanced:
                 elif name in ("scheduler", "scheduler_name"):
                     s_kwargs[name] = scheduler_name
             (sigmas,) = get_sigmas(**s_kwargs)
+        else:
+            # Flow-family models (Fibo2, Flux, SD3, Qwen, ...) use a 0..1
+            # sigma range with shift - the SD1 k-diffusion schedule above
+            # (sigmas up to ~15) would blow the latent away on the first
+            # step. Build the schedule from the model's own model_sampling
+            # object exactly like the native KSampler does.
+            steps = int(refine_steps)
+            denoise = max(0.0, min(1.0, float(refine_denoise)))
+            if denoise <= 0.0:
+                sigmas = torch.zeros(1)
+            elif denoise >= 0.9999:
+                sigmas = comfy_samplers.calculate_sigmas(model_sampling, scheduler_name, steps)
+            else:
+                new_steps = max(1, int(steps / denoise))
+                sigmas = comfy_samplers.calculate_sigmas(model_sampling, scheduler_name, new_steps)[-(steps + 1):]
+            logging.info(f"StarSDUpscaleRefiner: flow model schedule ({scheduler_name}): "
+                         f"sigma {float(sigmas[0]):.4f} -> {float(sigmas[-1]):.4f} over {len(sigmas) - 1} steps")
 
         sampler_selector = KSamplerSelect()
         get_sampler = sampler_selector.get_sampler
@@ -1063,7 +1001,7 @@ class StarSDUpscaleRefinerAdvanced:
                 elif name in ("noise_type",):
                     kwargs[name] = "fixed"
                 elif name in ("cfg", "cfg_scale", "cfg_value"):
-                    kwargs[name] = float(8.0)
+                    kwargs[name] = cfg_value
 
             out = sampler_custom.sample(**kwargs)
             if isinstance(out, tuple) and len(out) >= 1:

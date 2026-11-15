@@ -166,7 +166,8 @@ class StarLucidaRMBG:
                     {
                         "default": "fp32",
                         "tooltip": "fp32 matches the reference pipeline. bf16/fp16 "
-                        "roughly halve VRAM on GPU. CPU always runs fp32.",
+                        "roughly halve VRAM on GPU (bf16 runs as fp16: torchvision's "
+                        "deform_conv2d has no bf16 kernel). CPU always runs fp32.",
                     },
                 ),
                 "device": (
@@ -193,6 +194,9 @@ class StarLucidaRMBG:
     def remove_background(self, image, refine, decontaminate, dtype, device):
         torch_device = _resolve_device(device)
         torch_dtype = _DTYPES[dtype] if torch_device.type != "cpu" else torch.float32
+        if torch_dtype == torch.bfloat16:
+            print("[Star Lucida RMBG] bf16 is not supported by torchvision deform_conv2d - running fp16 instead")
+            torch_dtype = torch.float16
         segmenter = _get_model(torch_device, torch_dtype)
 
         rgba_out, mask_out = [], []

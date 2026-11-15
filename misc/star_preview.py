@@ -256,6 +256,71 @@ class _FlatTinyVAEDecoder:
         return out.to(device=latent.device, dtype=torch.float32).clamp(0, 1)
 
 
+class _Flux2TinyDecoder:
+    """Decode-only Flux2 tiny AE (fal/FLUX.2-Tiny-AutoEncoder, "taef2").
+
+    128ch latent -> extra_decoder (ConvTranspose 128->32), a small residual
+    conv block, then the diffusers AutoencoderTiny (32ch) decode. Output range
+    is [0, 1], same convention as the TAE family."""
+
+    def __init__(self, sd):
+        import torch.nn as nn
+        from diffusers import AutoencoderTiny
+
+        self.device = comfy.model_management.vae_device()
+        self.dtype = comfy.model_management.vae_dtype(
+            self.device, [torch.float16, torch.bfloat16])
+
+        self.extra_decoder = nn.ConvTranspose2d(128, 32, kernel_size=4,
+                                                stride=2, padding=1)
+        self.residual_decoder = nn.Sequential(
+            nn.Conv2d(32, 32, kernel_size=3, padding=1),
+            nn.GroupNorm(8, 32),
+            nn.SiLU(),
+            nn.Conv2d(32, 32, kernel_size=3, padding=1),
+        )
+        self.extra_decoder.load_state_dict({
+            k[len("extra_decoder."):]: v
+            for k, v in sd.items() if k.startswith("extra_decoder.")})
+        self.residual_decoder.load_state_dict({
+            k[len("residual_decoder."):]: v
+            for k, v in sd.items() if k.startswith("residual_decoder.")})
+
+        # official fal config for the wrapped diffusers AutoencoderTiny
+        self.tiny_vae = AutoencoderTiny(
+            in_channels=3, out_channels=3,
+            encoder_block_out_channels=[64, 64, 64, 64],
+            decoder_block_out_channels=[64, 64, 64, 64],
+            act_fn="silu", latent_channels=32,
+            upsampling_scaling_factor=2,
+            num_encoder_blocks=[1, 3, 3, 3],
+            num_decoder_blocks=[3, 3, 3, 1],
+            latent_magnitude=3.0, latent_shift=0.5,
+            scaling_factor=0.13025,
+        )
+        tiny_sd = {k[len("tiny_vae."):]: v for k, v in sd.items()
+                   if k.startswith("tiny_vae.")}
+        self.tiny_vae.load_state_dict(tiny_sd, strict=False)
+
+        for m in (self.extra_decoder, self.residual_decoder, self.tiny_vae):
+            m.requires_grad_(False)
+            m.eval()
+            m.to(device=self.device, dtype=self.dtype)
+
+    def decode(self, latent):
+        """[B, 128, H, W] -> [B, 3, 8H, 8W], float32 in [0, 1].
+
+        The taef2 decoder emits [-1, 1] like the wrapped diffusers
+        AutoencoderTiny (its README maps with /2 + .5), unlike the flat TAE
+        family which already returns [0, 1] - so remap, not clamp."""
+        z = latent.to(device=self.device, dtype=self.dtype)
+        decompressed = self.extra_decoder(z)
+        enhanced = self.residual_decoder(decompressed) + decompressed
+        out = self.tiny_vae.decode(enhanced, return_dict=False)[0]
+        out = out.to(dtype=torch.float32).clamp(-1, 1) / 2.0 + 0.5
+        return out.to(device=latent.device)
+
+
 class _TinyPreviewVAE:
     """Unified preview decoder: temporal TAEHV-family via comfy.sd.VAE
     (is_video=True) or a flat 2D TAE decoder (is_video=False)."""
@@ -315,7 +380,10 @@ def _load_tiny_vae_decoder(name):
         path = folder_paths.get_full_path("vae_approx", name)
         if path:
             sd = comfy.utils.load_torch_file(path, safe_load=True)
-            if "decoder.1.weight" in sd and "decoder.22.bias" in sd:
+            if "extra_decoder.weight" in sd and "tiny_vae.decoder.layers.0.weight" in sd:
+                # Flux2 tiny AE (fal/FLUX.2-Tiny-AutoEncoder, "taef2")
+                result = _TinyPreviewVAE(_Flux2TinyDecoder(sd), False)
+            elif "decoder.1.weight" in sd and "decoder.22.bias" in sd:
                 vae = comfy.sd.VAE(sd=sd)
                 try:
                     vae.first_stage_model.show_progress_bar = False

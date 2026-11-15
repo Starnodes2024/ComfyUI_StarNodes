@@ -47,6 +47,8 @@ class StarRealisticFilmGrain:
         
         b, h, w, c = image.shape
         img_tensor = image.permute(0, 3, 1, 2)
+        extra_channels = img_tensor[:, 3:, :, :]
+        img_tensor = img_tensor[:, :3, :, :]
 
         if auto_scale_grain:
             scale_factor = max(h, w) / 1024.0
@@ -85,6 +87,8 @@ class StarRealisticFilmGrain:
         noise_shifted = effective_noise + 0.5
         output = (1.0 - 2.0 * noise_shifted) * (img_tensor ** 2) + 2.0 * noise_shifted * img_tensor
         output = torch.clamp(output, 0.0, 1.0)
+        if extra_channels.shape[1] > 0:
+            output = torch.cat([output, extra_channels], dim=1)
         output = output.permute(0, 2, 3, 1)
         
         return output

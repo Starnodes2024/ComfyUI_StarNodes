@@ -22,7 +22,7 @@ Background removal node powered by **Lucida** — a BiRefNet fine-tune that exce
 | **image** | IMAGE | — | Input image (batches are processed one by one) |
 | **refine** | BOOLEAN | `false` | Edge-refinement pass: re-runs the model on the uncertain alpha band at higher effective resolution. Slower, but produces sharper edges. Matches the upstream `--refine` option. |
 | **decontaminate** | BOOLEAN | `true` | Removes background colour spill from the cut-out RGB channels. Uses `pymatting` if installed, otherwise falls back to a built-in nearest-colour method. Matches the upstream default. |
-| **dtype** | DROPDOWN | `fp32` | Precision: `fp32` matches the reference pipeline; `bf16`/`fp16` roughly halve VRAM usage on GPU. CPU always runs `fp32`. |
+| **dtype** | DROPDOWN | `fp32` | Precision: `fp32` matches the reference pipeline; `bf16`/`fp16` roughly halve VRAM usage on GPU. Note: `bf16` automatically runs as `fp16` because torchvision's `deform_conv2d` kernel has no BFloat16 support (a console note tells you when this happens). CPU always runs `fp32`. |
 | **device** | DROPDOWN | `auto` | Device selection: `auto` uses ComfyUI's device, or force `cuda` / `cpu`. |
 
 ---

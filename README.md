@@ -17,7 +17,7 @@
 
 *Starters • Samplers • Image tools • Qwen & Flux helpers • Video • PSD export • Wildcards • and much more*
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blueviolet?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-3.6.0-blueviolet?style=for-the-badge)](#)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20nodes-orange?style=for-the-badge)](#)
 [![License](https://img.shields.io/github/license/Starnodes2024/ComfyUI_StarNodes?style=for-the-badge)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Starnodes2024-black?style=for-the-badge&logo=github)](https://github.com/Starnodes2024/ComfyUI_StarNodes)
@@ -51,6 +51,16 @@ plus a full set of **Qwen / Flux / LTX-Video** helpers.
 ## ✨ Recently Added & Updated — Spotlight
 
 These are the newest and most powerful nodes in the pack. If you try nothing else, try these:
+
+### 🆕 ⭐ Star Regional Spatial LoRA Canvas + Regional Sampler
+
+**Different prompts and different LoRAs in different parts of one image.** Draw boxes on the interactive canvas, give each box its own prompt, LoRA and strength, then render them together with full-scene context. Regional LoRAs run as a forward side path instead of rewriting weights, so quantized checkpoints (int8 / nvfp4 / fp8) work too. Includes MOSS Image, Krea2 and Qwen Image 2.1 latent presets, optional custom sigmas, Star Preview support, and a second detail pass for sharper results.
+
+Each box can also enable **YOLO face detailing**: the sampler scans the finished image, matches faces to the nearest marked boxes, and refines them with a soft head-shaped mask instead of visible square frames. The sampler outputs both the final latent and the exact refined image.
+
+### 🆕 ⭐ Star Face Detailer
+
+**Standalone face enhancement and reference-based face swap, with no provider nodes.** Uses the local `face_yolov8s.pt` detector (downloaded once on first use) and installs `ultralytics` automatically if it is missing. Face crops are refined at 512px and pasted back with a soft elliptical mask. Connect an optional reference portrait for identity replacement using native **Fibo2**, **MOSS Image Edit**, or **Qwen Image 2.1** conditioning — including automatic handling of Qwen's RGBA VAE output.
 
 ### 🆕 ⭐ The Builder Family — characters from dropdowns, zero typing
 

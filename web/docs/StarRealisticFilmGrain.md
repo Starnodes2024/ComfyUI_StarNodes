@@ -10,6 +10,7 @@ The **Star Realistic Film Grain** node generates highly realistic, analog film g
 - **Auto-Scaling**: Automatically adjusts grain size based on image resolution
 - **Color & B/W Grain**: Supports both monochrome and chromatic grain patterns
 - **Soft-Light Blending**: Preserves image contrast and color fidelity
+- **RGBA Safe**: 4-channel images (e.g. from background removal) keep their alpha channel untouched; grain is only applied to RGB
 
 ## Inputs
 

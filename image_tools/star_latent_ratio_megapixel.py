@@ -56,7 +56,7 @@ class StarAdvanvesRatioLatent:
             "100 Megapixel (≈ 10000x10000)",
         ]
 
-        latent_channels_options = ["4 (SD/SDXL)", "16 (FLUX/QWEN/ZIT)", "128 (FLUX2)"]
+        latent_channels_options = ["4 (SD/SDXL)", "16 (FLUX/QWEN/ZIT)", "64 (QWEN2.1)", "128 (FLUX2)"]
 
         return {
             "required": {
@@ -173,7 +173,7 @@ class StarAdvanvesRatioLatent:
             width = max(16, width)
             height = max(16, height)
 
-            if channels == 128:
+            if channels >= 64:
                 width_latent = max(2, width // 16)
                 height_latent = max(2, height // 16)
             else:
@@ -227,7 +227,7 @@ class StarAdvanvesRatioLatent:
         width = max(16, width)
         height = max(16, height)
 
-        if channels == 128:
+        if channels >= 64:
             width_latent = max(2, width // 16)
             height_latent = max(2, height // 16)
         else:
