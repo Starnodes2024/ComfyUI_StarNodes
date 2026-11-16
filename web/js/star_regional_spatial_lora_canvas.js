@@ -200,12 +200,17 @@ function openSpatialCanvas(node) {
     // --- layout / drawing -------------------------------------------------
     function layoutCanvas() {
         const maxW = Math.min(window.innerWidth * 0.62, 900);
-        const scale = maxW / workW;
-        canvas.style.width = `${maxW}px`;
-        canvas.style.height = `${Math.round(workH * scale)}px`;
+        // Cap the height too, otherwise portrait canvases grow taller than the
+        // screen (header + toolbar + footer take ~150px of the modal).
+        const maxH = Math.max(300, window.innerHeight - 170);
+        const scale = Math.min(maxW / workW, maxH / workH);
+        const dispW = Math.round(workW * scale);
+        const dispH = Math.round(workH * scale);
+        canvas.style.width = `${dispW}px`;
+        canvas.style.height = `${dispH}px`;
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = Math.round(workW * scale * dpr);
-        canvas.height = Math.round(workH * scale * dpr);
+        canvas.width = Math.round(dispW * dpr);
+        canvas.height = Math.round(dispH * dpr);
         ctx.setTransform(canvas.width / workW, 0, 0, canvas.height / workH, 0, 0);
         draw();
     }
