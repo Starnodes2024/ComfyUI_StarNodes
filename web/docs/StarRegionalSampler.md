@@ -46,17 +46,22 @@ the main pass; the detail pass reuses the same schedule scaled by
 
 ## Per-box face detailer (optional)
 
-Mark **Face detailer (YOLO)** on any box in the canvas editor and connect the
+Mark **Face detailer (WeVisOne)** on any box in the canvas editor and connect the
 sampler's optional `clip` and `vae` inputs. After the normal regional passes,
-YOLO scans the **whole image once**, then assigns detected faces to the nearest
-marked boxes one-to-one. The detected face bounds - not the original canvas
-rectangle - positions the refinement. A soft, feathered elliptical head mask is
-used for pasting, so neither the canvas box nor a hard YOLO rectangle leaves a
-visible frame. Faces outside all marked boxes are ignored.
+WeVisOne-VL scans the **whole image once**, then assigns detected faces to the
+nearest marked boxes one-to-one, each with its own precise alpha matte. The
+detected face bounds - not the original canvas rectangle - positions the
+refinement. The soft matte is feathered and edge-faded for pasting, so neither
+the canvas box nor a hard detector rectangle leaves a visible frame. Faces
+outside all marked boxes are ignored.
 The box's prompt and character LoRA are reused for this pass.
 
-- `detector_model`: local model selector, default `bbox/face_yolov8s.pt`.
-- `face_steps`: 8 by default; 0 disables all face detailing.
+- `detector_model`: WeVisOne-VL encoder from `models/text_encoders`:
+  - `wevisone_vl_2b_int8_convrot.safetensors` (2.7 GB, default, fastest)
+  - `wevisone_vl_4b_int8_convrot.safetensors` (4.9 GB, better quality)
+  - `wevisone_vl_4b_bf16.safetensors` (9.0 GB, best quality)
+  A missing encoder is downloaded automatically from `Comfy-Org/WeVisOne-VL` on first use.
+- `face_steps`: 12 by default; 0 disables all face detailing.
 - `face_denoise`: 0.5 by default.
 - Uses the main sampler's cfg, sampler and scheduler. No face found = box skipped.
 - Without CLIP + VAE a warning is logged and the regional result is unchanged.
@@ -69,13 +74,14 @@ again can differ slightly. Without a VAE connection the `image` output is `None`
 ## Standalone ⭐ Star Face Detailer
 
 The same engine is available as a separate node for any image. Connect `image`,
-`model`, `clip` and `vae`, enter a prompt, and sample. It detects and refines all
-faces in the image, with 8 steps / denoise 0.5 / guide size 512 by default.
-`crop_factor`, `feather` and detection `threshold` are optional advanced widgets.
-It uses local YOLO weights directly - no Impact-pack or provider nodes required.
-If the default `bbox/face_yolov8s.pt` is missing, the node downloads it once
-(22.5 MB from `Bingsu/adetailer`) on first use. Other detector models are never
-downloaded automatically; place them in `models/ultralytics/bbox/` manually.
+`model`, `clip` and `vae`, enter a prompt, and sample. WeVisOne-VL detects and
+refines all faces in the image with per-face alpha mattes, with 12 steps /
+denoise 0.5 / guide size 1024 by default. `crop_factor` and `feather` are
+optional advanced widgets. The detector is the same selectable WeVisOne-VL
+encoder as above (2B int8 default, auto-downloaded on first use) - no
+Impact-pack, ultralytics or provider nodes required. See `StarFaceDetailer.md`
+for all features (refine targets, prompt refiner, per-face prompts/LoRAs,
+color match and reference-image swap).
 
 ### Reference-image face swap
 

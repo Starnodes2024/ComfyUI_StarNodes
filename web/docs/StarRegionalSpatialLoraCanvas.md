@@ -55,7 +55,7 @@ sampler works (KSampler, SamplerCustomAdvanced, ...).
    - LoRA `none` = prompt-only region.
    - Empty prompt + LoRA = the LoRA is applied to that area of the main scene.
    - No prompt and no LoRA = box is skipped.
-   - **Face detailer (YOLO)** marks this box for an optional face-refinement pass
+   - **Face detailer (WeVisOne)** marks this box for an optional face-refinement pass
      after regional sampling. An `F` badge appears on the box. Connect CLIP + VAE
      on ⭐ Star Regional Sampler to enable it; the box's character LoRA stays
      active during its face pass.

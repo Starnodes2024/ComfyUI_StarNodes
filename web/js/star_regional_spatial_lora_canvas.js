@@ -170,7 +170,7 @@ function openSpatialCanvas(node) {
     const faceRow = makeEl("label", side, { display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", marginTop: "4px" });
     const faceCheck = makeEl("input", faceRow, {});
     faceCheck.type = "checkbox";
-    makeEl("span", faceRow, {}, "Face detailer (YOLO)");
+    makeEl("span", faceRow, {}, "Face detailer (WeVisOne)");
     faceCheck.onchange = () => { if (selected >= 0) { boxes[selected].face_detail = faceCheck.checked; draw(); } };
 
     const delBtn = makeEl("button", side, { cursor: "pointer" }, "Delete box");
