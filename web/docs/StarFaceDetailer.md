@@ -1,6 +1,6 @@
 # ⭐ Star Face Detailer
 
-WeVisOne-VL guided refinement of faces and other regions. One VL pass detects every target and returns a precise per-instance alpha matte; each detected region is then cropped, refined at 1024px and pasted back through the soft, feathered matte. The same engine powers the per-box face detailer in ⭐ Star Regional Sampler.
+WeVisOne-VL guided refinement of faces and other regions. One VL pass detects every target and returns a precise per-instance alpha matte; each detected region is then cropped, refined at 1024px and pasted back through the soft matte, which is slightly eroded and feathered so the blend transition hides inside the original skin (no square patches). The same engine powers the per-box face detailer in ⭐ Star Regional Sampler.
 
 - **Category**: `⭐StarNodes/Helpers And Tools`
 - **Node name**: `StarFaceDetailer`
@@ -25,10 +25,10 @@ A missing encoder is downloaded automatically from [Comfy-Org/WeVisOne-VL](https
 ## Main settings
 
 - **prompt / negative_prompt** — default: `high quality face details, natural skin texture, fine pores, photorealistic, preserve original skin tone and facial identity`
-- **steps** 12, **cfg** 1.0, **euler / simple**, **denoise** 0.5 (0.3–0.4 keeps more identity)
+- **steps** 12, **cfg** 1.0, **euler / simple**, **denoise** 0.7 (0.3–0.4 keeps more identity)
 - **guide_size** 1024 — every crop is resized to this square before refinement (0 = auto)
-- **crop_factor** 1.2 — tight square around the detection
-- **feather** 16 — blend width, auto-scales with crop size
+- **crop_factor** 1.0 (range 0.5–4.0) — exactly the face box. Below 1.0 only the inner face area is refined, keeping the blend transition inside the face (helps with stubborn seams)
+- **feather** 0 — minimum blend width, auto-scales with crop size
 - **color_match** 1.0 — per-channel mean/std color transfer before pasting, keeping the original skin tone/lighting. With `reference_image` it uses whole-crop statistics (harmonizes a swap without recoloring the new identity); 0 = off
 
 ## Optional inputs

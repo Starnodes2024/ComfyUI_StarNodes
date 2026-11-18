@@ -103,7 +103,7 @@ class StarRegionalSampler:
                 "vae": ("VAE", {"tooltip": "Required for per-box face detailing. Connect the VAE used to decode the result."}),
                 "detector_model": (_detector_choices(), {"default": DEFAULT_DETECTOR, "tooltip": "WeVisOne-VL encoder used for per-face alpha mattes on boxes marked 'Face detailer' in the canvas. 2B int8 (2.7 GB, default) is fastest; 4B int8 (4.9 GB) better; 4B bf16 (9.0 GB) best quality. A missing encoder is downloaded automatically from Comfy-Org/WeVisOne-VL on first use."}),
                 "face_steps": ("INT", {"default": 12, "min": 0, "max": 1000, "tooltip": "Face refinement steps for checked canvas boxes (0 = off). Uses the main sampler's cfg/sampler/scheduler."}),
-                "face_denoise": ("FLOAT", {"default": 0.5, "min": 0.05, "max": 1.0, "step": 0.05, "tooltip": "Denoise strength of the per-box face refinement."}),
+                "face_denoise": ("FLOAT", {"default": 0.7, "min": 0.05, "max": 1.0, "step": 0.05, "tooltip": "Denoise strength of the per-box face refinement."}),
             },
         }
 
@@ -115,7 +115,7 @@ class StarRegionalSampler:
     def sample(self, model, positive, negative, latent, seed, steps, cfg, sampler_name, scheduler,
                denoise, refine_steps, refine_denoise, refine_upscale,
                sigmas=None, preview=None, clip=None, vae=None,
-               detector_model=DEFAULT_DETECTOR, face_steps=12, face_denoise=0.5):
+               detector_model=DEFAULT_DETECTOR, face_steps=12, face_denoise=0.7):
         # Region prompts travel in the conditioning, region LoRAs only in the
         # canvas node's model output. Warn when only the prompts arrive - the
         # LoRAs would be silently ignored otherwise.

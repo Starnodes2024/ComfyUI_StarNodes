@@ -230,14 +230,16 @@ def _paste_mask(image_size, box, feather):
 
 def _seg_paste_mask(seg, image_size, box, feather):
     """Paste mask from a real segmentation mask (float [h,w], values 0..1).
-    The soft alpha-matte edge is preserved (no binarization) for a smoother
-    blend, dilated a little for edge context, then feathered."""
+    The soft alpha-matte edge is preserved (no binarization). The matte is
+    slightly ERODED, not dilated: the paste follows the face silhouette and the
+    blend hides inside the original skin. Dilation filled the whole crop
+    square, which produced visible square patches."""
     width, height = image_size
     if tuple(seg.shape[-2:]) != (height, width):
         seg = F.interpolate(seg[None, None], (height, width), mode="bilinear", align_corners=False)[0, 0]
     mask = seg.clamp(0.0, 1.0).to(torch.float32).unsqueeze(0).unsqueeze(0)
-    grow = max(1, round((box[2] - box[0]) * 0.08))
-    mask = F.max_pool2d(F.pad(mask, (grow,) * 4, mode="replicate"), 2 * grow + 1, stride=1)
+    shrink = max(1, round((box[2] - box[0]) * 0.03))
+    mask = -F.max_pool2d(-F.pad(mask, (shrink,) * 4, mode="replicate"), 2 * shrink + 1, stride=1)
     feather = round(feather)
     if feather > 0:
         mask = F.avg_pool2d(F.pad(mask, (feather,) * 4, mode="replicate"), 2 * feather + 1, stride=1)
@@ -340,7 +342,11 @@ def _detail_one(image, box, model, vae, positive, negative, seed, steps, cfg,
     guide = _resize_image(crop, guide_size, guide_size)
     sampled = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler,
                               positive, negative, {"samples": vae.encode(guide)}, denoise=denoise)[0]
-    refined = _resize_image(vae.decode(sampled["samples"]), right - left, bottom - top)
+    refined = vae.decode(sampled["samples"])
+    if refined.dim() == 5:
+        # Video VAEs (WanVAE on Krea2) return [B, T, H, W, C] - take the frame.
+        refined = refined[:, 0]
+    refined = _resize_image(refined, right - left, bottom - top)
     refined = refined[..., :crop.shape[-1]]  # Qwen 2.1 decodes RGBA; keep the input's channel count
     mask = _face_paste_mask((width, height), box, feather, seg)[:, :, top:bottom, left:right]
     mask = _edge_fade(mask, max(8, round(crop_side / 12)))
@@ -461,7 +467,7 @@ def detail_regions(image, model, clip, vae, regions, negative_prompt, seed, step
             box, seg = assignment
             image[batch:batch + 1] = _detail_one(
                 image[batch:batch + 1], box, model, vae, positive, negative,
-                seed + index, steps, cfg, sampler_name, scheduler, denoise, 1024, 1.2, 16, seg=seg)
+                seed + index, steps, cfg, sampler_name, scheduler, denoise, 1024, 1.0, 0, seg=seg)
             detailed += 1
     logging.info(f"[Star Regional Sampler] face detailer refined {detailed} box(es)")
     return image, detailed
@@ -483,15 +489,15 @@ class StarFaceDetailer:
                 "cfg": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 100.0, "step": 0.1, "round": 0.01}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "simple"}),
-                "denoise": ("FLOAT", {"default": 0.5, "min": 0.05, "max": 1.0, "step": 0.05}),
+                "denoise": ("FLOAT", {"default": 0.7, "min": 0.05, "max": 1.0, "step": 0.05}),
             },
             "optional": {
                 "refine_target": (REFINE_TARGETS, {"default": "face", "tooltip": "What to detect and refine. WeVisOne-VL understands arbitrary targets (faces, eyes, mouth, body, ...)."}),
                 "custom_target": ("STRING", {"default": "", "tooltip": "Used when refine_target = custom: a short noun phrase for WeVisOne-VL, e.g. 'hands', 'lips', 'tattoo', 'left eye'."}),
                 "detector_model": (_detector_choices(), {"default": DEFAULT_DETECTOR, "tooltip": "WeVisOne-VL encoder from models/text_encoders, used for detection and per-instance alpha mattes. 2B int8 (2.7 GB, default) is fastest; 4B int8 (4.9 GB) better; 4B bf16 (9.0 GB) best quality. A missing encoder is downloaded automatically from Comfy-Org/WeVisOne-VL on first use."}),
                 "guide_size": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 64, "tooltip": "Fixed refine resolution: every face crop is resized to this square size (small crops are upscaled), refined, then scaled back and pasted. 0 = auto (real crop size, 512-1024)."}),
-                "crop_factor": ("FLOAT", {"default": 1.2, "min": 1.2, "max": 4.0, "step": 0.1, "tooltip": "Size of the refined square = crop_factor x the detected face box. 1.2 keeps the area tight around the face; higher = more surrounding context."}),
-                "feather": ("INT", {"default": 16, "min": 0, "max": 128, "step": 1, "tooltip": "Minimum feather of the paste mask in pixels. Scales up automatically with crop size (crop/16) to prevent seams on large images."}),
+                "crop_factor": ("FLOAT", {"default": 1.0, "min": 0.5, "max": 4.0, "step": 0.1, "tooltip": "Size of the refined square = crop_factor x the detected face box. 1.0 = exactly the face box; higher = more surrounding context. Below 1.0 only the inner face area is refined - the blend transition stays inside the face, which can hide stubborn seams."}),
+                "feather": ("INT", {"default": 0, "min": 0, "max": 128, "step": 1, "tooltip": "Minimum feather of the paste mask in pixels. Scales up automatically with crop size (crop/16) to prevent seams on large images."}),
                 "color_match": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.05, "tooltip": "Per-channel mean/std color transfer before blending, anchoring the refined region to the original tonality. Normal refinement: statistics inside the face mask (keeps the original complexion). With reference_image connected: statistics over the whole crop including hair/background, harmonizing the swap's lighting without recoloring the new identity. 1.0 = full correction, 0.5 = half, 0 = off."}),
                 "prompt_refiner": (["none"] + _refiner_files(), {"default": "none", "tooltip": "Optional per-face prompt refinement with any text encoder from models/text_encoders. VL encoders (Qwen3-VL, Qwen3.5, WeVisOne, Gemma...) look at each face crop and write a short prompt for that exact face combined with your prompt text; encoders without image support refine your prompt text only. The refined prompt overrides the positive conditioning per face and is printed to the console. The encoder stays loaded after first use. Ignored when reference_image is connected."}),
                 "face_prompts": ("STAR_FACE_PROMPTS", {"tooltip": "Optional ⭐ Star Multi Face Details: custom prompts for up to 5 faces/objects plus per-face skipping, matched in detection order (left to right, top to bottom). A slot's prompt overrides the general prompt for that face - and is also used as the user instructions for the prompt refiner when that is enabled. Empty slots fall back to the general prompt; skipped faces are left completely unrefined (and excluded from the mask output)."}),

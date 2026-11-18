@@ -62,7 +62,7 @@ The box's prompt and character LoRA are reused for this pass.
   - `wevisone_vl_4b_bf16.safetensors` (9.0 GB, best quality)
   A missing encoder is downloaded automatically from `Comfy-Org/WeVisOne-VL` on first use.
 - `face_steps`: 12 by default; 0 disables all face detailing.
-- `face_denoise`: 0.5 by default.
+- `face_denoise`: 0.7 by default.
 - Uses the main sampler's cfg, sampler and scheduler. No face found = box skipped.
 - Without CLIP + VAE a warning is logged and the regional result is unchanged.
 
@@ -76,7 +76,7 @@ again can differ slightly. Without a VAE connection the `image` output is `None`
 The same engine is available as a separate node for any image. Connect `image`,
 `model`, `clip` and `vae`, enter a prompt, and sample. WeVisOne-VL detects and
 refines all faces in the image with per-face alpha mattes, with 12 steps /
-denoise 0.5 / guide size 1024 by default. `crop_factor` and `feather` are
+denoise 0.7 / guide size 1024 by default. `crop_factor` and `feather` are
 optional advanced widgets. The detector is the same selectable WeVisOne-VL
 encoder as above (2B int8 default, auto-downloaded on first use) - no
 Impact-pack, ultralytics or provider nodes required. See `StarFaceDetailer.md`
