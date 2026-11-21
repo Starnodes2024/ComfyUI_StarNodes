@@ -24,8 +24,10 @@ import torchaudio
 import folder_paths
 import nodes
 import node_helpers
+import comfy.audio
 import comfy.model_management
 import comfy.nested_tensor
+import comfy.patcher_extension
 import comfy.samplers
 import comfy.sd
 import comfy.utils
@@ -127,6 +129,7 @@ MEGAPIXEL_OPTIONS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.98, 1.0, 1.2, 1.5
                      3.0, 4.0, 5.0, 6.0, 7.0, 8.0, "audio only"]   # 3-8 MP: image mode only
 
 OUTPUT_FPS = 24.0
+AUDIO_SR = 32000
 
 WEIGHT_DTYPES = ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
@@ -279,6 +282,165 @@ def _apply_guides(cond, latent, vae, guides):
     return cond
 
 
+# ---------------------------------------------------------------------------
+# Viggle-Remake mode (a Star Minimax Remake Option connected to
+# remake_settings) — in-node replicas of the ComfyUI-Viggle-Remake nodes,
+# which reproduce inference/sample.py of Viggle/Viggle-Remake.
+# ---------------------------------------------------------------------------
+def _remake_stamps(nf):
+    """The conditioner's 2 fps block labels for an nf-frame clip: every 12th
+    frame, merged in pairs labelled with their mean time ("%.1f" rounds half to
+    even, so the first block is <0.2 seconds>)."""
+    idx, cursor = [], 0.0
+    while round(cursor) < nf:
+        if not idx or round(cursor) > idx[-1]:
+            idx.append(round(cursor))
+        cursor += FPS / 2
+    t = [i / 2 for i in range(len(idx))]
+    t += t[-1:] * (len(t) % 2)
+    return [(t[i] + t[i + 1]) / 2 for i in range(0, len(t), 2)]
+
+
+def _remake_cover(image, width, height):
+    """Scale to cover the canvas, then centre-crop with (src - dst) // 2."""
+    h, w = image.shape[1], image.shape[2]
+    s = max(width / w, height / h)
+    sw, sh = max(width, round(w * s)), max(height, round(h * s))
+    left, top = (sw - width) // 2, (sh - height) // 2
+    return _resize(image, sw, sh, "disabled")[:, top:top + height, left:left + width]
+
+
+_REF_SIZE_MP = {"none": None, "0.5 MP": 500_000, "1.0 MP": 1_000_000,
+                "1.5 MP": 1_500_000}
+
+
+def _build_remake_conditioning(clip, vae, audio_vae, prompt, width, height, length,
+                               source, refs, pins, source_audio, ref_image_size="none"):
+    """Replica of Viggle's RemakeConditioning on the AIO canvas: the source clip
+    as <Video 1>, each reference as <Picture N>, pins as keyframes on the output
+    timeline and the source soundtrack held as clean target audio. Returns the
+    positive conditioning, the AV latent and its noise mask (audio member 0)."""
+    want = length
+    nf = 5 + 17 * math.ceil((want - 5) / 17)   # render grid, >= want
+    if pins and not all(0 <= p < want for p in pins):
+        raise ValueError(f"[Star Minimax AIO] remake pins must be output frames in [0, {want})")
+
+    # the source on the output canvas: cover-cropped like Viggle's 16:9-class resize
+    source = source[..., :3]
+    if (source.shape[2], source.shape[1]) != (width, height):
+        source = comfy.utils.common_upscale(source.movedim(-1, 1), width, height,
+                                            "bicubic", "center").movedim(1, -1)
+    if source.shape[0] < want:
+        raise ValueError(f"[Star Minimax AIO] the remake source has {source.shape[0]} frames, "
+                         f"{want} needed - feed a longer clip")
+    if source.shape[0] < nf:
+        # pad to the render grid by repeating the last frames (the same pad
+        # Viggle uses for the VAE's causal tail); the padded tail is trimmed
+        # off the decoded output again
+        source = torch.cat([source, source[-1:].repeat(nf - source.shape[0], 1, 1, 1)])
+    else:
+        source = source[:nf]
+
+    # text only: one label per 2 fps block of the source, one per reference, then
+    # the prompt, each segment tokenized on its own and merged into one sequence
+    segments = ["<Video 1>: ", *["<%.1f seconds>" % s for s in _remake_stamps(nf)],
+                *["<Picture %d>: " % (i + 1) for i in range(len(refs))], prompt]
+    first = clip.tokenize(segments[0])
+    tk_key = next(iter(first))
+    merged = list(first[tk_key][0])
+    for s in segments[1:]:
+        merged += clip.tokenize(s)[tk_key][0]
+    cond = clip.encode_from_tokens_scheduled({tk_key: [merged]})
+
+    # references: the source, then the images at the canvas short edge (rounded to 32)
+    z = vae.encode(source)
+    blocks = [{"kind": "video", "latent_t": z.shape[2], "latent_h": height // 16,
+               "latent_w": width // 16, "ref_audio_t": 0, "latent": z, "audio_latent": None}]
+    se = min(width, height)
+    cap_px = _REF_SIZE_MP.get(ref_image_size)
+    for r in refs:
+        r = r[:1, ..., :3]
+        rh, rw = r.shape[1], r.shape[2]
+        th = max(CANVAS_MULTIPLE, round(rh * se / min(rh, rw) / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)
+        tw = max(CANVAS_MULTIPLE, round(rw * se / min(rh, rw) / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)
+        if cap_px is not None and th * tw > cap_px:
+            # bound the encoded reference area (VRAM + ref tokens)
+            s = math.sqrt(cap_px / (th * tw))
+            th = max(CANVAS_MULTIPLE, round(th * s / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)
+            tw = max(CANVAS_MULTIPLE, round(tw * s / CANVAS_MULTIPLE) * CANVAS_MULTIPLE)
+        r = r if (rh, rw) == (th, tw) else _resize(r, tw, th, "disabled")
+        blocks.append({"kind": "image", "latent_h": th // 16, "latent_w": tw // 16,
+                       "latent": vae.encode(r)})
+
+    # keyframes on the output canvas: the first stretched, the rest cover-cropped
+    keyframes = []
+    for i, (r, p) in enumerate(zip(refs, pins)):
+        r = r[:1, ..., :3]
+        if (r.shape[1], r.shape[2]) != (height, width):
+            r = _resize(r, width, height, "disabled") if i == 0 else _remake_cover(r, width, height)
+        keyframes.append({"resolved_frame_index": p, "latent": vae.encode(r)})
+    values = {"minimax_refs": blocks}
+    if keyframes:
+        values["minimax_keyframes"] = keyframes
+    cond = node_helpers.conditioning_set_values(cond, values)
+
+    # the soundtrack as clean target audio: nf/24 s, padded to (nf+1)/24 s, encoded,
+    # cut to the target's length
+    n = round((nf + 1) / FPS * AUDIO_SR)
+    wav = torch.zeros(2, n)
+    if source_audio is not None:
+        wav, sr = source_audio["waveform"][0].float(), source_audio["sample_rate"]
+        wav = wav.repeat(2, 1) if wav.shape[0] == 1 else wav[:2]
+        wav = wav[:, :round(nf / FPS * sr)]
+        wav = comfy.audio.resample(wav, sr, AUDIO_SR) if sr != AUDIO_SR else wav
+    wav = torch.nn.functional.pad(wav, (0, max(0, n - wav.shape[1])))[:, :n]
+    # zero-pad to whole 800-sample latent frames ourselves: VAE.encode would
+    # centre-crop instead, shifting the track by up to 400 samples
+    wav = torch.nn.functional.pad(wav, (0, -n % 800))
+    za = audio_vae.encode(wav[None].movedim(1, -1))[..., :round(nf / FPS * AUDIO_LATENT_FPS)]
+
+    # the target: video to generate, audio held clean (mask member 0)
+    video = torch.zeros(1, 24, (nf - 5) // 17 * 5 + 2, height // 16, width // 16,
+                        device=comfy.model_management.intermediate_device())
+    latent = {"samples": comfy.nested_tensor.NestedTensor((video, za))}
+    denoise_mask = comfy.nested_tensor.NestedTensor(
+        (torch.ones_like(video), torch.zeros_like(za)))
+    return cond, latent, denoise_mask
+
+
+def _remake_noise(latent, cond, seed):
+    """Viggle's RemakeNoise draw order: one CPU generator, drawn once per
+    reference and keyframe latent before the target's noise, so a seed gives
+    the same video as the reference script."""
+    c = cond[0][1]
+    skip = [b["latent"].shape
+            for b in c.get("minimax_refs", []) + c.get("minimax_keyframes", [])
+            if "latent" in b]
+    g = torch.Generator().manual_seed(seed)
+    for shape in skip:
+        torch.randn(shape, generator=g)
+    return comfy.nested_tensor.NestedTensor(
+        [torch.randn(t.shape, generator=g) for t in latent["samples"].unbind()])
+
+
+def _remake_keyframe_until(model, keyframe_until):
+    """Viggle's RemakeKeyframeUntil wrapper: forwards whose sigma is below the
+    cutoff drop the pinned keyframes and keep only the references."""
+    def release(executor, x, timestep, context, transformer_options, minimax_payload=None, **kwargs):
+        p = minimax_payload or {}
+        if p.get("keyframes") and float(timestep.flatten()[0]) / 1000 < keyframe_until:
+            refs = p.get("refs") or []
+            minimax_payload = dict(p, keyframes=None, layout=None,
+                                   cond_video_latents=[r["latent"] for r in refs if "latent" in r],
+                                   cond_audio_latents=[r["audio_latent"] for r in refs if r.get("audio_latent") is not None])
+        return executor(x, timestep, context, transformer_options,
+                        minimax_payload=minimax_payload, **kwargs)
+    m = model.clone()
+    m.add_wrapper_with_key(comfy.patcher_extension.WrappersMP.DIFFUSION_MODEL,
+                           "star_minimax_remake_keyframe_until", release)
+    return m
+
+
 class StarMinimaxAllInOne(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -378,6 +540,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
                                                     tooltip="Optional RefMod injection from a 'Star Ref Mod Option' node - appends Apply-H3-RefMod-style reference blocks (ComfyUI-MiniMaxH3Mod pack) to the internal conditioning, after the native reference blocks. Also carried into the upscale refine pass (resolution-matched)."),
                 io.Custom("MULTIREF_SETTINGS").Input("multiref_settings", optional=True,
                                                      tooltip="Optional timed keyframe references from a 'Star Minimax Multiref Option' node - reference images/clips anchored at their start seconds on the output timeline, exactly like a chain of core 'Add Guide for MiniMax H3' nodes. Works in video and image mode; the guides are also carried into the upscale refine pass (resolution-matched)."),
+                io.Custom("STAR_MINIMAX_REMAKE").Input("remake_settings", optional=True,
+                                                       tooltip="Optional Viggle-Remake mode from a '⭐ Star Minimax Remake Option' node - patches the swap/edit LoRA onto the model and runs the Viggle remake conditioning (source clip as <Video 1>, painted frames as <Picture N>, optional pins, source soundtrack kept). Video mode only; the node's own ref_image/ref_video/ref_audio inputs are then ignored."),
                 io.Custom("STAR_PREVIEW").Input("preview", optional=True,
                                                 tooltip="Optional live sampling preview from a '⭐ Star Preview' node - while this node is sampling, an animated preview of the video latent is shown on the Star Preview node (fixed: 512 px, quality 80, 8 fps)."),
                 io.Autogrow.Input("ref_images", optional=True,
@@ -496,11 +660,13 @@ class StarMinimaxAllInOne(io.ComfyNode):
         return sigmas[-(steps + 1):]
 
     @classmethod
-    def _run_upscale_pass(cls, model, cond, samples, seed, options, negative=None, cfg=1.0):
+    def _run_upscale_pass(cls, model, cond, samples, seed, options, negative=None, cfg=1.0,
+                          keep_audio_clean=False):
         """Second pass from a Star Minimax Latent Upscaler Option bundle:
         upscale the pass-1 video latent, keep the pass-1 audio latent, refine
         with the baked sigmas and the same (resolution-matched) conditioning,
-        reusing the pass-1 seed."""
+        reusing the pass-1 seed. keep_audio_clean (remake mode) additionally
+        masks the audio member so the held source soundtrack stays untouched."""
         model2 = options["model"] if options["model"] is not None else model
         video, audio = samples.unbind()
         video_up, scale = upscale_video_latent_3d(
@@ -510,12 +676,15 @@ class StarMinimaxAllInOne(io.ComfyNode):
                      scale, video_up.shape[-1], video_up.shape[-2],
                      options["sigmas_preset"], options["sampler_name"],
                      "" if options["model"] is not None else " | pass-1 model reused")
-        latent2 = {"samples": comfy.nested_tensor.NestedTensor(
-            (video_up.to(audio.device), audio))}
+        video_up = video_up.to(audio.device)
+        latent2 = {"samples": comfy.nested_tensor.NestedTensor((video_up, audio))}
+        denoise_mask = (comfy.nested_tensor.NestedTensor(
+            (torch.ones_like(video_up), torch.zeros_like(audio)))
+            if keep_audio_clean else None)
         cond2 = upscale_minimax_conditioning(cond, scale)
         return run_sample(model2, cond2, latent2, seed,
                           options["sampler_name"], options["sigmas"],
-                          negative=negative, cfg=cfg)
+                          negative=negative, cfg=cfg, denoise_mask=denoise_mask)
 
     # ------------------------------------------------------------------
     @classmethod
@@ -525,19 +694,38 @@ class StarMinimaxAllInOne(io.ComfyNode):
                 vae_name, audio_vae_name, audio_vae_precision, audio_vae_device, decode_video,
                 model_override=None, vae_override=None, sound_settings=None, sigmas=None, options=None,
                 ref_mod_settings=None, multiref_settings=None, preview=None,
-                ref_images=None, ref_videos=None, ref_video_audios=None,
+                remake_settings=None, ref_images=None, ref_videos=None, ref_video_audios=None,
                 ref_audios=None) -> io.NodeOutput:
 
         audio_only = (megapixels == "audio only")
         if mode == "video" and not audio_only and float(megapixels) > 2.0:
             raise ValueError("[Star Minimax AIO] megapixels above 2.0 are for image mode stills - "
                              "drop to 2.0 MP or less, or switch mode to 'image'.")
+        if remake_settings is not None and mode != "video":
+            raise ValueError("[Star Minimax AIO] remake_settings is video-only - "
+                             "switch mode to 'video'.")
 
         # 1. Resolution (ResolutionSelector, multiple = 32, optional image ratio match)
         #    same size logic in both modes
         width, height, matched = _resolve_dimensions(
             aspect_ratio, megapixels, match_ratio_from_image, ref_images)
         length = 1 if mode == "image" else _duration_to_length(duration)
+        remake_out = None
+        if remake_settings is not None and mode == "video":
+            # the render is padded up to the 17n+5 grid and trimmed back to the
+            # exact requested/source length at the output, so parts cut from a
+            # longer clip still join seamlessly - no frames are lost
+            src_frames = int(remake_settings["source"].shape[0])
+            if src_frames < 5:
+                raise ValueError(
+                    f"[Star Minimax AIO] the remake source has only {src_frames} "
+                    "frames - too short even for the smallest clip (5 frames).")
+            remake_out = min(max(5, round(duration * FPS)), src_frames)
+            length = 5 + 17 * math.ceil((remake_out - 5) / 17)
+            if length != remake_out:
+                logging.info("[Star Minimax AIO] remake render padded %d -> %d "
+                             "frames to the 17n+5 grid; output trimmed back to %d",
+                             remake_out, length, remake_out)
         logging.info("[Star Minimax AIO] %s mode | canvas %dx%d%s, %d frames (%.2fs @ 24fps)",
                      mode, width, height, " (ratio matched from image)" if matched else "",
                      length, length / FPS)
@@ -561,11 +749,43 @@ class StarMinimaxAllInOne(io.ComfyNode):
         audio_vae = (cls._load_audio_vae(audio_vae_name, audio_vae_precision, audio_vae_device)
                      if mode == "video" or has_audio_refs or audio_only else None)
 
-        # 3. Reference conditioning + empty AV latent (MiniMaxH3ReferenceToVideo)
-        cond, latent = _build_conditioning(
-            clip, vae, audio_vae, prompt, width, height, length, ref_image_size,
-            ref_images, ref_videos, ref_video_audios, ref_audios,
-            image_mode=(mode == "image"))
+        # 2b. Viggle-Remake mode: patch the swap/edit LoRA onto the model
+        #     (bypass-style patches, like LoraLoaderBypassModelOnly) and wrap it
+        #     with the keyframe-release when pins are given.
+        if remake_settings is not None:
+            lora_path = folder_paths.get_full_path_or_raise("loras", remake_settings["lora"])
+            lora_sd = comfy.utils.load_torch_file(lora_path, safe_load=True)
+            model, _ = comfy.sd.load_lora_for_models(
+                model, None, lora_sd, remake_settings["lora_strength"], 0)
+            if remake_settings["pins"]:
+                model = _remake_keyframe_until(model, remake_settings["keyframe_until"])
+            logging.info("[Star Minimax AIO] remake mode: LoRA '%s' @ %.2f | %d ref(s) <= %s | pins %s",
+                         remake_settings["lora"], remake_settings["lora_strength"],
+                         len(remake_settings["refs"]),
+                         remake_settings.get("ref_image_size") or "none",
+                         remake_settings["pins"] or "none")
+
+        # 3. Reference conditioning + empty AV latent (MiniMaxH3ReferenceToVideo),
+        #    or the Viggle remake conditioning when remake_settings is connected
+        remake_mask = remake_noise = None
+        if remake_settings is not None:
+            cond, latent, remake_mask = _build_remake_conditioning(
+                clip, vae, audio_vae, prompt, width, height, remake_out,
+                remake_settings["source"], remake_settings["refs"],
+                remake_settings["pins"], remake_settings["audio"],
+                remake_settings.get("ref_image_size") or "none")
+            remake_noise = _remake_noise(latent, cond, seed)
+            if (any(v is not None for v in (ref_images or {}).values())
+                    or any(v is not None for v in (ref_videos or {}).values())
+                    or any(v is not None for v in (ref_video_audios or {}).values())
+                    or any(v is not None for v in (ref_audios or {}).values())):
+                logging.warning("[Star Minimax AIO] remake_settings connected - the node's own "
+                                "ref_image/ref_video/ref_audio inputs are ignored")
+        else:
+            cond, latent = _build_conditioning(
+                clip, vae, audio_vae, prompt, width, height, length, ref_image_size,
+                ref_images, ref_videos, ref_video_audios, ref_audios,
+                image_mode=(mode == "image"))
 
         # 3b. Optional ref-mods from a Star Ref Mod Option node - appended after
         #     the native refs, exactly like Apply H3 RefMod on built CONDITIONING
@@ -600,7 +820,8 @@ class StarMinimaxAllInOne(io.ComfyNode):
         if sigmas is None:
             sigmas = cls._get_sigmas(model, scheduler, steps, denoise)
         sample_model = apply_star_preview(model, preview) if preview is not None else model
-        samples = run_sample(sample_model, cond, latent, seed, sampler_name, sigmas)
+        samples = run_sample(sample_model, cond, latent, seed, sampler_name, sigmas,
+                             denoise_mask=remake_mask, noise=remake_noise)
 
         # 4b. Optional second pass: latent upscale + refine (Star Minimax Latent Upscaler Option)
         samples_pass1 = samples
@@ -608,13 +829,16 @@ class StarMinimaxAllInOne(io.ComfyNode):
         if options is not None and audio_only:
             logging.info("[Star Minimax AIO] 'audio only' mode - upscale options ignored")
         if ran_pass2:
-            samples = cls._run_upscale_pass(sample_model, cond, samples, seed, options)
+            samples = cls._run_upscale_pass(sample_model, cond, samples, seed, options,
+                                            keep_audio_clean=remake_settings is not None)
 
         # 5. Decode (VAEDecode + VAEDecodeAudio)
         #    image mode: single-frame still decode (5-frame group, keep pixel frame 3)
         #    decode_video off: skip the video VAE decode - latent + audio outputs only
         if decode_video:
             images = decode_still(vae, samples) if mode == "image" else _decode_video(vae, samples)
+            if remake_out is not None and images.shape[0] > remake_out:
+                images = images[:remake_out]   # drop the padded grid tail
         else:
             images = None
             logging.info("[Star Minimax AIO] video VAE decode disabled - latent and audio outputs only")
@@ -622,6 +846,10 @@ class StarMinimaxAllInOne(io.ComfyNode):
             audio = {"waveform": torch.zeros([1, 2, 4410]), "sample_rate": 44100}
         else:
             audio_samples = samples_pass1 if (ran_pass2 and not options["upscale_pass_audio"]) else samples
+            if remake_out is not None:   # drop the padded grid tail
+                av, za = audio_samples.unbind()
+                audio_samples = comfy.nested_tensor.NestedTensor(
+                    (av, za[..., :round(remake_out / FPS * AUDIO_LATENT_FPS)]))
             audio = decode_audio(audio_vae, audio_samples)
             if sound_settings is not None:
                 logging.info("[Star Minimax AIO] applying sound enricher settings to the audio output")

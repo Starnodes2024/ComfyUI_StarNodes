@@ -20,9 +20,15 @@ The frontend adds a "Load Video" button: it probes the selected file without
 running the workflow (/starnodes/video_loader/info), shows an inline preview
 and sets the start_frame/end_frame slider ranges - the cut is applied to
 frames and audio when the workflow runs.
+
+A "Crop" button opens a dialog with a scrub slider: draw a box over the
+frame and Apply stores it in the crop_rect widget as 'x,y,w,h' fractions of
+the source frame. The crop runs inside ffmpeg, so the images output is
+already cropped - smaller output also means faster decoding and less RAM.
 """
 
 import io
+import math
 import os
 import wave
 
@@ -32,6 +38,23 @@ import torch
 import folder_paths
 
 from comfy_api.latest import VideoFromFile
+
+_RESIZE_MODES = ["original", "0.5 MP", "1.0 MP", "1.5 MP", "2.0 MP", "3.0 MP",
+                 "HD (1280x720)", "Full HD (1920x1080)"]
+
+
+def _resize_dims(width, height, mode):
+    """Output resolution for the resize widget: MP presets scale the frame to
+    that pixel area, HD/Full HD fit it inside the box - aspect-preserved,
+    rounded to even sizes."""
+    if mode == "original":
+        return width, height
+    if "(" in mode:
+        bw, bh = (int(v) for v in mode.split("(", 1)[1].rstrip(")").split("x"))
+        s = min(bw / width, bh / height)
+    else:
+        s = math.sqrt(float(mode.split()[0]) * 1e6 / (width * height))
+    return max(2, int(width * s) // 2 * 2), max(2, int(height * s) // 2 * 2)
 
 from .star_nodes_common import (
     ProgressReporter,
@@ -96,25 +119,52 @@ class StarVideoLoader:
                                "Click the Load button to probe the video "
                                "and preview the cut point."}),
             },
+            "optional": {
+                "crop_rect": ("STRING", {
+                    "default": "",
+                    "tooltip": "Crop region as 'x,y,w,h' fractions of the "
+                               "source frame (0-1), e.g. 0.1,0.2,0.8,0.6. "
+                               "Set it with the Crop button on the node. "
+                               "Empty = full frame."}),
+                "resize": (_RESIZE_MODES, {
+                    "default": "original",
+                    "tooltip": "Resize the decoded output frames after "
+                               "cropping: a megapixel target (scales to that "
+                               "pixel area) or an HD/Full HD box (fits inside "
+                               "it) - aspect preserved, sizes rounded to "
+                               "even. 'original' keeps the source/crop size."}),
+                "minimax_snap": ("BOOLEAN", {
+                    "default": False,
+                    "label_on": "17n+5 grid", "label_off": "free",
+                    "tooltip": "Snap the output to the MiniMax H3 17n+5 frame "
+                               "grid (5, 22, 39, 56, ... frames): the trim "
+                               "sliders and start/end fields only produce "
+                               "lengths a Minimax node renders without "
+                               "padding. A non-aligned tail is unusable "
+                               "anyway, so nothing is lost. Off = free "
+                               "cutting."}),
+            },
             "hidden": {"unique_id": "UNIQUE_ID"},
         }
 
     RETURN_TYPES = ("STAR_FILENAMES", "IMAGE", "AUDIO", "FLOAT", "INT",
-                    "STRING", "VIDEO")
+                    "STRING", "VIDEO", "FLOAT")
     RETURN_NAMES = ("video", "images", "audio", "fps", "frames", "info",
-                    "video_native")
+                    "video_native", "seconds")
     FUNCTION = "load"
     CATEGORY = "⭐StarNodes/Video"
     OUTPUT_NODE = True
     DESCRIPTION = ("Load a video from the ComfyUI input folder: file "
                    "reference for the Star Video Compressor, decoded "
-                   "frames (IMAGE), audio (AUDIO), fps and frame count.")
+                   "frames (IMAGE), audio (AUDIO), fps, frame count and "
+                   "duration in seconds.")
 
     # ------------------------------------------------------------------
 
     def load(self, video, force_rate="original", skip_first_frames=0,
              select_every_kth=1, frame_load_cap=0, start_frame=0,
-             end_frame=0, unique_id=None):
+             end_frame=0, crop_rect="", resize="original",
+             minimax_snap=False, unique_id=None):
         path = folder_paths.get_annotated_filepath(video)
         if not os.path.exists(path):
             raise FileNotFoundError(
@@ -135,6 +185,26 @@ class StarVideoLoader:
             fr = 0.0
         eff_fps = (fr if fr > 0 else src_fps) / max(1, int(select_every_kth))
 
+        # ---- crop rect (fractions of the source frame -> pixels) --------
+        crop = None
+        rect = (crop_rect or "").strip()
+        if rect:
+            try:
+                fx, fy, fw, fh = [
+                    float(v) for v in rect.split(",")[:4]]
+            except (TypeError, ValueError):
+                raise ValueError(
+                    "Star Video Loader: crop_rect must be 'x,y,w,h' "
+                    f"fractions of the frame, got '{rect}'")
+            x0 = max(0, min(int(round(fx * w)), w - 1))
+            y0 = max(0, min(int(round(fy * h)), h - 1))
+            x1 = max(x0 + 1, min(int(round((fx + fw) * w)), w))
+            y1 = max(y0 + 1, min(int(round((fy + fh) * h)), h))
+            if x1 - x0 < w or y1 - y0 < h:
+                crop = (x0, y0, x1 - x0, y1 - y0)
+        out_w = crop[2] if crop else w
+        out_h = crop[3] if crop else h
+
         units = 2 if info.get("acodec") else 1
         reporter = ProgressReporter(total_units=units, label="loading",
                                     event_cb=make_event_cb(unique_id))
@@ -147,6 +217,12 @@ class StarVideoLoader:
             vf.append(f"fps={fr:g}")
         if select_every_kth and int(select_every_kth) > 1:
             vf.append(f"select='not(mod(n\\,{int(select_every_kth)}))'")
+        if crop:
+            vf.append(f"crop={crop[2]}:{crop[3]}:{crop[0]}:{crop[1]}")
+        tw, th = _resize_dims(out_w, out_h, resize)
+        if (tw, th) != (out_w, out_h):
+            vf.append(f"scale={tw}:{th}")
+            out_w, out_h = tw, th
         args = ["-i", path]
         if vf:
             args += ["-vf", ",".join(vf)]
@@ -156,13 +232,13 @@ class StarVideoLoader:
                               reporter=reporter, sub="decoding frames")
         reporter.finish_unit()
 
-        frame_size = w * h * 3
+        frame_size = out_w * out_h * 3
         n = len(raw) // frame_size
         if n == 0:
             raise RuntimeError("Star Video Loader: no frames were decoded "
                                "from this video.")
         arr = np.frombuffer(raw[:n * frame_size],
-                            dtype=np.uint8).reshape(n, h, w, 3)
+                            dtype=np.uint8).reshape(n, out_h, out_w, 3)
         decoded = n
 
         if skip_first_frames:
@@ -177,6 +253,10 @@ class StarVideoLoader:
             trimmed = f", trimmed {start}-{end}"
         if frame_load_cap and frame_load_cap > 0:
             arr = arr[:int(frame_load_cap)]
+        if minimax_snap and arr.shape[0] > 5:
+            # keep the output on the MiniMax 17n+5 grid so a Minimax node can
+            # render it without padding - a non-aligned tail is unusable anyway
+            arr = arr[:5 + 17 * ((arr.shape[0] - 5) // 17)]
         if arr.shape[0] == 0:
             raise RuntimeError(
                 "Star Video Loader: skip_first_frames/start_frame/end_frame/"
@@ -224,6 +304,9 @@ class StarVideoLoader:
         info_str = (
             f"{os.path.basename(path)} | {fmt_media_brief(info)}\n"
             f"frames: {loaded} loaded"
+            + (f" | crop {crop[2]}x{crop[3]}" if crop else "")
+            + (f" | resize {out_w}x{out_h}" if resize != "original" else "")
+            + (" | 17n+5 snap" if minimax_snap else "")
             + (
                 f" (decoded {decoded}{trimmed}, source ~{est_total} @ {src_fps:g} fps)"
                 if decoded != loaded or est_total != decoded
@@ -242,21 +325,24 @@ class StarVideoLoader:
         # The inline preview is filled by the frontend via the Load button
         # (see web/js/star_video_compressor.js) - no workflow run needed.
         return {"result": ((True, [path]), images, audio_out,
-                           float(eff_fps), loaded, info_str, native_video)}
+                           float(eff_fps), loaded, info_str, native_video,
+                           loaded / eff_fps)}
 
     # ------------------------------------------------------------------
 
     @classmethod
     def IS_CHANGED(cls, video, force_rate="original", skip_first_frames=0,
                    select_every_kth=1, frame_load_cap=0, start_frame=0,
-                   end_frame=0, **kwargs):
+                   end_frame=0, crop_rect="", resize="original",
+                   minimax_snap=False, **kwargs):
         try:
             mtime = os.path.getmtime(
                 folder_paths.get_annotated_filepath(video))
         except OSError:
             mtime = float("nan")
         return f"{mtime}-{force_rate}-{skip_first_frames}-" \
-               f"{select_every_kth}-{frame_load_cap}-{start_frame}-{end_frame}"
+               f"{select_every_kth}-{frame_load_cap}-{start_frame}-{end_frame}-" \
+               f"{crop_rect}-{resize}-{minimax_snap}"
 
     @classmethod
     def VALIDATE_INPUTS(cls, video, **kwargs):

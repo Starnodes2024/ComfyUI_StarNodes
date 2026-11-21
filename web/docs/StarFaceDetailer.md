@@ -36,7 +36,7 @@ A missing encoder is downloaded automatically from [Comfy-Org/WeVisOne-VL](https
 - **positive / negative** (`CONDITIONING`) — reuse the generation's conditioning (overrides the prompt text; a console note tells you when this happens)
 - **prompt_refiner** — any text encoder: VL models (Qwen3-VL, Qwen3.5, WeVisOne, Gemma) look at each crop and write a short per-face prompt combined with your prompt text; non-VL models refine the prompt text only. Printed to the console per face
 - **face_prompts** (`STAR_FACE_PROMPTS`) — from ⭐ Star Multi Face Details: per-face custom prompts, per-face LoRAs with strength, and per-face skipping
-- **reference_image** — identity swap for Qwen Image 2.1 / Fibo2 / MOSS Image Edit (denoise 0.75–1.0; color match switches to whole-crop mode)
+- **reference_image** — identity swap for Qwen Image 2.1 / Fibo2 / MOSS Image Edit (denoise 0.75–1.0; color match switches to whole-crop mode). For Qwen 2.1 each detected face crop is sent to the model as **image_1** and your reference as **image_2** — the model sees both the face it is editing and the identity source, so prompts like *"give the person in image1 the face of the person in image2"* work as in native edit workflows
 - **preview** (`STAR_PREVIEW`) — live sampling preview via ⭐ Star Preview
 
 ## ⭐ Star Multi Face Details

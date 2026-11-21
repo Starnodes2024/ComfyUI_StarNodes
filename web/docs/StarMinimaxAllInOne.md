@@ -63,6 +63,11 @@ duration math → `MiniMaxH3ReferenceToVideo` conditioning → `RandomNoise` →
   specific frames of the output timeline — the multi-frame / keyframe path
   of the stock template (the chained *Add Guide for MiniMax H3* nodes),
   with one start-time-in-seconds widget per connected reference.
+- **🎭 Optional Viggle-Remake mode** — connect a ⭐ Star Minimax Remake
+  Option node to `remake_settings` to run the Viggle-Remake LoRAs
+  (swap/edit) with the full remake conditioning in-process: the source
+  clip as `<Video 1>`, painted frames as `<Picture N>`, optional frame
+  pins and the source soundtrack kept in the output. Video mode only.
 - **📊 Live readout + animated progress bar** — a readout line under the widgets
   shows the resolved `width × height • MP • frames`; an animated DOM progress
   bar appears during execution (indeterminate shimmer while models load and
@@ -92,6 +97,7 @@ models/vae/minimax_h3_audio_vae_fp32.safetensors
 | `options` | UPSCALE_SETTINGS | optional — from a ⭐ Star Minimax Latent Upscaler Option node; runs a second-pass latent upscale + refine. Ignored when `megapixels` is `audio only` |
 | `ref_mod_settings` | REF_MOD_SETTINGS | optional — from a ⭐ Star Ref Mod Option node; appends RefMod reference blocks (ComfyUI-MiniMaxH3Mod pack, *Apply H3 RefMod* behavior) to the internal conditioning after the native references |
 | `multiref_settings` | MULTIREF_SETTINGS | optional — from a ⭐ Star Minimax Multiref Option node; anchors reference images/clips at their start seconds on the output timeline (core *Add Guide for MiniMax H3* behavior) |
+| `remake_settings` | STAR_MINIMAX_REMAKE | optional — from a ⭐ Star Minimax Remake Option node; Viggle-Remake mode — patches the swap/edit LoRA onto the model and runs the Viggle remake conditioning (source clip `<Video 1>`, painted frames `<Picture N>`, pins, kept soundtrack). Video mode only; the node's own `ref_*` inputs are then ignored |
 | `ref_image_0…8` | IMAGE | up to 9 reference images, slots expand automatically when connected |
 | `ref_video_0…2` | IMAGE | up to 3 reference videos (frames @ 24 fps) |
 | `ref_video_audio_0…2` | AUDIO | soundtrack paired to the same-numbered reference video |
@@ -201,3 +207,22 @@ one appears.
   part of the `<Picture i>` reference ordering. They work in both modes and
   are brought along (resolution-matched) into the optional upscale refine
   pass.
+- With a ⭐ Star Minimax Remake Option connected (`remake_settings`), the node
+  switches into Viggle-Remake mode (video mode only): the selected LoRA is
+  patched onto the diffusion model bypass-style (patches, not merged — the
+  same quality as *LoraLoaderBypassModelOnly*), and the internal conditioning
+  is replaced by the Viggle remake conditioning — the source clip as
+  `<Video 1>`, the painted frames as `<Picture 1>` … `<Picture 4>`, each pin
+  as a keyframe on the output timeline (released below the `keyframe_until`
+  sigma), the source soundtrack held clean (mask 0) so it passes through
+  unchanged, and the starting noise drawn in the reference script's order so
+  a seed reproduces the same video. The node's own `ref_image` / `ref_video`
+  / `ref_audio` inputs are ignored in this mode. `duration` acts as a cap:
+  the output is the smaller of the requested duration and the source clip
+  length, rendered on the `17n+5` grid by repeating the source's last frames
+  and then **trimmed back to the exact frame count** — parts cut from a
+  longer clip join seamlessly, audio included (wiring the loader's `seconds`
+  output into `duration` always yields the full clip). The source is
+  cover-cropped onto the `aspect_ratio` × `megapixels` canvas. RefMod blocks
+  and multiref guides still apply on top; a latent-upscale refine pass keeps
+  the soundtrack clean as well.

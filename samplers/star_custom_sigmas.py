@@ -4,12 +4,14 @@ import re
 import torch
 
 
-# Baked Qwen Image 2.1 Turbo flow-match schedules. "Custom" uses the sigmas text field.
+# Baked Qwen Image 2.1 Turbo flow-match schedules, plus the Viggle-Remake
+# reference schedule for MiniMax H3. "Custom" uses the sigmas text field.
 SIGMA_PRESETS = {
     "QI 2.1 Turbo- 8 Steps": "1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0",
     "QI 2.1 Turbo- 10 Steps": "1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.870114, 0.845148, 0.704534, 0.559551, 0.414568, 0.0",
     "QI 2.1 Turbo- 12 Steps": "1.0, 0.985635, 0.970362, 0.95418, 0.935811, 0.916111, 0.89508, 0.861792, 0.798277, 0.704534, 0.511223, 0.276379, 0.0",
     "QI 2.1 Turbo- 16 Steps": "1.0, 0.989227, 0.978453, 0.966317, 0.954180, 0.940403, 0.926626, 0.910853, 0.895080, 0.870114, 0.845148, 0.774841, 0.704534, 0.559551, 0.414568, 0.207284, 0.0",
+    "Viggle Reference 6 Steps": "1.0, 0.990476, 0.965243, 0.923077, 0.8, 0.631579, 0.0",
 }
 CUSTOM = "Custom"
 
@@ -40,7 +42,7 @@ class StarCustomSigmas:
                     list(SIGMA_PRESETS.keys()) + [CUSTOM],
                     {
                         "default": "QI 2.1 Turbo- 8 Steps",
-                        "tooltip": "Baked QI 2.1 Turbo sigma schedule: 8/10/12/16 steps, or 'Custom' to use the sigmas text field as-is.",
+                        "tooltip": "Baked sigma schedule: QI 2.1 Turbo 8/10/12/16 steps or the Viggle-Remake reference 6 steps (for MiniMax H3 remake runs), or 'Custom' to use the sigmas text field as-is.",
                     },
                 ),
                 "sigmas": (

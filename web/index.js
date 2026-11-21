@@ -15,4 +15,5 @@ import "./js/star_minimax_aio.js";
 import "./js/star_preview.js";
 import "./js/star_json_preview.js";
 import "./js/star_regional_spatial_lora_canvas.js";
+import "./js/star_model_loader.js";
 

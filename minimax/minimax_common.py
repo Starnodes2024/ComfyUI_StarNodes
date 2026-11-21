@@ -17,12 +17,15 @@ class GuiderBasic(comfy.samplers.CFGGuider):
         self.inner_set_conds({"positive": positive})
 
 
-def run_sample(model, cond, latent, seed, sampler_name, sigmas, negative=None, cfg=1.0, denoise_mask=None):
+def run_sample(model, cond, latent, seed, sampler_name, sigmas, negative=None, cfg=1.0,
+               denoise_mask=None, noise=None):
     """RandomNoise + BasicGuider + KSamplerSelect + SamplerCustomAdvanced, in-process.
     With a negative conditioning connected this becomes a real CFGGuider at the
     given cfg scale (at cfg 1.0 the negative is ignored by the sampler anyway).
     A nested denoise_mask matching the AV latent's members runs H3's native
-    inpaint path (per-token rows at mask * sigma, clean source re-injected)."""
+    inpaint path (per-token rows at mask * sigma, clean source re-injected).
+    A pre-generated noise tensor replaces RandomNoise (remake mode draws the
+    seed in the Viggle reference script's order)."""
     if negative is not None:
         guider = comfy.samplers.CFGGuider(model)
         guider.set_conds(cond, negative)
@@ -40,7 +43,8 @@ def run_sample(model, cond, latent, seed, sampler_name, sigmas, negative=None, c
     latent["samples"] = latent_image
 
     batch_inds = latent["batch_index"] if "batch_index" in latent else None
-    noise = comfy.sample.prepare_noise(latent_image, seed, batch_inds)
+    if noise is None:
+        noise = comfy.sample.prepare_noise(latent_image, seed, batch_inds)
 
     x0_output = {}
     callback = latent_preview.prepare_callback(

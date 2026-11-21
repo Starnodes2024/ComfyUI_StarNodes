@@ -299,7 +299,7 @@ def _resize_image(image, width, height):
     return comfy.utils.common_upscale(image.detach().permute(0, 3, 1, 2), width, height, "lanczos", "disabled").permute(0, 2, 3, 1)
 
 
-def _reference_conditioning(model, clip, vae, prompt, negative_prompt, reference_image, guide_size):
+def _reference_conditioning(model, clip, vae, prompt, negative_prompt, reference_image, guide_size, target_image=None):
     if guide_size <= 0:
         guide_size = 512
     reference = comfy.utils.common_upscale(
@@ -317,8 +317,15 @@ def _reference_conditioning(model, clip, vae, prompt, negative_prompt, reference
         positive = TextEncodeMOSSImageEdit.execute(clip, prompt, "ai-toolkit", images, vae=vae)[0]
         negative = TextEncodeMOSSImageEdit.execute(clip, negative_prompt, "ai-toolkit", images, vae=vae)[0]
     elif model_type == "QwenImage21":
-        positive = TextEncodeQwenImage21.execute(clip, prompt, negative_prompt, vae=vae, resolution=guide_size, images={"image_1": reference})[0]
-        negative = TextEncodeQwenImage21.execute(clip, negative_prompt, "", vae=vae, resolution=guide_size, images={"image_1": reference})[0]
+        # Qwen 2.1 resizes references preserving aspect ratio (unlike Fibo2's
+        # center crop) - a square center crop can cut the face off portrait
+        # references, which looks like the reference is ignored.
+        # image_1 is the face crop being edited, image_2 the identity
+        # reference, matching the native multi-image edit convention.
+        reference = reference_image[:1]
+        images = {"image_1": target_image, "image_2": reference} if target_image is not None else {"image_1": reference}
+        positive = TextEncodeQwenImage21.execute(clip, prompt, negative_prompt, vae=vae, resolution=guide_size, images=images)[0]
+        negative = TextEncodeQwenImage21.execute(clip, negative_prompt, "", vae=vae, resolution=guide_size, images=images)[0]
     else:
         raise ValueError(f"reference_image needs a Fibo2, MOSS Image Edit or Qwen Image 2.1 compatible model, not {model_type}")
     logging.info(f"[Star Face Detailer] reference identity conditioning enabled ({model_type})")
@@ -365,7 +372,7 @@ def detail_image(image, model, vae, positive, negative, seed, steps, cfg,
                  sampler_name, scheduler, denoise, detector_model=DEFAULT_DETECTOR,
                  guide_size=512, crop_factor=3.0, feather=16,
                  clip=None, prompt="", prompt_refiner=None, target="face", face_prompts=None,
-                 color_match=1.0, reference_mode=False):
+                 color_match=1.0, reference_mode=False, reference_image=None, negative_prompt=""):
     image = image.clone()
     _b, height, width, _c = image.shape
     # Union of the soft ellipse masks of all detected faces (matches what is
@@ -395,8 +402,16 @@ def detail_image(image, model, vae, positive, negative, seed, steps, cfg,
                 if lora is not None:
                     face_model = _model_with_lora(model, *lora)
                     print(f"[Star Face Detailer] {target} {index + 1} LoRA: {lora[0]} (strength {lora[1]:g})", flush=True)
-            face_positive = positive
-            if prompt_refiner is not None:
+            face_positive, face_negative = positive, negative
+            if reference_mode:
+                # Per-face: the crop is image_1 (what gets edited), the
+                # reference image_2 (whose identity) - also keeps per-face
+                # custom prompts inside the reference conditioning.
+                face_positive, face_negative = _reference_conditioning(
+                    face_model, clip, vae, base_prompt, negative_prompt,
+                    reference_image, guide_size,
+                    target_image=image[batch:batch + 1, top:bottom, left:right])
+            elif prompt_refiner is not None:
                 face_prompt = _refine_face_prompt(prompt_refiner, image[batch:batch + 1, top:bottom, left:right], base_prompt, target)
                 print(f"[Star Face Detailer] {target} {index + 1} refined prompt: {face_prompt}", flush=True)
                 face_positive = CLIPTextEncode().encode(clip, face_prompt)[0]
@@ -404,7 +419,7 @@ def detail_image(image, model, vae, positive, negative, seed, steps, cfg,
                 print(f"[Star Face Detailer] {target} {index + 1} custom prompt: {custom}", flush=True)
                 face_positive = CLIPTextEncode().encode(clip, custom)[0]
             image[batch:batch + 1] = _detail_one(
-                image[batch:batch + 1], box, face_model, vae, face_positive, negative,
+                image[batch:batch + 1], box, face_model, vae, face_positive, face_negative,
                 seed + detailed + index, steps, cfg, sampler_name, scheduler,
                 denoise, guide_size, crop_factor, feather, seg=seg, color_match=color_match,
                 whole_color=reference_mode)
@@ -501,7 +516,7 @@ class StarFaceDetailer:
                 "color_match": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.05, "tooltip": "Per-channel mean/std color transfer before blending, anchoring the refined region to the original tonality. Normal refinement: statistics inside the face mask (keeps the original complexion). With reference_image connected: statistics over the whole crop including hair/background, harmonizing the swap's lighting without recoloring the new identity. 1.0 = full correction, 0.5 = half, 0 = off."}),
                 "prompt_refiner": (["none"] + _refiner_files(), {"default": "none", "tooltip": "Optional per-face prompt refinement with any text encoder from models/text_encoders. VL encoders (Qwen3-VL, Qwen3.5, WeVisOne, Gemma...) look at each face crop and write a short prompt for that exact face combined with your prompt text; encoders without image support refine your prompt text only. The refined prompt overrides the positive conditioning per face and is printed to the console. The encoder stays loaded after first use. Ignored when reference_image is connected."}),
                 "face_prompts": ("STAR_FACE_PROMPTS", {"tooltip": "Optional ⭐ Star Multi Face Details: custom prompts for up to 5 faces/objects plus per-face skipping, matched in detection order (left to right, top to bottom). A slot's prompt overrides the general prompt for that face - and is also used as the user instructions for the prompt refiner when that is enabled. Empty slots fall back to the general prompt; skipped faces are left completely unrefined (and excluded from the mask output)."}),
-                "reference_image": ("IMAGE", {"tooltip": "Optional identity reference for Fibo2, MOSS Image Edit or Qwen Image 2.1. Use a swap prompt and denoise 0.75-1.0 for face replacement."}),
+                "reference_image": ("IMAGE", {"tooltip": "Optional identity reference for Fibo2, MOSS Image Edit or Qwen Image 2.1. For Qwen 2.1 the detected face crop is sent to the model as image_1 and this reference as image_2, so prompts like 'give the person in image1 the face of the person in image2' work. Use a swap prompt and denoise 0.75-1.0 for face replacement."}),
                 "positive": ("CONDITIONING", {"tooltip": "Optional: reuse the generation's positive conditioning (e.g. from your main prompt encode) so faces keep the subject/style context. Overrides the prompt text."}),
                 "negative": ("CONDITIONING", {"tooltip": "Optional: reuse the generation's negative conditioning. Overrides the negative_prompt text."}),
                 "preview": ("STAR_PREVIEW", {"tooltip": "Optional ⭐ Star Preview options - shows a live sampling preview on the connected ⭐ Star Preview node (comfyui_starnodes pack)."}),
@@ -555,7 +570,8 @@ class StarFaceDetailer:
                             guide_size, crop_factor, feather,
                             clip=clip, prompt=prompt, prompt_refiner=refiner, target=target,
                             face_prompts=face_prompts, color_match=color_match,
-                            reference_mode=reference_image is not None)
+                            reference_mode=reference_image is not None,
+                            reference_image=reference_image, negative_prompt=negative_prompt)
 
 
 class StarMultiFaceDetails:
